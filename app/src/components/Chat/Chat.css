@@ -1,0 +1,375 @@
+/* анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(20px) scale(0.98);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+@keyframes slideOut {
+    from {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(20px) scale(0.98);
+        opacity: 0;
+    }
+}
+@keyframes newMessageAnimation {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* оверлей для чата */
+.chat-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(33, 37, 41, 0.6);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.chat-popup-overlay.closing {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* контейнер всплывающего окна чата */
+.chat-popup-container {
+    display: flex;
+    width: 90%;
+    max-width: 650px;
+    height: 80vh;
+    max-height: 700px;
+    overflow: hidden;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    flex-direction: column;
+    animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.chat-popup-container.closing {
+    animation: slideOut 0.3s ease-out forwards;
+}
+
+/* шапка чата */
+.chat-popup-header {
+    display: flex;
+    padding: 18px 25px;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-popup-header h3 {
+    margin: 0;
+    color: #212529;
+    font-size: 1.2em;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* кнопка закрытия чата */
+.chat-close-button {
+    padding: 5px;
+    border: none;
+    background: transparent;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.chat-close-button:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.chat-close-button svg {
+    width: 24px;
+    height: 24px;
+    fill: #495057;
+}
+
+/* область для сообщений */
+.chat-popup-messages {
+    display: flex;
+    gap: 15px;
+    flex-grow: 1;
+    padding: 25px;
+    overflow-y: auto;
+    flex-direction: column;
+}
+
+.chat-popup-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-popup-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-popup-messages::-webkit-scrollbar-thumb {
+    background-color: #dee2e6;
+    border-radius: 10px;
+}
+
+.message-bubble-wrapper {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+
+.message-bubble-wrapper.new-message {
+    animation: newMessageAnimation 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* выравнивание своих сообщений */
+.my-message {
+    align-items: flex-end;
+}
+
+/* выравнивание чужих сообщений */
+.other-message {
+    align-items: flex-start;
+}
+
+/* пузырек с текстом сообщения */
+.message-bubble {
+    position: relative;
+    padding: 12px 18px;
+    max-width: 78%;
+    overflow: hidden;
+    border-radius: 20px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    transition: filter 0.3s ease;
+}
+
+.my-message .message-bubble {
+    color: white;
+    background-color: #d35400;
+    border-bottom-right-radius: 6px;
+}
+
+.other-message .message-bubble {
+    color: #212529;
+    background-color: #f1f3f5;
+    border-bottom-left-radius: 6px;
+}
+
+/* эффект затемнения при наведении */
+.message-bubble:hover {
+    filter: brightness(92%);
+}
+
+.other-message .message-bubble:hover {
+    filter: brightness(95%);
+}
+
+/* эффект светового пятна при наведении */
+.message-bubble::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    left: var(--mouse-x);
+    top: var(--mouse-y);
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.my-message .message-bubble::before {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.other-message .message-bubble::before {
+    background-color: rgba(0, 0, 0, 0.07);
+}
+
+.message-bubble:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* контент внутри пузырька */
+.message-sender,
+.message-text,
+.message-time {
+    position: relative;
+    z-index: 1;
+}
+
+.message-sender {
+    margin-bottom: 5px;
+    color: #495057;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.my-message .message-sender {
+    display: none;
+}
+
+.message-text {
+    font-size: 1em;
+}
+
+.message-time {
+    display: block;
+    margin-top: 6px;
+    opacity: 0.7;
+    font-size: 0.78em;
+    text-align: right;
+}
+
+.my-message .message-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.other-message .message-time {
+    color: #6c757d;
+}
+
+/* форма для ввода сообщения */
+.chat-popup-input-form {
+    display: flex;
+    gap: 15px;
+    padding: 15px 25px;
+    border-top: 1px solid #e9ecef;
+    background-color: #fff;
+    align-items: center;
+}
+
+.chat-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+    padding-bottom: 8px;
+    cursor: text;
+}
+
+/* нижняя линия поля ввода */
+.chat-input-wrapper::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+}
+
+.chat-input-wrapper::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #d35400;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.chat-input-wrapper:focus-within::after {
+    transform: scaleX(1);
+}
+
+.chat-popup-input-form input {
+    width: 100%;
+    padding: 4px 2px;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: #212529;
+    font-size: 1.05em;
+}
+
+/* кнопка отправки сообщения */
+.chat-submit-btn {
+    position: relative;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: #d35400;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.3s ease;
+}
+
+.chat-submit-btn:hover {
+    background-color: #b84a00;
+    transform: scale(1.05);
+}
+
+.chat-submit-btn:active {
+    transform: scale(0.95);
+}
+
+/* эффект волны на кнопке */
+.chat-submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.chat-submit-btn:hover::before {
+    transform: translate(-50%, -50%) scale(2);
+}
+
+.chat-submit-btn span {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-submit-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: #fff;
+}

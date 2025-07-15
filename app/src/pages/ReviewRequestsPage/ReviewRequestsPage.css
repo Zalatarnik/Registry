@@ -1,0 +1,364 @@
+/* анимация  */
+@keyframes review-fadeInPage {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* общие стили страницы */
+.review-requests-container {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: review-fadeInPage 0.5s ease;
+}
+
+/* заголовок страницы */
+.review-requests-container h1 {
+  flex-shrink: 0;
+  margin-bottom: 5px;
+  margin-left: 36px;
+  color: #212529;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* контейнер основного контента */
+.review-requests-container .page-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 20px 0px 30px;
+  overflow: hidden;
+  background-color: #ffffff;
+  border-radius: 16px;
+}
+
+/* панель фильтрации */
+.review-requests-container .filter-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* обертка для поля поиска */
+.review-requests-container .search-bar-wrapper {
+  flex-grow: 1;
+}
+
+.review-requests-container .search-bar-wrapper .interactive-button {
+  width: 100%;
+  justify-content: flex-start;
+  cursor: text;
+}
+
+/* поле ввода в поиске */
+.review-requests-container .search-bar-wrapper input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: text;
+}
+
+.review-requests-container .search-bar-wrapper input::placeholder {
+  color: #6c757d;
+  opacity: 0.9;
+}
+
+.review-requests-container .search-bar-wrapper .interactive-button:hover input::placeholder {
+  color: #fff;
+}
+
+/* кнопки фильтров */
+.review-requests-container .filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.review-requests-container .filter-buttons .interactive-button.is-active-filter {
+  color: #fff;
+  background-color: #495057;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.review-requests-container .filter-buttons .interactive-button.is-active-filter:hover::before {
+  transform: translate(-50%, -50%) scale(0);
+}
+
+/* контейнер списка заявок */
+.review-requests-container .requests-list-container {
+  position: relative;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* глайдер*/
+.review-requests-container .list-glider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: calc(100% - 10px);
+  background-color: #d35400;
+  pointer-events: none;
+  will-change: transform, opacity, height, clip-path;
+  clip-path: inset(0% 0% 0% 0%);
+  transition: transform 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+              opacity 0.3s ease-in-out,
+              height 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+              clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+
+.review-requests-container .list-glider[style*="opacity: 0"] {
+  transition-duration: 0.2s;
+  clip-path: inset(50% 50% 50% 50%);
+}
+
+/* карточка заявки */
+.review-requests-container .request-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+/* разделитель между карточками */
+.review-requests-container .request-divider {
+  height: 2px;
+  margin: 0;
+  background-color: #b84900;
+  opacity: 0.4;
+}
+
+.review-requests-container .card-content-wrapper {
+  display: flex;
+  min-height: 88px;
+  padding: 0 24px;
+  box-sizing: border-box;
+  align-items: center;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.review-requests-container .request-card.is-expanded .card-content-wrapper {
+  background-color: #b84900;
+}
+
+/* шапка карточки */
+.review-requests-container .card-header {
+  display: flex;
+  width: 100%;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-requests-container .header-content {
+  flex-grow: 1;
+}
+
+.review-requests-container .header-content h3 {
+  margin: 0 0 4px 0;
+  color: #212529;
+  font-size: 1.2rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.review-requests-container .header-content .card-date {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.review-requests-container .card-header-right {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* изменение цвета текста в активной/раскрытой карточке */
+.review-requests-container .request-card.is-active .card-content-wrapper .header-content h3,
+.review-requests-container .request-card.is-active .card-content-wrapper .card-date,
+.review-requests-container .request-card.is-expanded .card-content-wrapper .header-content h3,
+.review-requests-container .request-card.is-expanded .card-content-wrapper .card-date {
+  color: #ffffff !important;
+}
+
+/* детали заявки (раскрывающаяся часть) */
+.review-requests-container .card-details-wrapper {
+  position: relative;
+  max-height: 0;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  will-change: max-height;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.review-requests-container .request-card.is-expanded .card-details-wrapper {
+  max-height: 150px;
+}
+
+.review-requests-container .card-body {
+  padding: 16px 24px;
+  line-height: 1.7;
+}
+
+.review-requests-container .detail-item {
+  font-size: 1rem;
+}
+
+.review-requests-container .detail-label {
+  margin-right: 8px;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+/* кнопки действий в карточке */
+.review-requests-container .card-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.review-requests-container .request-card.is-expanded .card-actions {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* общие стили интерактивных кнопок */
+.review-requests-container .interactive-button {
+  position: relative;
+  display: flex;
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 0px;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* эффект при наведении на кнопку */
+.review-requests-container .interactive-button::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
+}
+
+.review-requests-container .interactive-button:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.review-requests-container .interactive-button span {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.review-requests-container .interactive-button:hover span {
+  color: #fff !important;
+}
+
+.review-requests-container .interactive-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.review-requests-container .interactive-button.is-status-button {
+  width: 160px;
+}
+
+.review-requests-container .interactive-button.is-icon {
+  width: 40px;
+  padding: 0;
+}
+
+/* стили кнопок по типам */
+.review-requests-container .btn-style-neutral { background-color: #f0f2f5; color: #495057; }
+.review-requests-container .btn-style-neutral::before { background-color: #6c757d; }
+
+.review-requests-container .btn-style-approved { background-color: #e7f5ec; color: #0d6931; }
+.review-requests-container .btn-style-approved::before { background-color: #28a745; }
+
+.review-requests-container .btn-style-rejected { background-color: #fdeaea; color: #9b1c1c; }
+.review-requests-container .btn-style-rejected::before { background-color: #dc3545; }
+
+.review-requests-container .btn-style-pending { background-color: #e6f7ff; color: #0056b3; }
+.review-requests-container .btn-style-pending::before { background-color: #007bff; }
+
+.review-requests-container .btn-style-chat { background-color: #e0f2f1; color: #00695c; }
+.review-requests-container .btn-style-chat::before { background-color: #00897b; }
+
+.review-requests-container .btn-style-export { background-color: #d35400; color: #fff; }
+.review-requests-container .btn-style-export::before { background-color: #b84a00; }
+
+/* стили кнопок в активной/раскрытой карточке */
+.review-requests-container .request-card.is-expanded .card-content-wrapper .interactive-button,
+.review-requests-container .request-card.is-active .card-content-wrapper .interactive-button {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.review-requests-container .request-card.is-expanded .card-content-wrapper .interactive-button:hover,
+.review-requests-container .request-card.is-active .card-content-wrapper .interactive-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* контейнер для индикатора загрузки */
+.review-requests-container .requests-loader-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+/* контейнер для кнопки экспорта */
+.review-requests-container .export-button-container {
+    display: flex;
+    padding-top: 20px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    justify-content: flex-end;
+}

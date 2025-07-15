@@ -1,0 +1,44 @@
+/* контейнер для квадратов загрузки */
+.loader-container {
+    display: grid;
+    grid-template-columns: 20px 20px;
+    grid-template-rows: 20px 20px;
+    gap: 3px;
+}
+
+/* стили для одного квадрата */
+.loader-square {
+    width: 20px;
+    height: 20px;
+    background-color: #d35400;
+    animation: square-fade 1.2s infinite ease-in-out;
+}
+
+/* задержки анимации для каждого квадрата */
+.square-1 {
+    animation-delay: -0.9s;
+}
+
+.square-2 {
+    animation-delay: -0.6s;
+}
+
+.square-3 {
+    animation-delay: -0.3s;
+}
+
+.square-4 {
+    animation-delay: 0s;
+}
+
+/* анимация затухания и масштабирования */
+@keyframes square-fade {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(0.9);
+    }
+}

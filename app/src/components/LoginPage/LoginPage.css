@@ -1,0 +1,231 @@
+/* анимация появления формы сверху вниз */
+@keyframes reveal-down {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* анимация "вылетания" полей сверху вниз */
+@keyframes fly-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* основной контейнер */
+.auth-container {
+  display: flex;
+  margin-top: 50px;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* переключатель форм (вход/регистрация) */
+.form-toggle {
+  display: flex;
+  position: relative;
+  width: 400px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+
+/* кнопки переключателя */
+.toggle-button {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  background: transparent;
+  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0);
+  transition: color 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.toggle-button.selected {
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-button.hover-active {
+  color: #fff;
+}
+
+/* глайдер */
+.glider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  z-index: 1;
+  background-color: #d35400;
+  transition: transform 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+
+/* контейнер для полей формы */
+.form-box {
+  width: 400px;
+  height: 43vh;
+  padding: 40px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  transform-origin: top;
+  animation: reveal-down 0.4s ease-out forwards;
+}
+
+.conditional-fields-wrapper {
+  animation: fly-in-down 0.5s cubic-bezier(0.38, 0.54, 0.22, 1) forwards;
+}
+
+.form-group {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* нижняя линия поля */
+.form-group::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e9ecef;
+}
+
+.form-group::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #d35400;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.form-group:hover::after,
+.form-group:focus-within::after {
+  transform: scaleX(1);
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+/* иконка в поле ввода */
+.input-icon {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  color: #adb5bd;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: color 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.form-group:hover .input-icon,
+.form-group:focus-within .input-icon {
+  color: #d35400;
+}
+
+/* поле ввода */
+.form-group input {
+  width: 100%;
+  padding: 8px 2px 8px 32px;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  color: #212529;
+  background-color: transparent;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* переключатель ролей (студент/куратор) */
+.role-toggle {
+  display: flex;
+  position: relative;
+  width: 100%;
+  margin-top: -10px;
+  margin-bottom: 40px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+
+/* кнопка отправки формы */
+.submit-btn {
+  position: relative;
+  width: 100%;
+  padding: 15px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 2px;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  background-color: #d35400;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #d35400;
+}
+
+/* эффект волны при наведении на кнопку */
+.submit-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 400px;
+  height: 400px;
+  background-color: #b84a00;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
+}
+
+.submit-btn:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* текст кнопки */
+.submit-btn span {
+  position: relative;
+  z-index: 1;
+}

@@ -1,0 +1,151 @@
+/* анимации появления панели */
+@keyframes fade-in-main {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes page-turn-in {
+  from {
+    opacity: 0;
+    transform: translateX(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* главный контейнер панели */
+.dashboard-container {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  animation: fade-in-main 0.4s ease-in-out forwards;
+}
+
+/* контейнер для кнопок меню */
+.menu-container {
+  position: relative;
+  flex-shrink: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: width 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
+              height 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+
+/* кнопка-плитка в меню */
+.tile-button {
+  position: absolute;
+  display: flex;
+  width: 200px;
+  height: 80px;
+  border: none;
+  outline: 1px solid #eee;
+  background-color: transparent;
+  gap: 8px;
+  z-index: 2;
+  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0);
+  transition: transform 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
+              color 0.3s ease-in-out,
+              box-shadow 0.2s ease-in-out;
+}
+
+/* иконка внутри кнопки */
+.tile-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* состояние кнопки при наведении глайдера */
+.tile-button.hover-active {
+  color: #fff;
+}
+
+/* состояние выбранной кнопки */
+.tile-button.selected {
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.15);
+}
+
+/* оранжевый фон-глайдер для меню */
+.menu-glider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 80px;
+  z-index: 1;
+  background-color: #d35400;
+  pointer-events: none;
+  clip-path: inset(0% 0% 0% 0%);
+  transition: transform 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
+              opacity 0.3s ease-in-out,
+              clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+
+/* анимация исчезновения глайдера */
+.menu-glider[style*="opacity: 0"] {
+  clip-path: inset(50% 50% 50% 50%);
+}
+
+/* область для контента страниц */
+.content-area {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: width 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
+              height 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
+              opacity 0.2s 0.1s ease-in-out;
+}
+
+
+.page-content {
+  width: 100%;
+  height: 100%;
+  padding: 40px;
+  box-sizing: border-box;
+  animation: page-turn-in 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) forwards;
+}
+
+.page-content h1 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 2rem;
+}
+
+.page-content p {
+  margin: 0;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* вид, когда отображается только меню */
+.dashboard-container.menu-view .content-area {
+  width: 0;
+  opacity: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* вид, когда отображается страница */
+.dashboard-container.page-view .content-area {
+  width: 120vh;
+  height: 70vh;
+  opacity: 1;
+}

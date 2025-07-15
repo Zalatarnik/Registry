@@ -1,0 +1,416 @@
+/* анимация */
+@keyframes all-users-fadeInPage {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* общие стили страницы */
+.all-users-container {
+    display: flex;
+    flex-direction: column;
+    height: 65vh;
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border-radius: 16px;
+    animation: all-users-fadeInPage 0.5s ease;
+}
+
+/* шапка страницы */
+.all-users-container .page-header {
+    flex-shrink: 0;
+    padding: 0 36px;
+}
+
+.all-users-container h1 {
+    margin-bottom: 24px;
+    margin-left: 36px;
+    color: #212529;
+    font-size: 32px;
+    font-weight: 700;
+    text-align: left;
+}
+
+/* контейнер контента */
+.all-users-container .page-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+/* панель фильтрации */
+.all-users-container .filter-container {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.all-users-container .search-bar-wrapper {
+    flex-grow: 1;
+}
+
+.all-users-container .search-bar-wrapper .interactive-button {
+    width: 100%;
+    justify-content: flex-start;
+    cursor: text;
+}
+
+.all-users-container .search-bar-wrapper input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: text;
+}
+
+.all-users-container .search-bar-wrapper input::placeholder {
+    color: #6c757d;
+    opacity: 0.9;
+}
+
+.all-users-container .search-bar-wrapper .interactive-button:hover input::placeholder {
+    color: #fff;
+}
+
+.all-users-container .filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.all-users-container .filter-buttons .interactive-button.is-active-filter {
+    color: #fff;
+    background-color: #495057;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.all-users-container .filter-buttons .interactive-button.is-active-filter:hover::before {
+    transform: translate(-50%, -50%) scale(0);
+}
+
+/* контейнер списка пользователей */
+.all-users-container .users-list-container {
+    position: relative;
+    flex-grow: 1;
+    padding-right: 10px;
+    overflow-y: auto;
+}
+
+/* глайдер */
+.all-users-container .list-glider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: calc(100% - 10px);
+    background-color: #d35400;
+    pointer-events: none;
+    will-change: transform, opacity, height, clip-path;
+    clip-path: inset(0% 0% 0% 0%);
+    transition: transform 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+                opacity 0.3s ease-in-out,
+                height 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+                clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+
+.all-users-container .list-glider[style*="opacity: 0"] {
+    clip-path: inset(50% 50% 50% 50%);
+    transition-duration: 0.2s;
+}
+
+/* карточка пользователя */
+.all-users-container .user-card {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+/* разделитель между карточками */
+.all-users-container .user-divider {
+    height: 2px;
+    margin: 0;
+    margin-left: 24px;
+    background-color: #b84900;
+    opacity: 0.4;
+}
+
+/* обертка контента карточки */
+.all-users-container .card-content-wrapper {
+    display: flex;
+    min-height: 88px;
+    padding: 0 24px;
+    box-sizing: border-box;
+    align-items: center;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.all-users-container .user-card.is-expanded .card-content-wrapper {
+    background-color: #b84900;
+}
+
+/* шапка карточки */
+.all-users-container .card-header {
+    display: flex;
+    width: 100%;
+    gap: 16px;
+    align-items: center;
+}
+
+.all-users-container .user-avatar {
+    width: 48px;
+    height: 48px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.all-users-container .header-content {
+    flex-grow: 1;
+}
+
+.all-users-container .header-content h3 {
+    margin: 0 0 4px 0;
+    color: #212529;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.all-users-container .header-content .card-subtitle {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.all-users-container .card-header-right {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* значок роли */
+.all-users-container .role-badge {
+    position: relative;
+    z-index: 1;
+    padding: 6px 12px;
+    border-radius: 0px;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: default;
+    transition: all 0.3s ease;
+}
+
+.all-users-container .role-badge span {
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.all-users-container .role-badge::before {
+    content: '';
+    position: absolute;
+    top: var(--mouse-y);
+    left: var(--mouse-x);
+    z-index: 1;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s ease-out;
+}
+
+.all-users-container .role-badge:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.all-users-container .role-badge:hover span {
+    color: #fff !important;
+}
+
+.all-users-container .role-student {
+    color: #0056b3;
+    background-color: #e6f7ff;
+}
+
+.all-users-container .role-student::before {
+    background-color: #007bff;
+}
+
+.all-users-container .role-curator {
+    color: #0d6931;
+    background-color: #e7f5ec;
+}
+
+.all-users-container .role-curator::before {
+    background-color: #28a745;
+}
+
+/* стили для активной/раскрытой карточки */
+.all-users-container .user-card.is-active .header-content h3,
+.all-users-container .user-card.is-active .header-content .card-subtitle,
+.all-users-container .user-card.is-expanded .header-content h3,
+.all-users-container .user-card.is-expanded .header-content .card-subtitle {
+    color: #ffffff !important;
+}
+
+.all-users-container .user-card.is-active .role-badge,
+.all-users-container .user-card.is-expanded .role-badge {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* раскрывающаяся часть карточки */
+.all-users-container .card-details-wrapper {
+    position: relative;
+    max-height: 0;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    will-change: max-height;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.all-users-container .user-card.is-expanded .card-details-wrapper {
+    max-height: 150px;
+}
+
+.all-users-container .card-body {
+    padding: 16px 24px;
+    line-height: 1.7;
+}
+
+.all-users-container .detail-item {
+    font-size: 1rem;
+}
+
+.all-users-container .detail-label {
+    margin-right: 8px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* общие стили интерактивных кнопок */
+.all-users-container .interactive-button {
+    position: relative;
+    display: flex;
+    height: 40px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 0px;
+    overflow: hidden;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.all-users-container .interactive-button::before {
+    content: '';
+    position: absolute;
+    top: var(--mouse-y);
+    left: var(--mouse-x);
+    z-index: 0;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s ease-out;
+}
+
+.all-users-container .interactive-button:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.all-users-container .interactive-button span {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.all-users-container .interactive-button:hover span {
+    color: #fff !important;
+}
+
+.all-users-container .interactive-button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* цветовые схемы для кнопок фильтров */
+.all-users-container .btn-style-neutral {
+    color: #495057;
+    background-color: #f0f2f5;
+}
+
+.all-users-container .btn-style-neutral::before {
+    background-color: #6c757d;
+}
+
+.all-users-container .btn-style-student {
+    color: #0056b3;
+    background-color: #e6f7ff;
+}
+
+.all-users-container .btn-style-student::before {
+    background-color: #007bff;
+}
+
+.all-users-container .btn-style-curator {
+    color: #0d6931;
+    background-color: #e7f5ec;
+}
+
+.all-users-container .btn-style-curator::before {
+    background-color: #28a745;
+}
+
+.all-users-container .no-results-message {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    flex-grow: 1;
+    color: #6c757d;
+    align-items: center;
+    justify-content: center;
+}
+
+/* контейнер для индикатора загрузки */
+.users-loader-container {
+    display: flex;
+    width: 100%;
+    min-height: 400px;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}

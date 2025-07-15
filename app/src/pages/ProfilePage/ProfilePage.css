@@ -1,0 +1,413 @@
+/* анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* контейнер страницы профиля */
+.profile-container {
+    padding: 20px;
+    height: 65vh;
+    animation: fadeIn 0.5s ease;
+}
+
+/* заголовок страницы */
+.profile-container h1 {
+  margin-bottom: 24px;
+  margin-left: 36px;
+  color: #212529;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* основной контент страницы */
+.profile-container .page-content {
+  padding: 40px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+/* сетка макета профиля */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 255px 1fr;
+  gap: 63px;
+  align-items: center;
+}
+
+/* секция с аватаром */
+.profile-avatar-section {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  overflow: hidden;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* радиальный градиент при наведении на аватар */
+.profile-avatar-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  background: radial-gradient(
+    circle 300px at var(--mouse-x) var(--mouse-y),
+    #d35400,
+    transparent 40%
+  );
+  transition: opacity 0.3s ease;
+}
+
+/* рамка при наведении на аватар */
+.profile-avatar-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  opacity: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    #d35400 0deg 100deg,
+    transparent 180deg 360deg
+  );
+  mask: radial-gradient(transparent 116px, white 116px);
+  -webkit-mask: radial-gradient(transparent 116px, white 116px);
+  transform: rotate(var(--mouse-angle)) scale(0.95);
+  transition: opacity 0.4s ease;
+}
+
+.profile-avatar-section:hover::before {
+  opacity: 1;
+}
+
+.profile-avatar-section:hover::after {
+  opacity: 1;
+  transform: rotate(var(--mouse-angle)) scale(1);
+}
+
+/* изображение аватара */
+.profile-avatar-preview {
+  position: relative;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.3s ease;
+}
+
+.profile-avatar-section:hover .profile-avatar-preview {
+  filter: brightness(0.8);
+}
+
+/* текст для загрузки аватара */
+.avatar-upload-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  width: 240px;
+  height: 240px;
+  opacity: 0;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.profile-avatar-section:hover .avatar-upload-label {
+  opacity: 1;
+}
+
+.avatar-upload-label svg {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.avatar-upload-input {
+  display: none;
+}
+
+/* заблокированное состояние аватара */
+.profile-avatar-section.is-locked {
+    cursor: default;
+}
+
+.profile-avatar-section.is-locked::before,
+.profile-avatar-section.is-locked::after {
+    display: none;
+}
+
+.profile-avatar-section.is-locked:hover .profile-avatar-preview {
+  filter: none;
+}
+
+/* форма профиля */
+.profile-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 48px;
+  align-items: start;
+}
+
+.profile-form .profile-secondary-btn {
+    width: 100%;
+}
+
+/* контейнер редактируемого поля */
+.editable-field-container {
+  cursor: text;
+}
+
+.editable-field-container.is-locked {
+  cursor: not-allowed;
+}
+
+.editable-field-container label {
+  display: block;
+  margin-bottom: 10px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.editable-field-value-wrapper {
+  position: relative;
+  display: flex;
+  min-height: 30px;
+  padding-bottom: 8px;
+  align-items: center;
+}
+
+/* нижняя линия поля */
+.editable-field-value-wrapper::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e9ecef;
+}
+
+/* нижняя линия поля (при наведении) */
+.editable-field-value-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #d35400;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.editable-field-container:hover .editable-field-value-wrapper::after,
+.editable-field-container.is-editing .editable-field-value-wrapper::after {
+  transform: scaleX(1);
+}
+
+.editable-field-container.is-locked .editable-field-value-wrapper::after {
+  display: none;
+}
+
+/* стили для текста и поля ввода */
+.editable-field-value,
+.editable-input {
+  width: 100%;
+  padding: 4px 2px;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  color: #212529;
+  background-color: transparent;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* контейнер для кнопок отправки */
+.profile-submit-container {
+  display: grid;
+  margin-top: 40px;
+  min-height: 58px;
+  place-items: center;
+}
+
+.action-buttons-wrapper {
+  display: flex;
+  gap: 16px;
+  opacity: 0;
+  grid-area: 1 / 1 / -1 / -1;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity 0.35s ease-in-out;
+}
+
+.action-buttons-wrapper.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* общие стили кнопок */
+.profile-submit-btn, .profile-secondary-btn {
+  position: relative;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 2px;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* основная кнопка */
+.profile-submit-btn {
+  color: #fff;
+  background-color: #d35400;
+}
+
+/* второстепенная кнопка */
+.profile-secondary-btn {
+  color: #495057;
+  background-color: #f0f2f5;
+}
+
+/* эффект наведения для кнопок */
+.profile-submit-btn::before, .profile-secondary-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 4500px;
+  height: 400px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
+}
+
+.profile-submit-btn::before { background-color: #b84a00; }
+.profile-secondary-btn::before { background-color: #d35400; }
+
+.profile-submit-btn:hover::before, .profile-secondary-btn:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.profile-submit-btn span, .profile-secondary-btn span {
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.profile-secondary-btn:hover span { color: #fff; }
+
+.profile-submit-btn:active { background-color: #a04000; }
+.profile-secondary-btn:active { background-color: #d4d7dc; }
+
+/* большая кнопка */
+.profile-submit-btn-large {
+  padding: 16px 50px;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+}
+
+/* стили всплывающего окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(33, 37, 41, 0.6);
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 450px;
+  padding: 30px 40px;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.modal-header { margin-bottom: 24px; }
+.modal-header h2 { margin: 0; color: #212529; font-size: 24px; font-weight: 700; }
+.modal-body .form-group { margin-bottom: 20px; }
+.modal-body label { display: block; margin-bottom: 8px; color: #6c757d; font-size: 14px; font-weight: 500; }
+
+.modal-body input {
+    width: 100%;
+    padding: 12px 4px;
+    border: none;
+    border-bottom: 2px solid #e9ecef;
+    border-radius: 0;
+    box-sizing: border-box;
+    font-size: 16px;
+    background-color: transparent;
+    transition: border-color 0.2s;
+}
+
+.modal-body input:focus {
+    outline: none;
+    border-bottom-color: #d35400;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+  justify-content: flex-end;
+}
+
+.modal-footer .profile-secondary-btn,
+.modal-footer .profile-submit-btn {
+  width: auto;
+  flex-shrink: 0;
+}
+
+/* контейнер для индикатора загрузки */
+.profile-loader-container {
+  display: flex;
+  width: 100%;
+  min-height: 400px;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+}

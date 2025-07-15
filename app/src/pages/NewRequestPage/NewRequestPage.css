@@ -1,0 +1,427 @@
+/* анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes new-request-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes new-request-file-item-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* общие стили контейнера */
+.new-request-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: fadeIn 0.5s ease;
+}
+
+/* заголовок страницы */
+.new-request-container h1 {
+  margin-bottom: 0px;
+  margin-left: 36px;
+  color: #212529;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* контейнер основного контента */
+.new-request-container .page-content {
+  position: relative;
+  padding: 40px;
+  padding-bottom: 100px;
+  background-color: #ffffff;
+  border-radius: 16px;
+}
+
+/* сетка формы */
+.new-request-container .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 48px;
+    align-items: start;
+}
+
+/* поля формы */
+.new-request-container .form-field {
+    position: relative;
+}
+
+.new-request-container .form-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.new-request-container .input-wrapper {
+  position: relative;
+  padding-bottom: 8px;
+}
+
+/* нижняя линия поля */
+.new-request-container .input-wrapper::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e9ecef;
+}
+
+.new-request-container .input-wrapper::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #d35400;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.new-request-container .form-field:hover .input-wrapper::after,
+.new-request-container .form-field:focus-within .input-wrapper::after {
+  transform: scaleX(1);
+}
+
+/* стили для самого поля ввода */
+.new-request-container .form-input {
+  width: 100%;
+  padding: 4px 2px;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  color: #212529;
+  background-color: transparent;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* иконка календаря для поля даты */
+.new-request-container .form-input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.8;
+    cursor: pointer;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%236c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat;
+}
+
+.new-request-container .form-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* стили для выпадающего списка */
+.new-request-container .custom-select-container {
+    cursor: pointer;
+}
+
+.new-request-container .custom-select-value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.new-request-container .custom-select-value svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    transition: transform 0.3s ease;
+}
+
+.new-request-container .custom-select-container.is-open .custom-select-value svg {
+    transform: rotate(180deg);
+}
+
+.new-request-container .custom-select-options {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    max-height: 200px;
+    opacity: 0;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    pointer-events: none;
+    transform: translateY(-10px);
+    transition: all 0.2s ease-out;
+}
+
+.new-request-container .custom-select-container.is-open .custom-select-options {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.new-request-container .custom-select-option {
+    padding: 12px 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.new-request-container .custom-select-option:hover {
+    background-color: #f8f9fa;
+}
+
+.new-request-container .custom-select-option.is-selected {
+    color: #0056b3;
+    background-color: #e6f7ff;
+    font-weight: 700;
+}
+
+/* стили для контейнера загрузки файлов */
+.new-request-container .file-upload-container {
+    grid-column: span 2;
+    position: relative;
+    padding: 2px;
+    overflow: hidden;
+    border: 2px solid #e9ecef;
+    border-radius: 14px;
+    transition: border-color 0.3s ease;
+}
+
+/* анимированная рамка при наведении */
+.new-request-container .file-upload-container::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+    background: conic-gradient(
+        from 0deg,
+        transparent 50%, #d35400, transparent
+    );
+    animation: new-request-rotate 4s linear infinite;
+    transition: opacity 0.3s ease;
+}
+
+.new-request-container .file-upload-container:hover {
+    border-color: transparent;
+}
+
+.new-request-container .file-upload-container:hover::before {
+    opacity: 1;
+}
+
+/* область для перетаскивания файлов */
+.new-request-container .file-upload-area {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    padding: 5px;
+    min-height: 120px;
+    color: #6c757d;
+    background-color: #fff;
+    border-radius: 12px;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.new-request-container .file-upload-container:hover .file-upload-area {
+    background-color: #f8f9fa;
+}
+
+.new-request-container .file-upload-area.is-dragging {
+    background-color: rgba(211, 84, 0, 0.05);
+}
+
+/* эффект при наведении на область загрузки */
+.new-request-container .file-upload-area::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    background: radial-gradient(
+        circle 200px at var(--mouse-x) var(--mouse-y),
+        rgba(211, 84, 0, 0.2),
+        transparent 80%
+    );
+    transition: opacity 0.4s ease;
+}
+
+.new-request-container .file-upload-container:hover .file-upload-area::after {
+    opacity: 1;
+}
+
+.new-request-container .file-upload-icon,
+.new-request-container .file-upload-text,
+.new-request-container .file-list-inside {
+    position: relative;
+    z-index: 2;
+}
+
+.new-request-container .file-upload-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 12px;
+    opacity: 0.7;
+}
+
+.new-request-container .file-upload-text {
+    font-weight: 600;
+}
+
+.new-request-container .file-upload-text span {
+    color: #d35400;
+}
+
+/* контейнер списка загруженных файлов */
+.new-request-container .file-list-inside {
+    width: 100%;
+    max-height: 120px;
+    padding: 0 10px;
+    overflow-y: auto;
+}
+
+/* элемент списка загруженных файлов */
+.new-request-container .file-item {
+    display: flex;
+    margin-top: 10px;
+    padding: 12px 16px;
+    position: relative;
+    overflow: hidden;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    align-items: center;
+    justify-content: space-between;
+    cursor: default;
+    animation: new-request-file-item-fade-in 0.4s ease forwards;
+}
+
+.new-request-container .file-item:first-child {
+    margin-top: 0;
+}
+
+.new-request-container .file-item-name {
+    position: relative;
+    z-index: 2;
+    font-weight: 500;
+}
+
+.new-request-container .file-item-remove-btn {
+    position: relative;
+    z-index: 2;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: #9b1c1c;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 0;
+    cursor: pointer;
+}
+
+/* эффект наведения на элемент списка */
+.new-request-container .file-item::before {
+    content: '';
+    position: absolute;
+    top: var(--mouse-y);
+    left: var(--mouse-x);
+    z-index: 1;
+    width: 300px;
+    height: 300px;
+    opacity: 0.2;
+    background-color: #6c757d;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s ease-out;
+}
+
+.new-request-container .file-item:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* стили кнопок формы */
+.new-request-container .form-actions-container {
+    display: flex;
+    gap: 12px;
+    grid-column: span 2;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+
+.new-request-container .form-submit-btn,
+.new-request-container .form-secondary-btn {
+  position: relative;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 0px;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.new-request-container .form-submit-btn {
+  color: #fff;
+  background-color: #d35400;
+}
+
+.new-request-container .form-secondary-btn {
+  color: #495057;
+  background-color: #f0f2f5;
+}
+
+/* эффект наведения на кнопки */
+.new-request-container .form-submit-btn::before,
+.new-request-container .form-secondary-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
+}
+
+.new-request-container .form-submit-btn::before { background-color: #b84a00; }
+.new-request-container .form-secondary-btn::before { background-color: #d35400; }
+
+.new-request-container .form-submit-btn:hover::before,
+.new-request-container .form-secondary-btn:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.new-request-container .form-submit-btn span,
+.new-request-container .form-secondary-btn span {
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.new-request-container .form-secondary-btn:hover span {
+  color: #fff;
+}
