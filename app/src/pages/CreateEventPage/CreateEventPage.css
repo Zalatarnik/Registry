@@ -11,7 +11,8 @@
 /* общие стили контейнера */
 .create-event-container {
     padding: 20px;
-    animation: create-event-fadeIn 0.5s ease;
+    height: 65vh;
+    animation: fadeIn 0.5s ease;
 }
 
 /* заголовок страницы */
@@ -25,10 +26,11 @@
 
 /* контейнер основного контента */
 .create-event-container .page-content {
-    position: relative;
     padding: 40px;
+    overflow-y: auto;
     background-color: #ffffff;
     border-radius: 16px;
+    box-shadow: none;
 }
 
 /* сетка формы */
@@ -189,7 +191,6 @@
     position: relative;
     padding: 12px 32px;
     border: none;
-    border-radius: 8px;
     overflow: hidden;
     box-sizing: border-box;
     font-size: 16px;
@@ -246,13 +247,4 @@
 
 .create-event-container .form-secondary-btn:hover span {
     color: #fff;
-}
-
-/* контейнер для индикатора загрузки */
-.page-loader-container {
-    display: flex;
-    width: 100%;
-    min-height: 400px;
-    align-items: center;
-    justify-content: center;
 }

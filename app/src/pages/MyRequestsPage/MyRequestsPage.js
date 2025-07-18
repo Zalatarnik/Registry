@@ -326,6 +326,8 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                     <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
                     <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
                     <div className="detail-item"><span className="detail-label">Статус мероприятия:</span> {request.event_status_level}</div>
+                    <div className="detail-item"><span className="detail-label">Ссылка на ресурс мероприятия:</span> {request.event_status_level}</div>
+                    <div className="detail-item"><span className="detail-label">Описание:</span> {request.event_status_level}</div>
                 </div>
             </div>
         </div>
@@ -489,7 +491,7 @@ export default function MyRequestsPage({ userLogin }) {
             <div className="requests-container">
                 <h1>Мои заявки</h1>
                 {isLoading ? (
-                    <div className="requests-loader-container"><ClockwiseLoader /></div>
+                    <div className="page-loader-container"><ClockwiseLoader /></div>
                 ) : (
                     <>
                         <div className="filter-container">

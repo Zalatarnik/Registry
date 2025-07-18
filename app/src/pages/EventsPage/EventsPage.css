@@ -7,33 +7,26 @@
 
 /* общие стили страницы */
 .events-container {
-  display: flex;
-  flex-direction: column;
-  height: 65vh;
   padding: 20px;
-  box-sizing: border-box;
-  animation: events-fadeIn 0.5s ease;
+  height: 65vh;
+  animation: fadeIn 0.5s ease;
 }
 
 /* заголовок */
 .events-container h1 {
-  flex-shrink: 0;
   margin-bottom: 24px;
   margin-left: 36px;
   color: #212529;
   font-size: 32px;
   font-weight: 700;
-  text-align: left;
 }
 
 /* контейнер контента */
 .events-container .page-content {
-  position: relative;
-  flex-grow: 1;
-  padding: 0;
-  border: none;
+  padding: 0px;
   overflow-y: auto;
-  background-color: transparent;
+  background-color: #ffffff;
+  box-shadow: none;
 }
 
 /* панель фильтрации */
@@ -771,14 +764,4 @@
     color: #6c757d;
     font-size: 1.1rem;
     text-align: center;
-}
-
-/* контейнер загрузчика */
-.page-loader-container {
-  display: flex;
-  width: 100%;
-  min-height: 300px;
-  flex-grow: 1;
-  align-items: center;
-  justify-content: center;
 }
