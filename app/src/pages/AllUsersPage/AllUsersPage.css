@@ -10,14 +10,9 @@
 
 /* общие стили страницы */
 .all-users-container {
-    display: flex;
-    flex-direction: column;
-    height: 65vh;
     padding: 20px;
-    box-sizing: border-box;
-    background-color: #ffffff;
-    border-radius: 16px;
-    animation: all-users-fadeInPage 0.5s ease;
+    height: 65vh;
+    animation: fadeIn 0.5s ease;
 }
 
 /* шапка страницы */
@@ -32,18 +27,14 @@
     color: #212529;
     font-size: 32px;
     font-weight: 700;
-    text-align: left;
 }
 
 /* контейнер контента */
 .all-users-container .page-content {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    padding: 0;
-    border: none;
-    overflow: hidden;
-    background-color: transparent;
+    padding: 0px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    box-shadow: none;
 }
 
 /* панель фильтрации */
@@ -115,7 +106,7 @@
     top: 0;
     left: 0;
     z-index: 1;
-    width: calc(100% - 10px);
+    width: 100%;
     background-color: #d35400;
     pointer-events: none;
     will-change: transform, opacity, height, clip-path;
@@ -145,6 +136,7 @@
 .all-users-container .user-divider {
     height: 2px;
     margin: 0;
+    width: 100%;
     margin-left: 24px;
     background-color: #b84900;
     opacity: 0.4;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import './NewRequestPage.css';
 import { useNotification } from '../../notification/NotificationContext';
+import ClockwiseLoader from '../../components/common/Loader';
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
@@ -230,6 +232,74 @@ const FileUploadArea = ({ files, setFiles }) => {
     );
 }
 
+// добавлено всплывающее окно
+const SubmissionModal = ({ isOpen, onClose, onFinalSubmit, isSubmitting }) => {
+    const [link, setLink] = useState('');
+    const [description, setDescription] = useState('');
+    const textareaRef = useRef(null);
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = 'auto'; 
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        }
+    }, [description]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        onFinalSubmit({ link, description });
+    };
+
+    const handleOverlayClick = (e) => {
+        if (e.target.id === 'modal-overlay') onClose();
+    };
+
+    return ReactDOM.createPortal(
+        <div className="modal-overlay" id="modal-overlay" onClick={handleOverlayClick}>
+            <div className="modal-content">
+                <div className="modal-header"><h2>Дополнительная информация</h2></div>
+                <div className="modal-body">
+                    <div className="form-field">
+                        <label>Ссылка на ресурс мероприятия</label>
+                        <div className="input-wrapper">
+                             <input 
+                                className="form-input" 
+                                type="text" 
+                                value={link} 
+                                onChange={(e) => setLink(e.target.value)} 
+                            />
+                        </div>
+                    </div>
+
+                    {/* Поле для описания */}
+                    <div className="form-field">
+                        <label>Описание</label>
+                        <div className="input-wrapper">
+                            <textarea 
+                                ref={textareaRef}
+                                className="form-input" 
+                                rows="1"
+                                value={description} 
+                                onChange={(e) => setDescription(e.target.value)} 
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <button className="form-secondary-btn" onClick={onClose} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
+                        <span>Пропустить</span>
+                    </button>
+                    <button className="form-submit-btn" onClick={handleSubmit} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
+                        {isSubmitting ? <ClockwiseLoader size={20} /> : <span>Отправить заявку</span>}
+                    </button>
+                </div>
+            </div>
+        </div>, document.body
+    );
+};
+// конец добавления
 
 export default function NewRequestPage({ userLogin }) {
     // состояние для хранения данных формы
@@ -240,6 +310,7 @@ export default function NewRequestPage({ userLogin }) {
     const [files, setFiles] = useState([]);
     // состояние для отслеживания процесса отправки формы
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false); // добавлено
     // хук для отображения уведомлений
     const { addNotification } = useNotification();
 
@@ -256,22 +327,23 @@ export default function NewRequestPage({ userLogin }) {
         setFiles([]);
     };
 
-    // обработчик отправки формы
-    const handleSubmit = async (e) => {
+    // обработчик отправки формы (изменено)
+    const handleSubmit = (e) => {
         e.preventDefault();
-        // проверка, определен ли пользователь
         if (!userLogin) {
             addNotification("Ошибка: Не удалось определить пользователя. Пожалуйста, войдите в систему снова.", "error");
             return;
         }
-        // простая валидация на заполненность полей
         for (const key in formData) {
             if (!formData[key]) {
                 addNotification("Пожалуйста, заполните все обязательные поля.", "error");
                 return;
             }
         }
+        setIsModalOpen(true);
+    };
 
+    const handleFinalSubmit = async (modalData) => {
         setIsSubmitting(true);
         const data = new FormData();
         data.append('eventName', formData.eventName);
@@ -285,6 +357,8 @@ export default function NewRequestPage({ userLogin }) {
         files.forEach(file => {
             data.append('files', file, file.name);
         });
+        if (modalData.link) data.append('link', modalData.link);
+        if (modalData.description) data.append('description', modalData.description);
 
         try {
             const response = await fetch('http://localhost:8000/api/requests', {
@@ -292,7 +366,6 @@ export default function NewRequestPage({ userLogin }) {
                 body: data,
             });
 
-            // проверяем, успешен ли ответ сервера
             if (!response.ok) {
                 const errorResult = await response.json().catch(() => ({ detail: 'Произошла неизвестная ошибка на сервере.' }));
                 throw new Error(errorResult.detail || `Ошибка ${response.status}: ${response.statusText}`);
@@ -300,15 +373,16 @@ export default function NewRequestPage({ userLogin }) {
 
             addNotification('Заявка успешно создана!', 'success');
             clearForm();
+        
+            setIsModalOpen(false);
 
         } catch (error) {
-            // показываем уведомление в случае любой ошибки
             addNotification(error.message, 'error');
         } finally {
-            // в любом случае завершаем процесс отправки
             setIsSubmitting(false);
         }
     };
+
 
     return (
         <div className="new-request-container">
@@ -340,6 +414,13 @@ export default function NewRequestPage({ userLogin }) {
                     </div>
                 </form>
             </div>
+            {/* добавлено всплывающее окно */}
+            <SubmissionModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onFinalSubmit={handleFinalSubmit}
+                isSubmitting={isSubmitting}
+            />
         </div>
     );
 }

@@ -30,7 +30,6 @@
   padding: 40px;
   overflow-y: auto;
   background-color: #ffffff;
-  border-radius: 16px;
   box-shadow: none;
 }
 
@@ -400,14 +399,4 @@
 .modal-footer .profile-submit-btn {
   width: auto;
   flex-shrink: 0;
-}
-
-/* контейнер для индикатора загрузки */
-.profile-loader-container {
-  display: flex;
-  width: 100%;
-  min-height: 400px;
-  flex-grow: 1;
-  align-items: center;
-  justify-content: center;
 }

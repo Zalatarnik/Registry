@@ -11,30 +11,26 @@
 
 /* общие стили страницы */
 .requests-container {
-  display: flex;
-  flex-direction: column;
-  height: 65vh;
   padding: 20px;
-  animation: fadeInPage 0.5s ease;
+  height: 45vh;
+  animation: fadeIn 0.5s ease;
 }
 
 /* заголовок страницы */
 .requests-container h1 {
-  flex-shrink: 0;
   margin-bottom: 24px;
   margin-left: 36px;
+  color: #212529;
   font-size: 32px;
   font-weight: 700;
-  color: #212529;
 }
 
 /* контейнер основного контента */
 .requests-container .page-content {
-  flex-grow: 1;
-  padding: 0;
-  border: none;
+  padding: 0px;
   overflow-y: auto;
-  background-color: transparent;
+  background-color: #ffffff;
+  box-shadow: none;
 }
 
 /* панель фильтрации */
@@ -199,7 +195,7 @@
 .card-details-wrapper {
   position: relative;
   max-height: 0;
-  overflow: hidden;
+  overflow: auto;
   background-color: #f8f9fa;
   will-change: max-height;
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -730,14 +726,4 @@
 
 .form-secondary-btn:hover span {
   color: #fff;
-}
-
-/* контейнер для индикатора загрузки */
-.requests-loader-container {
-  display: flex;
-  width: 100%;
-  min-height: 400px;
-  flex-grow: 1;
-  align-items: center;
-  justify-content: center;
 }

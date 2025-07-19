@@ -129,7 +129,7 @@ const downloadFile = (fileUrl, fileName) => {
     const link = document.createElement('a');
     link.href = fullUrl;
     link.setAttribute('download', fileName);
-    link.setAttribute('target', '_blank'); // открываем в новой вкладке для надежности
+    link.setAttribute('target', '_blank');
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
@@ -144,13 +144,20 @@ const statusStyleMap = {
     'На рассмотрении': 'btn-style-pending'
 };
 
-const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseEnter, onApprove, onReject, onDownload, onOpenChat, innerRef }) => {
-    const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
+const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseEnter, onApprove, onReject, onDownload, onOpenChat, innerRef, onSelect, isSelected }) => {
+    const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded', isSelected && 'is-selected-card'].filter(Boolean).join(' ');
     
     const handleActionClick = (e, callback, ...args) => {
         e.stopPropagation();
         if (typeof callback === 'function') {
             callback(...args);
+        }
+    };
+
+    const handleCheckboxClick = (e) => {
+        e.stopPropagation();
+        if (typeof onSelect === 'function') {
+            onSelect();
         }
     };
 
@@ -161,6 +168,14 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
         <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter}>
             <div className="card-content-wrapper" onClick={onCardClick}>
                 <div className="card-header">
+                    <div className="selection-checkbox-wrapper" onClick={handleCheckboxClick}>
+                        <input 
+                            type="checkbox" 
+                            className="selection-checkbox"
+                            checked={isSelected}
+                            readOnly
+                        />
+                    </div>
                     <div className="header-content">
                         <h3>{request.event_name}</h3>
                         <div className="card-date">От: {studentFullName} | Подана: {new Date(request.event_date).toLocaleDateString('ru-RU')}</div>
@@ -215,6 +230,8 @@ export default function ReviewRequestsPage({ userLogin }) {
     const inputRef = useRef(null);
     // состояние для отслеживания активного чата
     const [activeChatRequest, setActiveChatRequest] = useState(null);
+    // состояние для хранения id выбранных заявок
+    const [selectedRequests, setSelectedRequests] = useState([]);
 
     // эффект для загрузки заявок при монтировании компонента
     useEffect(() => {
@@ -234,7 +251,6 @@ export default function ReviewRequestsPage({ userLogin }) {
         fetchRequests();
     }, [addNotification]);
 
-    // мемоизированный список отфильтрованных заявок
     const filteredRequests = useMemo(() => {
         return requests
             .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
@@ -264,6 +280,20 @@ export default function ReviewRequestsPage({ userLogin }) {
 
     // обработчик клика по карточке для раскрытия/сворачивания
     const handleCardClick = (clickedId) => setExpandedCardId(prevId => (prevId === clickedId ? null : clickedId));
+
+    // обработчик для выбора/снятия выбора с заявки
+    const handleSelectRequest = (requestId) => {
+        setSelectedRequests(prevSelected => {
+            // если заявка уже выбрана, убираем ее из массива
+            if (prevSelected.includes(requestId)) {
+                return prevSelected.filter(id => id !== requestId);
+            }
+            // иначе, добавляем ее ID в массив
+            else {
+                return [...prevSelected, requestId];
+            }
+        });
+    };
 
     // обработчик скачивания всех файлов для заявки
     const handleDownloadAll = (request) => {
@@ -304,7 +334,16 @@ export default function ReviewRequestsPage({ userLogin }) {
     
     // кнопка выгрузки, пока что стоит заглушка
     const handleExport = () => {
-        alert('Функция выгрузки находится в разработке.');
+        alert('Функция выгрузки всех заявок находится в разработке.');
+    };
+
+    // обработчик для кнопки "Выгрузить выбранные"
+    const handleExportSelected = () => {
+        if (selectedRequests.length === 0) {
+            addNotification("Сначала выберите заявки для выгрузки.", "info");
+            return;
+        }
+        alert(`Выбраны заявки с ID: ${selectedRequests.join(', ')}. \nФункция выгрузки в разработке.`);
     };
 
     return (
@@ -314,65 +353,80 @@ export default function ReviewRequestsPage({ userLogin }) {
             
             <div className="review-requests-container">
                 <h1>Все заявки</h1>
+                
+                {!isLoading && (
+                    <div className="filter-container">
+                        <div className="search-bar-wrapper">
+                            <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
+                                <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск по названию или студенту..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                            </div>
+                        </div>
+                        <div className="filter-buttons">
+                            {/* рендерим кнопки фильтров по статусам */}
+                            {Object.keys(statusStyleMap).map(status => (
+                                <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${statusStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                                    <span>{status}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
                 <div className="page-content">
                     {isLoading ? (
                         // показываем загрузчик во время получения данных
-                        <div className="requests-loader-container"><ClockwiseLoader /></div>
+                        <div className="page-loader-container"><ClockwiseLoader /></div>
                     ) : (
-                        <>
-                            <div className="filter-container">
-                                <div className="search-bar-wrapper">
-                                    <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                        <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск по названию или студенту..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
-                                    </div>
-                                </div>
-                                <div className="filter-buttons">
-                                    {/* рендерим кнопки фильтров по статусам */}
-                                    {Object.keys(statusStyleMap).map(status => (
-                                        <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${statusStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                            <span>{status}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                        <div className="requests-list-container" onMouseLeave={() => setHoveredCardId(null)}>
+                            <div className="list-glider" style={gliderStyle}></div>
                             
-                            <div className="requests-list-container" onMouseLeave={() => setHoveredCardId(null)}>
-                                <div className="list-glider" style={gliderStyle}></div>
-                                
-                                {filteredRequests.length > 0 ? (
-                                    // рендерим список отфильтрованных заявок
-                                    filteredRequests.map((request, index) => (
-                                        <React.Fragment key={request.id}>
-                                            <RequestReviewCard
-                                                innerRef={node => node ? cardElements.current.set(request.id, node) : cardElements.current.delete(request.id)}
-                                                request={request}
-                                                isActive={activeCardId === request.id}
-                                                isExpanded={expandedCardId === request.id}
-                                                onCardClick={() => handleCardClick(request.id)}
-                                                onMouseEnter={() => { if(!expandedCardId) setHoveredCardId(request.id); }}
-                                                onApprove={handleApprove}
-                                                onReject={handleReject}
-                                                onDownload={handleDownloadAll}
-                                                onOpenChat={handleOpenChat}
-                                            />
-                                            {/* добавляем разделитель между карточками */}
-                                            {index < filteredRequests.length - 1 && <div className="request-divider" />}
-                                        </React.Fragment>
-                                    ))
-                                ) : (
-                                    // сообщение, если заявок не найдено
-                                    <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>Заявки с выбранными фильтрами не найдены.</div>
-                                )}
-                            </div>
-                            
-                            <div className="export-button-container">
-                                <button className="interactive-button btn-style-export" onClick={handleExport} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                    <span><ExportIcon/> Выгрузить</span>
-                                </button>
-                            </div>
-                        </>
+                            {filteredRequests.length > 0 ? (
+                                // рендерим список отфильтрованных заявок
+                                filteredRequests.map((request, index) => (
+                                    <React.Fragment key={request.id}>
+                                        <RequestReviewCard
+                                            innerRef={node => node ? cardElements.current.set(request.id, node) : cardElements.current.delete(request.id)}
+                                            request={request}
+                                            isActive={activeCardId === request.id}
+                                            isExpanded={expandedCardId === request.id}
+                                            onCardClick={() => handleCardClick(request.id)}
+                                            onMouseEnter={() => { if(!expandedCardId) setHoveredCardId(request.id); }}
+                                            onApprove={handleApprove}
+                                            onReject={handleReject}
+                                            onDownload={handleDownloadAll}
+                                            onOpenChat={handleOpenChat}
+                                            onSelect={() => handleSelectRequest(request.id)}
+                                            isSelected={selectedRequests.includes(request.id)}
+                                        />
+                                        {/* добавляем разделитель между карточками */}
+                                        {index < filteredRequests.length - 1 && <div className="request-divider" />}
+                                    </React.Fragment>
+                                ))
+                            ) : (
+                                // сообщение, если заявок не найдено
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>Заявки с выбранными фильтрами не найдены.</div>
+                            )}
+                        </div>
                     )}
                 </div>
+
+                {!isLoading && (
+                    <div className="export-button-container">
+                        <button 
+                            className="interactive-button btn-style-neutral" 
+                            onClick={handleExportSelected} 
+                            onMouseMove={handleMouseMoveForEffect} 
+                            onMouseLeave={handleButtonLeave}
+                            disabled={selectedRequests.length === 0}
+                        >
+                            <span>Выгрузить выбранные ({selectedRequests.length})</span>
+                        </button>
+                        
+                        <button className="interactive-button btn-style-export" onClick={handleExport} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                            <span><ExportIcon/> Выгрузить все</span>
+                        </button>
+                    </div>
+                )}
             </div>
         </>
     );

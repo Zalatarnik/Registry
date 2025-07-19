@@ -383,10 +383,12 @@ export default function ProfilePage({ userRole, userLogin }) {
     e.preventDefault();
     setIsSaving(true);
     try {
+        // Из userData исключаем поля, которые не должны отправляться на сервер
+        const { student_id_number, login, ...payload } = userData;
         const response = await fetch(`${API_URL}/api/profile/${userLogin}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData),
+            body: JSON.stringify(payload),
         });
         if (!response.ok) {
             const errorData = await response.json();
@@ -416,8 +418,6 @@ export default function ProfilePage({ userRole, userLogin }) {
     // поля, которые нельзя редактировать никогда
     const nonEditableFields = ['student_id_number', 'login']; 
     if(nonEditableFields.includes(fieldName)) return true;
-    // специальное правило для куратора
-    if (fieldName === 'group' && userRole === 'curator') return true;
     return false;
   };
 
@@ -426,7 +426,7 @@ export default function ProfilePage({ userRole, userLogin }) {
       <h1>Профиль пользователя</h1>
       {isLoading ? (
         // показываем загрузчик, пока данные загружаются
-        <div className="profile-loader-container"><ClockwiseLoader /></div>
+        <div className="page-loader-container"><ClockwiseLoader /></div>
       ) : userData ? (
         // если данные загружены, показываем контент страницы
         <div className="page-content">
@@ -437,7 +437,7 @@ export default function ProfilePage({ userRole, userLogin }) {
                 className={`profile-avatar-section ${!isEditingMode ? 'is-locked' : ''}`}
                 onMouseMove={isEditingMode ? handleAvatarMove : null} // применяем анимацию только в режиме редактирования
               >
-                {/* формируем полный URL для аватара */}
+                {/* формируем полный url для аватара */}
                 <img src={`${API_URL}${userData.avatar}`} alt="Аватар" className="profile-avatar-preview" />
                 {isEditingMode && (
                     <div className="avatar-upload-label">
@@ -457,7 +457,13 @@ export default function ProfilePage({ userRole, userLogin }) {
                 )}
 
                 <EditableField label="Имя" value={userData.first_name} onValueChange={(val) => handleValueChange('first_name', val)} fieldId="firstName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('firstName')} />
-                <EditableField label="Группа" value={userRole === 'student' ? userData.group : '—'} onValueChange={(val) => handleValueChange('group', val)} fieldId="group" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('group')}/>
+
+                {userRole === 'student' ? (
+                  <EditableField label="Группа" value={userData.group} onValueChange={(val) => handleValueChange('group', val)} fieldId="group" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('group')}/>
+                ) : (
+                  <EditableField label="Должность" value={userData.position} onValueChange={(val) => handleValueChange('position', val)} fieldId="position" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('position')}/>
+                )}
+                
                 <EditableField label="Отчество" value={userData.patronymic} onValueChange={(val) => handleValueChange('patronymic', val)} fieldId="patronymic" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('patronymic')} />
                 
                 {/* контейнер для кнопки "безопасность", выровненный с другими полями */}

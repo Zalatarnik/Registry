@@ -219,7 +219,7 @@ export default function AllUsersPage() {
             <div className="page-content">
                 {isLoading ? (
                     // показываем загрузчик во время получения данных
-                    <div className="profile-loader-container"><ClockwiseLoader /></div>
+                    <div className="page-loader-container"><ClockwiseLoader /></div>
                 ) : (
                     // если загрузка завершена, показываем контент
                     <>
