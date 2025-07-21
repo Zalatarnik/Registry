@@ -162,7 +162,7 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
     };
 
     // фио студента
-    const studentFullName = `${request.owner.last_name} ${request.owner.first_name} ${request.owner.patronymic || ''}`.trim();
+    const studentFullName = `${request.owner.lastName} ${request.owner.firstName} ${request.owner.middleName || ''}`.trim();
 
     return (
         <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter}>
@@ -238,7 +238,7 @@ export default function ReviewRequestsPage({ userLogin }) {
         const fetchRequests = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/requests/all`);
+                const response = await fetch(`http://localhost:8000/api/requests`);
                 if (!response.ok) throw new Error('Не удалось загрузить заявки');
                 const data = await response.json();
                 setRequests(data);
@@ -256,7 +256,7 @@ export default function ReviewRequestsPage({ userLogin }) {
             .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
             .filter(request =>
                 request.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                `${request.owner.last_name} ${request.owner.first_name}`.toLowerCase().includes(searchTerm.toLowerCase())
+                `${request.owner.lastName} ${request.owner.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
             );
     }, [requests, searchTerm, activeFilter]);
 
