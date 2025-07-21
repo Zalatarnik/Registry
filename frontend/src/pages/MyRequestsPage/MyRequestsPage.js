@@ -368,7 +368,7 @@ export default function MyRequestsPage({ userLogin }) {
             if (!userLogin) return;
             setIsLoading(true);
             try {
-                const response = await fetch(`http://localhost:8000/api/my-requests/${userLogin}`);
+                const response = await fetch(`http://localhost:8000/api/requests/student/${userLogin}`);
                 if (!response.ok) throw new Error('Не удалось загрузить заявки');
                 const data = await response.json();
                 setRequests(data);

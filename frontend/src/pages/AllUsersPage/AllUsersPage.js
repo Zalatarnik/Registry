@@ -100,7 +100,7 @@ const handleButtonLeave = (e) => {
 const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, innerRef }) => {
     const cardClassName = ['user-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     // формируем фио пользователя
-    const userFullName = `${user.last_name} ${user.first_name} ${user.patronymic || ''}`.trim();
+    const userFullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`.trim();
     // карта для отображения названий ролей
     const roleDisplayMap = { student: 'Студент', curator: 'Куратор' };
     // формируем текст с ролью (и группой для студента)
@@ -129,7 +129,7 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
                     <div className="detail-item"><span className="detail-label">Логин:</span> {user.login}</div>
                     <div className="detail-item"><span className="detail-label">Почта:</span> {user.email}</div>
                     {user.role === 'student' && (
-                        <div className="detail-item"><span className="detail-label">№ студ. билета:</span> {user.student_id_number}</div>
+                        <div className="detail-item"><span className="detail-label">№ студ. билета:</span> {user.studentIdNumber}</div>
                     )}
                 </div>
             </div>
@@ -186,7 +186,7 @@ export default function AllUsersPage() {
             })
             // затем фильтруем по поисковому запросу
             .filter(user => {
-                const fullName = `${user.last_name} ${user.first_name} ${user.patronymic || ''}`.toLowerCase();
+                const fullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`.toLowerCase();
                 const search = searchTerm.toLowerCase();
                 return fullName.includes(search) ||
                        user.login.toLowerCase().includes(search) ||
