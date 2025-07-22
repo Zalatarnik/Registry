@@ -3,6 +3,7 @@ import { useNotification } from '../../notification/NotificationContext';
 import './ReviewRequestsPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
 import ChatView from '../../components/Chat/Chat';
+import FilterModal from '../../components/FilterModal';
 
 // иконки
 import { ReactComponent as ChatIcon } from '../../icons/chat-icon.svg';
@@ -225,6 +226,15 @@ export default function ReviewRequestsPage({ userLogin }) {
     const cardElements = useRef(new Map());
     // состояние для поискового запроса
     const [searchTerm, setSearchTerm] = useState('');
+    // сотояние открытия модалки фильтра
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [advancedFilters, setAdvancedFilters] = useState({
+    sort: '',
+    regional: false,
+    allRussian: false,
+    international: false,
+    city: false,
+    });
     // состояние для активного фильтра по статусу
     const [activeFilter, setActiveFilter] = useState('Все');
     const inputRef = useRef(null);
@@ -252,13 +262,39 @@ export default function ReviewRequestsPage({ userLogin }) {
     }, [addNotification]);
 
     const filteredRequests = useMemo(() => {
-        return requests
-            .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
-            .filter(request =>
-                request.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                `${request.owner.lastName} ${request.owner.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-    }, [requests, searchTerm, activeFilter]);
+    let result = requests
+        .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
+        .filter(request =>
+        request.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${request.owner.lastName} ${request.owner.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+    // сортировка
+    if (advancedFilters.sort === 'recent') {
+        result = result.filter(r => new Date(r.event_date) > Date.now() - 30 * 24 * 60 * 60 * 1000);
+    }
+    if (advancedFilters.sort === 'alphabetical') {
+        result = [...result].sort((a, b) => a.owner.lastName.localeCompare(b.owner.lastName));
+    }
+    if (advancedFilters.sort === 'reverseAlphabetical') {
+        result = [...result].sort((a, b) => b.owner.lastName.localeCompare(a.owner.lastName));
+    }
+
+    // фильтры по типу
+    const typeFilters = [];
+
+    if (advancedFilters.regional) typeFilters.push('Региональный');
+    if (advancedFilters.allRussian) typeFilters.push('Всероссийский');
+    if (advancedFilters.international) typeFilters.push('Международный');
+    if (advancedFilters.city) typeFilters.push('Городской');
+
+    if (typeFilters.length > 0) {
+        result = result.filter(r => typeFilters.includes(r.event_status_level));
+    }
+
+    return result;
+    }, [requests, searchTerm, activeFilter, advancedFilters]);
+
 
     const gliderTargetId = expandedCardId ? null : hoveredCardId;
     // определяет активную карточку
@@ -361,6 +397,13 @@ export default function ReviewRequestsPage({ userLogin }) {
                                 <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск по названию или студенту..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
                             </div>
                         </div>
+                        <button
+                            className="interactive-button btn-style-neutral"
+                            onClick={() => setIsFilterModalOpen(true)}
+                            onMouseMove={handleMouseMoveForEffect}
+                            onMouseLeave={handleButtonLeave}>
+                            <span>:</span>
+                        </button>
                         <div className="filter-buttons">
                             {/* рендерим кнопки фильтров по статусам */}
                             {Object.keys(statusStyleMap).map(status => (
@@ -427,6 +470,14 @@ export default function ReviewRequestsPage({ userLogin }) {
                         </button>
                     </div>
                 )}
+                <FilterModal
+                    isOpen={isFilterModalOpen}
+                    onClose={() => setIsFilterModalOpen(false)}
+                    filters={advancedFilters}
+                    setFilters={setAdvancedFilters}
+                    handleMouseMoveForEffect={handleMouseMoveForEffect}
+                    handleButtonLeave={handleButtonLeave}
+                />
             </div>
         </>
     );
