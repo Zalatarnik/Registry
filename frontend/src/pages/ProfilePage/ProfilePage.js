@@ -227,21 +227,23 @@ const SecurityModal = ({ isOpen, onClose, userLogin }) => {
 
   // используем портал для рендеринга всплывающего окна в body
   return ReactDOM.createPortal(
-    <div className="modal-overlay" id="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content">
-        <div className="modal-header"><h2>Настройки безопасности</h2></div>
-        <div className="modal-body">
-          <div className="form-group"><label htmlFor="email">Новый адрес электронной почты</label><input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Оставьте пустым, если не меняете"/></div>
-          <div className="form-group"><label htmlFor="old-password">Старый пароль</label><input type="password" id="old-password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Обязательно для смены пароля" /></div>
-          <div className="form-group"><label htmlFor="password">Новый пароль</label><input type="password" id="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Оставьте пустым, если не меняете" /></div>
+    <div className="profile-page-modal-scope">
+        <div className="modal-overlay" id="modal-overlay" onClick={handleOverlayClick}>
+          <div className="modal-content">
+            <div className="modal-header"><h2>Настройки безопасности</h2></div>
+            <div className="modal-body">
+              <div className="form-group"><label htmlFor="email">Новый адрес электронной почты</label><input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Оставьте пустым, если не меняете"/></div>
+              <div className="form-group"><label htmlFor="old-password">Старый пароль</label><input type="password" id="old-password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Обязательно для смены пароля" /></div>
+              <div className="form-group"><label htmlFor="password">Новый пароль</label><input type="password" id="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Оставьте пустым, если не меняете" /></div>
+            </div>
+            <div className="modal-footer">
+              <button className="profile-secondary-btn" onClick={onClose} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}><span>Отмена</span></button>
+              <button className="profile-submit-btn" onClick={handleSave} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
+                {isSaving ? <ClockwiseLoader size={20} /> : <span>Сохранить</span>}
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="modal-footer">
-          <button className="profile-secondary-btn" onClick={onClose} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}><span>Отмена</span></button>
-          <button className="profile-submit-btn" onClick={handleSave} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
-            {isSaving ? <ClockwiseLoader size={20} /> : <span>Сохранить</span>}
-          </button>
-        </div>
-      </div>
     </div>, document.body
   );
 };

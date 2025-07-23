@@ -1,5 +1,4 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect, useState } from 'react';
 
 // Компонент
 const FilterModal = ({
@@ -10,16 +9,27 @@ const FilterModal = ({
   handleMouseMoveForEffect,  // Обработчик движения мыши (для эффекта кнопок)
   handleButtonLeave   // Обработчик ухода мыши с кнопки
 }) => {
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+        // Сброс состояния при следующем открытии
+        setIsClosing(false);
+    }
+  }, [isOpen]);
+
+  const handleCloseAnimation = () => {
+    setIsClosing(true);
+    // Длительность анимации закрытия 250мс
+    setTimeout(() => {
+      onClose();
+    }, 250);
+  };
 
   // Если модалка закрыта, ничего не рендерим
   if (!isOpen) return null;
 
-  // Закрывает модалку, если клик был именно по оверлею, а не по содержимому
-  const handleOverlayClick = (e) => {
-    if (e.target.id === 'modal-overlay') onClose();
-  };
-
-  // Сброс фильтров 
+  // Сброс фильтров
   const handleClear = () => {
     setFilters({
       sort: '',
@@ -32,27 +42,16 @@ const FilterModal = ({
 
   // Применение фильтров и закрытие модалки
   const handleApply = () => {
-    onClose();
+    handleCloseAnimation();
   };
 
-  return ReactDOM.createPortal(
-    <div
-      className="modal-overlay"
-      id="modal-overlay"
-      onClick={handleOverlayClick}
-    >
+  const containerClassName = `filter-modal-dropdown-container ${isClosing ? 'is-closing' : ''}`;
+
+  return (
+    <div className={containerClassName}>
       <div className="modal-content">
-        <div className="modal-header">
-          <h2>Фильтр заявок</h2>
-        </div>
         <div className="modal-body">
-            <div
-                style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '80px'
-                }}
-            >
+            <div className="filter-grid">
                 <div className="form-field">
                 <h4>Сортировка</h4>
                 <label className="input-label">
@@ -62,7 +61,7 @@ const FilterModal = ({
                     checked={filters.sort === 'recent'}
                     onChange={() => setFilters(prev => ({ ...prev, sort: 'recent' }))}
                     />
-                    Недавно прошедшие
+                    <span>Недавно прошедшие</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -71,7 +70,7 @@ const FilterModal = ({
                     checked={filters.sort === 'alphabetical'}
                     onChange={() => setFilters(prev => ({ ...prev, sort: 'alphabetical' }))}
                     />
-                    По алфавиту ФИО
+                    <span>По алфавиту ФИО</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -80,7 +79,7 @@ const FilterModal = ({
                     checked={filters.sort === 'reverseAlphabetical'}
                     onChange={() => setFilters(prev => ({ ...prev, sort: 'reverseAlphabetical' }))}
                     />
-                    Против алфавита ФИО
+                    <span>Против алфавита ФИО</span>
                 </label>
                 </div>
 
@@ -92,7 +91,7 @@ const FilterModal = ({
                     checked={filters.regional}
                     onChange={() => setFilters(prev => ({ ...prev, regional: !prev.regional }))}
                     />
-                    Региональные
+                    <span>Региональные</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -100,7 +99,7 @@ const FilterModal = ({
                     checked={filters.allRussian}
                     onChange={() => setFilters(prev => ({ ...prev, allRussian: !prev.allRussian }))}
                     />
-                    Всероссийские
+                    <span>Всероссийские</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -108,7 +107,7 @@ const FilterModal = ({
                     checked={filters.international}
                     onChange={() => setFilters(prev => ({ ...prev, international: !prev.international }))}
                     />
-                    Международные
+                    <span>Международные</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -116,7 +115,7 @@ const FilterModal = ({
                     checked={filters.city}
                     onChange={() => setFilters(prev => ({ ...prev, city: !prev.city }))}
                     />
-                    Городские
+                    <span>Городские</span>
                 </label>
                 </div>
             </div>
@@ -124,7 +123,7 @@ const FilterModal = ({
 
         <div className="modal-footer">
           <button
-            className="form-secondary-btn"
+            className="interactive-button btn-style-neutral"
             onClick={handleClear}
             onMouseMove={handleMouseMoveForEffect}
             onMouseLeave={handleButtonLeave}
@@ -132,7 +131,7 @@ const FilterModal = ({
             <span>Очистить</span>
           </button>
           <button
-            className="form-submit-btn"
+            className="interactive-button btn-style-export"
             onClick={handleApply}
             onMouseMove={handleMouseMoveForEffect}
             onMouseLeave={handleButtonLeave}
@@ -141,8 +140,7 @@ const FilterModal = ({
           </button>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 

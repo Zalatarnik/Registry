@@ -1,58 +1,141 @@
 /* анимации */
-@keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-@keyframes slideIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes slideOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(30px); opacity: 0; } }
-@keyframes file-item-fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes my-requests-fadeInPage {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes my-requests-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes my-requests-fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes my-requests-slideIn {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes my-requests-slideOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+}
+
+@keyframes my-requests-file-item-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes my-requests-button-fly-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes my-requests-button-fade-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
 }
 
 /* общие стили страницы */
-.requests-container {
+.my-requests-scope .requests-container {
   padding: 20px;
-  height: 45vh;
-  animation: fadeIn 0.5s ease;
+  height: 100%;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  animation: my-requests-fadeIn 0.5s ease;
+  box-sizing: border-box;
 }
 
-/* заголовок страницы */
-.requests-container h1 {
+.my-requests-scope .requests-container h1 {
   margin-bottom: 24px;
   margin-left: 36px;
   color: #212529;
   font-size: 32px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
-/* контейнер основного контента */
-.requests-container .page-content {
-  padding: 0px;
+.my-requests-scope .requests-container .page-content {
+  padding: 0;
   overflow-y: auto;
   background-color: #ffffff;
   box-shadow: none;
 }
 
+.my-requests-scope .page-loader-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* панель фильтрации */
-.filter-container {
+.my-requests-scope .filter-container {
   display: flex;
   gap: 16px;
   margin-bottom: 20px;
   padding: 0 10px;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.search-bar-wrapper {
+.my-requests-scope .search-bar-wrapper {
   flex-grow: 1;
 }
 
-.search-bar-wrapper .interactive-button {
+.my-requests-scope .search-bar-wrapper .interactive-button {
   width: 100%;
   justify-content: flex-start;
   cursor: text;
 }
 
-.search-bar-wrapper input {
+.my-requests-scope .search-bar-wrapper input {
   width: 100%;
   height: 100%;
   border: none;
@@ -64,38 +147,38 @@
   cursor: text;
 }
 
-.search-bar-wrapper input::placeholder {
+.my-requests-scope .search-bar-wrapper input::placeholder {
   color: #6c757d;
   opacity: 0.9;
 }
 
-.search-bar-wrapper .interactive-button:hover input::placeholder {
+.my-requests-scope .search-bar-wrapper .interactive-button:hover input::placeholder {
   color: #fff;
 }
 
-.filter-buttons {
+.my-requests-scope .filter-buttons {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.filter-buttons .interactive-button.is-active-filter {
+.my-requests-scope .filter-buttons .interactive-button.is-active-filter {
   color: #fff;
   background-color: #495057;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.filter-buttons .interactive-button.is-active-filter:hover::before {
+.my-requests-scope .filter-buttons .interactive-button.is-active-filter:hover::before {
   transform: translate(-50%, -50%) scale(0);
 }
 
 /* контейнер списка заявок */
-.requests-list-container {
+.my-requests-scope .requests-list-container {
   position: relative;
 }
 
-/* фоновый глайдер для активного элемента */
-.list-glider {
+/* глайдер */
+.my-requests-scope .list-glider {
   position: absolute;
   top: 0;
   left: 0;
@@ -105,19 +188,16 @@
   pointer-events: none;
   will-change: transform, opacity, height, clip-path;
   clip-path: inset(0% 0% 0% 0%);
-  transition: transform 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
-              opacity 0.3s ease-in-out,
-              height 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
-              clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
+  transition: transform 0.35s cubic-bezier(0.65, 0.05, 0.36, 1), opacity 0.3s ease-in-out, height 0.35s cubic-bezier(0.65, 0.05, 0.36, 1), clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
 }
 
-.list-glider[style*="opacity: 0"] {
+.my-requests-scope .list-glider[style*="opacity: 0"] {
   clip-path: inset(50% 50% 50% 50%);
   transition-duration: 0.2s;
 }
 
 /* карточка заявки */
-.request-card {
+.my-requests-scope .request-card {
   position: relative;
   z-index: 2;
   display: flex;
@@ -126,15 +206,14 @@
   cursor: pointer;
 }
 
-/* разделитель между карточками */
-.request-divider {
+.my-requests-scope .request-divider {
   height: 2px;
   margin: 0;
   background-color: #b84900;
   opacity: 0.4;
 }
 
-.card-content-wrapper {
+.my-requests-scope .card-content-wrapper {
   display: flex;
   min-height: 88px;
   padding: 0 24px;
@@ -143,12 +222,11 @@
   transition: background-color 0.3s ease-in-out;
 }
 
-.request-card.is-expanded .card-content-wrapper {
+.my-requests-scope .request-card.is-expanded .card-content-wrapper {
   background-color: #b84900;
 }
 
-/* шапка карточки */
-.card-header {
+.my-requests-scope .card-header {
   display: flex;
   width: 100%;
   gap: 16px;
@@ -156,26 +234,29 @@
   align-items: center;
 }
 
-.header-content {
+.my-requests-scope .header-content {
   flex-grow: 1;
 }
 
-.header-content h3 {
+.my-requests-scope .header-content h3,
+.my-requests-scope .header-content .card-date {
+  transition: color 0.3s ease;
+}
+
+.my-requests-scope .header-content h3 {
   margin: 0 0 4px 0;
   color: #212529;
   font-size: 1.2rem;
   font-weight: 600;
-  transition: color 0.3s ease;
 }
 
-.header-content .card-date {
+.my-requests-scope .header-content .card-date {
   color: #6c757d;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.3s ease;
 }
 
-.card-header-right {
+.my-requests-scope .card-header-right {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
@@ -183,61 +264,209 @@
   justify-content: flex-end;
 }
 
-/* стили текста в активной/раскрытой карточке */
-.request-card.is-active .card-content-wrapper .header-content h3,
-.request-card.is-active .card-content-wrapper .header-content .card-date,
-.request-card.is-expanded .card-content-wrapper .header-content h3,
-.request-card.is-expanded .card-content-wrapper .header-content .card-date {
+.my-requests-scope .request-card.is-active .header-content h3,
+.my-requests-scope .request-card.is-active .header-content .card-date,
+.my-requests-scope .request-card.is-expanded .header-content h3,
+.my-requests-scope .request-card.is-expanded .header-content .card-date {
   color: #ffffff !important;
 }
 
+/* классы для анимации кнопок */
+.my-requests-scope .is-action-button-fly-in {
+  animation: my-requests-button-fly-in 0.3s ease-out forwards;
+}
+
+.my-requests-scope .is-action-button-fade-out {
+  animation: my-requests-button-fade-out 0.3s ease-in forwards;
+}
+
 /* раскрывающаяся часть карточки */
-.card-details-wrapper {
+.my-requests-scope .card-details-wrapper {
   position: relative;
   max-height: 0;
-  overflow: auto;
+  overflow: hidden;
   background-color: #f8f9fa;
   will-change: max-height;
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.request-card.is-expanded .card-details-wrapper {
-  max-height: 150px;
+.my-requests-scope .request-card.is-expanded .card-details-wrapper {
+  max-height: 200px;
 }
 
-.card-body {
-  padding: 16px 24px;
+.my-requests-scope .card-body {
+  padding: 0;
+  line-height: initial;
+}
+
+/* колонки */
+.my-requests-scope .request-card-body-grid {
+  display: grid;
+  grid-template-columns: 160px 1.5fr 1fr;
+  gap: 28px;
+  align-items: center;
+  padding: 24px 28px;
+  box-sizing: border-box;
+}
+
+.my-requests-scope .card-body-column {
   line-height: 1.7;
+  height: 100%;
 }
 
-.detail-item {
+/* колонка с файлами */
+.my-requests-scope .column-files {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* колонка с описанием */
+.my-requests-scope .column-description .detail-item {
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+.my-requests-scope .column-description .detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.my-requests-scope .detail-item-link {
+  word-break: break-all;
+}
+
+.my-requests-scope .detail-item-link a {
+  color: #d35400;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.my-requests-scope .detail-item-link a:hover {
+  text-decoration: underline;
+}
+
+/* колонка с деталями */
+.my-requests-scope .column-details {
+  border-left: 2px solid #e0e0e0;
+  padding-left: 28px;
+}
+
+.my-requests-scope .column-details .detail-item {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.my-requests-scope .column-details .detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.my-requests-scope .detail-item {
   font-size: 1rem;
 }
 
-.detail-label {
+.my-requests-scope .detail-label {
   margin-right: 8px;
   color: #6c757d;
   font-weight: 600;
 }
 
-/* кнопки действий в карточке */
-.card-actions {
+/* стопки */
+.my-requests-scope .m-stack-download {
+  position: relative;
+  width: 140px;
+  height: 120px;
+  cursor: pointer;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(20px);
-  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s ease;
+  background-color: #ffffff;
+  border-radius: 0px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1;
 }
 
-.request-card.is-expanded .card-actions {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
+.my-requests-scope .m-stack-download::before,
+.my-requests-scope .m-stack-download::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 0px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+  margin-bottom: 20px;
+}
+
+.my-requests-scope .m-stack-download::before {
+  transform: translateY(6px) rotate(-4deg);
+}
+
+.my-requests-scope .m-stack-download::after {
+  transform: translateY(12px) rotate(3deg);
+}
+
+.my-requests-scope .m-stack-download:hover {
+  transform: translateY(-8px);
+}
+
+.my-requests-scope .m-stack-download:hover::before {
+  transform: translateY(10px) rotate(-5deg);
+}
+
+.my-requests-scope .m-stack-download:hover::after {
+  transform: translateY(20px) rotate(5deg);
+}
+
+/* контент внутри стопки */
+.my-requests-scope .stack-download-icon {
+  width: 52px;
+  height: 52px;
+  fill: #d35400;
+  transition: transform 0.2s ease-out;
+}
+
+.my-requests-scope .m-stack-download:hover .stack-download-icon {
+  transform: scale(1.05);
+}
+
+.my-requests-scope .stack-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+}
+
+/* заглушка, если файлов нет */
+.my-requests-scope .m-stack-download.is-empty {
+  background-color: #f0f2f5;
+  box-shadow: none;
+  cursor: default;
+}
+
+.my-requests-scope .m-stack-download.is-empty .stack-download-icon {
+  fill: #b0bec5;
+}
+
+.my-requests-scope .m-stack-download.is-empty .stack-label {
+  color: #6c757d;
+}
+
+.my-requests-scope .m-stack-download.is-empty::before,
+.my-requests-scope .m-stack-download.is-empty::after {
+  display: none;
+}
+
+.my-requests-scope .m-stack-download.is-empty:hover {
+  transform: none;
 }
 
 /* общие стили для интерактивных кнопок */
-.interactive-button {
+.my-requests-scope .interactive-button {
   position: relative;
   display: flex;
   height: 40px;
@@ -256,7 +485,20 @@
   transition: all 0.3s ease;
 }
 
-.interactive-button::before {
+.my-requests-scope .interactive-button:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.my-requests-scope .interactive-button:disabled:hover::before {
+  transform: scale(0);
+}
+
+.my-requests-scope .interactive-button:disabled:hover span {
+  color: inherit !important;
+}
+
+.my-requests-scope .interactive-button::before {
   content: '';
   position: absolute;
   top: var(--mouse-y);
@@ -269,11 +511,11 @@
   transition: transform 0.4s ease-out;
 }
 
-.interactive-button:hover::before {
+.my-requests-scope .interactive-button:hover:not(:disabled)::before {
   transform: translate(-50%, -50%) scale(1);
 }
 
-.interactive-button span {
+.my-requests-scope .interactive-button span {
   position: relative;
   z-index: 1;
   display: flex;
@@ -282,51 +524,91 @@
   transition: color 0.3s ease;
 }
 
-.interactive-button:hover span {
+.my-requests-scope .interactive-button:hover:not(:disabled) span {
   color: #fff !important;
 }
 
-.interactive-button svg {
+.my-requests-scope .interactive-button svg {
   width: 18px;
   height: 18px;
   fill: currentColor;
 }
 
-.interactive-button.is-status-button {
+.my-requests-scope .interactive-button.is-status-button {
   width: 160px;
 }
 
-.interactive-button.is-icon {
+.my-requests-scope .interactive-button.is-icon {
   width: 40px;
   padding: 0;
 }
 
 /* цветовые схемы кнопок */
-.btn-style-neutral { background-color: #f0f2f5; color: #495057; }
-.btn-style-neutral::before { background-color: #6c757d; }
-.btn-style-approved { background-color: #e7f5ec; color: #0d6931; }
-.btn-style-approved::before { background-color: #28a745; }
-.btn-style-rejected { background-color: #fdeaea; color: #9b1c1c; }
-.btn-style-rejected::before { background-color: #dc3545; }
-.btn-style-pending { background-color: #e6f7ff; color: #0056b3; }
-.btn-style-pending::before { background-color: #007bff; }
-.btn-style-chat { background-color: #e0f2f1; color: #00695c; }
-.btn-style-chat::before { background-color: #00897b; }
+.my-requests-scope .btn-style-neutral {
+  background-color: #f0f2f5;
+  color: #495057;
+}
+
+.my-requests-scope .btn-style-neutral::before {
+  background-color: #6c757d;
+}
+
+.my-requests-scope .btn-style-approved {
+  background-color: #e7f5ec;
+  color: #0d6931;
+}
+
+.my-requests-scope .btn-style-approved::before {
+  background-color: #28a745;
+}
+
+.my-requests-scope .btn-style-rejected {
+  background-color: #fdeaea;
+  color: #9b1c1c;
+}
+
+.my-requests-scope .btn-style-rejected::before {
+  background-color: #dc3545;
+}
+
+.my-requests-scope .btn-style-pending {
+  background-color: #e6f7ff;
+  color: #0056b3;
+}
+
+.my-requests-scope .btn-style-pending::before {
+  background-color: #007bff;
+}
+
+.my-requests-scope .btn-style-chat {
+  background-color: #e0f2f1;
+  color: #00695c;
+}
+
+.my-requests-scope .btn-style-chat::before {
+  background-color: #00897b;
+}
 
 /* стили кнопок в активной/раскрытой карточке */
-.request-card.is-expanded .card-content-wrapper .interactive-button,
-.request-card.is-active .card-content-wrapper .interactive-button {
+.my-requests-scope .request-card.is-active .interactive-button,
+.my-requests-scope .request-card.is-expanded .interactive-button {
   color: #fff;
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-.request-card.is-expanded .card-content-wrapper .interactive-button:hover,
-.request-card.is-active .card-content-wrapper .interactive-button:hover {
+.my-requests-scope .request-card.is-active .interactive-button:hover:not(:disabled),
+.my-requests-scope .request-card.is-expanded .interactive-button:hover:not(:disabled) {
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* оверлей всплывающего окна */
-.modal-overlay {
+.my-requests-scope .request-card.is-active .interactive-button:disabled,
+.my-requests-scope .request-card.is-expanded .interactive-button:disabled {
+  color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* модальное окно */
+.my-requests-scope .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -338,52 +620,49 @@
   justify-content: center;
   background-color: rgba(33, 37, 41, 0.6);
   backdrop-filter: blur(5px);
-  animation: fadeIn 0.3s ease-out forwards;
+  animation: my-requests-fadeIn 0.3s ease-out forwards;
 }
 
-.modal-overlay.is-closing {
-  animation: fadeOut 0.3s ease-in forwards;
+.my-requests-scope .modal-overlay.is-closing {
+  animation: my-requests-fadeOut 0.3s ease-in forwards;
   pointer-events: none;
 }
 
-/* контент всплывающего окна редактирования */
-.edit-modal-content {
+.my-requests-scope .edit-modal-content {
   display: flex;
   width: 90%;
   max-width: 800px;
-  max-height: 720px;
+  max-height: 90vh;
   background-color: #fff;
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   flex-direction: column;
-  animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: my-requests-slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.edit-modal-content.is-closing {
-  animation: slideOut 0.3s ease-in forwards;
+.my-requests-scope .edit-modal-content.is-closing {
+  animation: my-requests-slideOut 0.3s ease-in forwards;
 }
 
-.edit-modal-body {
+.my-requests-scope .edit-modal-body {
   flex-grow: 1;
   padding: 24px 40px;
   overflow-y: auto;
 }
 
-/* форма внутри всплывающего окна */
-.edit-form-inside-modal {
+.my-requests-scope .edit-form-inside-modal {
   display: flex;
   flex-direction: column;
 }
 
-.edit-form-inside-modal .form-actions-container {
+.my-requests-scope .edit-form-inside-modal .form-actions-container {
   flex-shrink: 0;
   padding-top: 24px;
   margin-top: 32px;
   border-top: 1px solid #e9ecef;
 }
 
-/* шапка всплывающих окон */
-.chat-header {
+.my-requests-scope .chat-header {
   display: flex;
   flex-shrink: 0;
   padding: 20px 24px;
@@ -392,21 +671,14 @@
   align-items: center;
 }
 
-.chat-title-wrapper h2 {
+.my-requests-scope .chat-title-wrapper h2 {
   margin: 0;
   color: #212529;
   font-size: 18px;
   font-weight: 700;
 }
 
-.chat-title-wrapper p {
-  margin: 0;
-  margin-top: 4px;
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.chat-close-btn {
+.my-requests-scope .chat-close-btn {
   display: flex;
   width: 32px;
   height: 32px;
@@ -420,30 +692,29 @@
   transition: color 0.2s ease-in-out, transform 0.2s ease;
 }
 
-.chat-close-btn:hover {
+.my-requests-scope .chat-close-btn:hover {
   color: #d35400;
   transform: scale(1.1);
 }
 
-.chat-close-btn svg {
+.my-requests-scope .chat-close-btn svg {
   width: 24px;
   height: 24px;
   fill: currentColor;
 }
 
-/* сетка формы */
-.form-grid {
+.my-requests-scope .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px 48px;
   align-items: start;
 }
 
-.form-field {
+.my-requests-scope .form-field {
   position: relative;
 }
 
-.form-field label {
+.my-requests-scope .form-field label {
   display: block;
   margin-bottom: 5px;
   color: #6c757d;
@@ -451,13 +722,12 @@
   font-weight: 500;
 }
 
-/* обертка поля ввода */
-.input-wrapper {
+.my-requests-scope .input-wrapper {
   position: relative;
   padding-bottom: 8px;
 }
 
-.input-wrapper::before {
+.my-requests-scope .input-wrapper::before {
   content: '';
   position: absolute;
   left: 0;
@@ -467,7 +737,7 @@
   background-color: #e9ecef;
 }
 
-.input-wrapper::after {
+.my-requests-scope .input-wrapper::after {
   content: '';
   position: absolute;
   left: 0;
@@ -480,12 +750,12 @@
   transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-.form-field:hover .input-wrapper::after,
-.form-field:focus-within .input-wrapper::after {
+.my-requests-scope .form-field:hover .input-wrapper::after,
+.my-requests-scope .form-field:focus-within .input-wrapper::after {
   transform: scaleX(1);
 }
 
-.form-input {
+.my-requests-scope .form-input {
   width: 100%;
   padding: 4px 2px;
   border: none;
@@ -497,28 +767,17 @@
   font-weight: 600;
 }
 
-.form-input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0.8;
-    cursor: pointer;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%236c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat;
-}
-
-.form-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
-}
-
-/* выпадающий список */
-.custom-select-container {
+.my-requests-scope .custom-select-container {
   cursor: pointer;
 }
 
-.custom-select-value {
+.my-requests-scope .custom-select-value {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.custom-select-value svg {
+.my-requests-scope .custom-select-value svg {
   width: 20px;
   height: 20px;
   stroke: #6c757d;
@@ -526,11 +785,11 @@
   transition: transform 0.3s ease;
 }
 
-.custom-select-container.is-open .custom-select-value svg {
+.my-requests-scope .custom-select-container.is-open .custom-select-value svg {
   transform: rotate(180deg);
 }
 
-.custom-select-options {
+.my-requests-scope .custom-select-options {
   position: absolute;
   top: calc(100% + 5px);
   left: 0;
@@ -548,30 +807,29 @@
   transition: all 0.2s ease-out;
 }
 
-.custom-select-container.is-open .custom-select-options {
+.my-requests-scope .custom-select-container.is-open .custom-select-options {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
-.custom-select-option {
+.my-requests-scope .custom-select-option {
   padding: 12px 16px;
   font-weight: 500;
   cursor: pointer;
 }
 
-.custom-select-option:hover {
+.my-requests-scope .custom-select-option:hover {
   background-color: #f8f9fa;
 }
 
-.custom-select-option.is-selected {
+.my-requests-scope .custom-select-option.is-selected {
   color: #0056b3;
   background-color: #e6f7ff;
   font-weight: 700;
 }
 
-/* контейнер загрузки файлов */
-.file-upload-container {
+.my-requests-scope .file-upload-container {
   grid-column: span 2;
   position: relative;
   border: 2px solid #e9ecef;
@@ -579,7 +837,7 @@
   transition: border-color 0.3s ease;
 }
 
-.file-upload-area {
+.my-requests-scope .file-upload-area {
   position: relative;
   z-index: 1;
   display: flex;
@@ -597,38 +855,40 @@
   transition: background-color 0.3s ease;
 }
 
-.file-upload-area.is-dragging {
+.my-requests-scope .file-upload-area.is-dragging {
   background-color: rgba(211, 84, 0, 0.05);
 }
 
-.file-upload-icon, .file-upload-text, .file-list-inside {
+.my-requests-scope .file-upload-icon,
+.my-requests-scope .file-upload-text,
+.my-requests-scope .file-list-inside {
   position: relative;
   z-index: 2;
 }
 
-.file-upload-icon {
+.my-requests-scope .file-upload-icon {
   width: 32px;
   height: 32px;
   margin-bottom: 12px;
   opacity: 0.7;
 }
 
-.file-upload-text {
+.my-requests-scope .file-upload-text {
   font-weight: 600;
 }
 
-.file-upload-text span {
+.my-requests-scope .file-upload-text span {
   color: #d35400;
 }
 
-.file-list-inside {
+.my-requests-scope .file-list-inside {
   width: 100%;
   max-height: 120px;
   padding: 0 10px;
   overflow-y: auto;
 }
 
-.file-item {
+.my-requests-scope .file-item {
   display: flex;
   margin-top: 10px;
   padding: 12px 16px;
@@ -640,20 +900,20 @@
   align-items: center;
   justify-content: space-between;
   cursor: default;
-  animation: file-item-fade-in 0.4s ease forwards;
+  animation: my-requests-file-item-fade-in 0.4s ease forwards;
 }
 
-.file-item:first-child {
+.my-requests-scope .file-item:first-child {
   margin-top: 0;
 }
 
-.file-item-name {
+.my-requests-scope .file-item-name {
   position: relative;
   z-index: 2;
   font-weight: 500;
 }
 
-.file-item-remove-btn {
+.my-requests-scope .file-item-remove-btn {
   position: relative;
   z-index: 2;
   padding: 4px;
@@ -666,8 +926,7 @@
   cursor: pointer;
 }
 
-/* кнопки формы */
-.form-actions-container {
+.my-requests-scope .form-actions-container {
   display: flex;
   gap: 12px;
   grid-column: span 2;
@@ -675,7 +934,8 @@
   justify-content: flex-end;
 }
 
-.form-submit-btn, .form-secondary-btn {
+.my-requests-scope .form-submit-btn,
+.my-requests-scope .form-secondary-btn {
   position: relative;
   padding: 12px 32px;
   border: none;
@@ -685,20 +945,32 @@
   font-weight: 600;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: 8px;
 }
 
-.form-submit-btn {
+.my-requests-scope .form-submit-btn {
   color: #fff;
   background-color: #d35400;
 }
 
-.form-secondary-btn {
+.my-requests-scope .form-secondary-btn {
   color: #495057;
   background-color: #f0f2f5;
 }
 
-.form-submit-btn::before, .form-secondary-btn::before {
+.my-requests-scope .form-secondary-btn:disabled {
+  color: #6c757d;
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.my-requests-scope .form-secondary-btn:disabled::before {
+  transform: scale(0) !important;
+}
+
+.my-requests-scope .form-submit-btn::before,
+.my-requests-scope .form-secondary-btn::before {
   content: '';
   position: absolute;
   top: var(--mouse-y);
@@ -711,19 +983,26 @@
   transition: transform 0.4s ease-out;
 }
 
-.form-submit-btn::before { background-color: #b84a00; }
-.form-secondary-btn::before { background-color: #d35400; }
+.my-requests-scope .form-submit-btn::before {
+  background-color: #b84a00;
+}
 
-.form-submit-btn:hover::before, .form-secondary-btn:hover::before {
+.my-requests-scope .form-secondary-btn::before {
+  background-color: #6c757d;
+}
+
+.my-requests-scope .form-submit-btn:hover::before,
+.my-requests-scope .form-secondary-btn:hover:not(:disabled)::before {
   transform: translate(-50%, -50%) scale(1);
 }
 
-.form-submit-btn span, .form-secondary-btn span {
+.my-requests-scope .form-submit-btn span,
+.my-requests-scope .form-secondary-btn span {
   position: relative;
   z-index: 1;
   transition: color 0.3s ease;
 }
 
-.form-secondary-btn:hover span {
+.my-requests-scope .form-secondary-btn:hover:not(:disabled) span {
   color: #fff;
 }

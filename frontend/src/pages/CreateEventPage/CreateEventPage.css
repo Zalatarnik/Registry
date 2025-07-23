@@ -1,11 +1,17 @@
-/* анимация */
-@keyframes create-event-fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+/* анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes create-event-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes create-event-file-item-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* общие стили контейнера */
@@ -17,20 +23,22 @@
 
 /* заголовок страницы */
 .create-event-container h1 {
-    margin-bottom: 24px;
-    margin-left: 36px;
-    color: #212529;
-    font-size: 32px;
-    font-weight: 700;
+  margin-bottom: 24px;
+  margin-left: 36px;
+  color: #212529;
+  font-size: 32px;
+  font-weight: 700;
 }
 
 /* контейнер основного контента */
 .create-event-container .page-content {
-    padding: 40px;
-    overflow-y: auto;
-    background-color: #ffffff;
-    border-radius: 16px;
-    box-shadow: none;
+  margin-left: 26px;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  box-shadow: none;
+  width: 109vh;
+  max-height: 55vh;
 }
 
 /* сетка формы */
@@ -41,65 +49,78 @@
     align-items: start;
 }
 
-/* поле формы */
+/* поля формы */
 .create-event-container .form-field {
     position: relative;
+    grid-column: auto;
+}
+
+/* Поля, занимающие всю ширину */
+.create-event-container .file-upload-container,
+.create-event-container .form-field:has(textarea[name="description"]) {
+    grid-column: span 2;
 }
 
 .create-event-container .form-field label {
-    display: block;
-    margin-bottom: 5px;
-    color: #6c757d;
-    font-size: 14px;
-    font-weight: 500;
+  display: block;
+  margin-bottom: 5px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-/* обертка для полей ввода */
 .create-event-container .input-wrapper {
-    position: relative;
-    padding-bottom: 8px;
+  position: relative;
+  padding-bottom: 8px;
 }
 
 /* нижняя линия поля */
 .create-event-container .input-wrapper::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #e9ecef;
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e9ecef;
 }
 
 .create-event-container .input-wrapper::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #d35400;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #d35400;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .create-event-container .form-field:hover .input-wrapper::after,
 .create-event-container .form-field:focus-within .input-wrapper::after {
-    transform: scaleX(1);
+  transform: scaleX(1);
 }
 
 /* стили для самого поля ввода */
 .create-event-container .form-input {
-    width: 100%;
-    padding: 4px 2px;
-    border: none;
-    outline: none;
-    box-sizing: border-box;
-    color: #212529;
-    background-color: transparent;
-    font-size: 18px;
-    font-weight: 600;
+  width: 100%;
+  padding: 4px 2px;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  color: #212529;
+  background-color: transparent;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Стили для текстовой области */
+.create-event-container textarea.form-input {
+    resize: vertical;
+    min-height: 40px;
+    line-height: 1.5;
 }
 
 /* иконка календаря для поля даты */
@@ -127,7 +148,7 @@
 .create-event-container .custom-select-value svg {
     width: 20px;
     height: 20px;
-    stroke: #6c757d;
+    stroke: currentColor;
     stroke-width: 2.5;
     transition: transform 0.3s ease;
 }
@@ -176,75 +197,245 @@
     font-weight: 700;
 }
 
+/* стили для контейнера загрузки файлов */
+.create-event-container .file-upload-container {
+    position: relative;
+    padding: 2px;
+    overflow: hidden;
+    border: 2px solid #e9ecef;
+    border-radius: 14px;
+    transition: border-color 0.3s ease;
+}
+
+/* анимированная рамка при наведении */
+.create-event-container .file-upload-container::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+    background: conic-gradient(
+        from 0deg,
+        transparent 50%, #d35400, transparent
+    );
+    animation: create-event-rotate 4s linear infinite;
+    transition: opacity 0.3s ease;
+}
+
+.create-event-container .file-upload-container:hover {
+    border-color: transparent;
+}
+
+.create-event-container .file-upload-container:hover::before {
+    opacity: 1;
+}
+
+/* область для перетаскивания файлов */
+.create-event-container .file-upload-area {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    padding: 5px;
+    min-height: 120px;
+    color: #6c757d;
+    background-color: #fff;
+    border-radius: 12px;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.create-event-container .file-upload-container:hover .file-upload-area {
+    background-color: #f8f9fa;
+}
+
+.create-event-container .file-upload-area.is-dragging {
+    background-color: rgba(211, 84, 0, 0.05);
+}
+
+/* эффект при наведении на область загрузки */
+.create-event-container .file-upload-area::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    background: radial-gradient(
+        circle 200px at var(--mouse-x) var(--mouse-y),
+        rgba(211, 84, 0, 0.2),
+        transparent 80%
+    );
+    transition: opacity 0.4s ease;
+}
+
+.create-event-container .file-upload-container:hover .file-upload-area::after {
+    opacity: 1;
+}
+
+.create-event-container .file-upload-icon,
+.create-event-container .file-upload-text,
+.create-event-container .file-list-inside {
+    position: relative;
+    z-index: 2;
+}
+
+.create-event-container .file-upload-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 12px;
+    opacity: 0.7;
+}
+
+.create-event-container .file-upload-text {
+    font-weight: 600;
+}
+
+.create-event-container .file-upload-text span {
+    color: #d35400;
+}
+
+/* контейнер списка загруженных файлов */
+.create-event-container .file-list-inside {
+    width: 100%;
+    max-height: 120px;
+    padding: 0 10px;
+    overflow-y: auto;
+}
+
+/* элемент списка загруженных файлов */
+.create-event-container .file-item {
+    display: flex;
+    margin-top: 10px;
+    padding: 12px 16px;
+    position: relative;
+    overflow: hidden;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    align-items: center;
+    justify-content: space-between;
+    cursor: default;
+    animation: create-event-file-item-fade-in 0.4s ease forwards;
+}
+
+.create-event-container .file-item:first-child {
+    margin-top: 0;
+}
+
+.create-event-container .file-item-name {
+    position: relative;
+    z-index: 2;
+    font-weight: 500;
+}
+
+.create-event-container .file-item-remove-btn {
+    position: relative;
+    z-index: 2;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: #9b1c1c;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 0;
+    cursor: pointer;
+}
+
+/* эффект наведения на элемент списка */
+.create-event-container .file-item::before {
+    content: '';
+    position: absolute;
+    top: var(--mouse-y);
+    left: var(--mouse-x);
+    z-index: 1;
+    width: 300px;
+    height: 300px;
+    opacity: 0.2;
+    background-color: #6c757d;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s ease-out;
+}
+
+.create-event-container .file-item:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
 /* стили кнопок формы */
 .create-event-container .form-actions-container {
     display: flex;
     gap: 12px;
     grid-column: span 2;
     margin-top: 24px;
-    padding-top: 24px;
     justify-content: flex-end;
 }
 
 .create-event-container .form-submit-btn,
 .create-event-container .form-secondary-btn {
-    position: relative;
-    padding: 12px 32px;
-    border: none;
-    overflow: hidden;
-    box-sizing: border-box;
-    font-size: 16px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+  position: relative;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 0px;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .create-event-container .form-submit-btn {
-    color: #fff;
-    background-color: #d35400;
+  color: #fff;
+  background-color: #d35400;
 }
 
 .create-event-container .form-secondary-btn {
-    color: #495057;
-    background-color: #f0f2f5;
+  color: #495057;
+  background-color: #f0f2f5;
 }
 
 /* эффект наведения на кнопки */
 .create-event-container .form-submit-btn::before,
 .create-event-container .form-secondary-btn::before {
-    content: '';
-    position: absolute;
-    top: var(--mouse-y);
-    left: var(--mouse-x);
-    z-index: 0;
-    width: 400px;
-    height: 400px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    transition: transform 0.4s ease-out;
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
 }
 
-.create-event-container .form-submit-btn::before {
-    background-color: #b84a00;
-}
-
-.create-event-container .form-secondary-btn::before {
-    background-color: #d35400;
-}
+.create-event-container .form-submit-btn::before { background-color: #b84a00; }
+.create-event-container .form-secondary-btn::before { background-color: #d35400; }
 
 .create-event-container .form-submit-btn:hover::before,
 .create-event-container .form-secondary-btn:hover::before {
-    transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .create-event-container .form-submit-btn span,
 .create-event-container .form-secondary-btn span {
-    position: relative;
-    z-index: 1;
-    transition: color 0.3s ease;
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
 }
 
 .create-event-container .form-secondary-btn:hover span {
-    color: #fff;
+  color: #fff;
 }

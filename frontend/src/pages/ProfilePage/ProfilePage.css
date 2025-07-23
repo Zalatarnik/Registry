@@ -341,7 +341,7 @@
 }
 
 /* стили всплывающего окна */
-.modal-overlay {
+.profile-page-modal-scope .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -356,7 +356,7 @@
   animation: fadeIn 0.3s ease;
 }
 
-.modal-content {
+.profile-page-modal-scope .modal-content {
   width: 100%;
   max-width: 450px;
   padding: 30px 40px;
@@ -366,12 +366,12 @@
   animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.modal-header { margin-bottom: 24px; }
-.modal-header h2 { margin: 0; color: #212529; font-size: 24px; font-weight: 700; }
-.modal-body .form-group { margin-bottom: 20px; }
-.modal-body label { display: block; margin-bottom: 8px; color: #6c757d; font-size: 14px; font-weight: 500; }
+.profile-page-modal-scope .modal-header { margin-bottom: 24px; }
+.profile-page-modal-scope .modal-header h2 { margin: 0; color: #212529; font-size: 24px; font-weight: 700; }
+.profile-page-modal-scope .modal-body .form-group { margin-bottom: 20px; }
+.profile-page-modal-scope .modal-body label { display: block; margin-bottom: 8px; color: #6c757d; font-size: 14px; font-weight: 500; }
 
-.modal-body input {
+.profile-page-modal-scope .modal-body input {
     width: 100%;
     padding: 12px 4px;
     border: none;
@@ -383,20 +383,20 @@
     transition: border-color 0.2s;
 }
 
-.modal-body input:focus {
+.profile-page-modal-scope .modal-body input:focus {
     outline: none;
     border-bottom-color: #d35400;
 }
 
-.modal-footer {
+.profile-page-modal-scope .modal-footer {
   display: flex;
   gap: 12px;
   margin-top: 30px;
   justify-content: flex-end;
 }
 
-.modal-footer .profile-secondary-btn,
-.modal-footer .profile-submit-btn {
+.profile-page-modal-scope .modal-footer .profile-secondary-btn,
+.profile-page-modal-scope .modal-footer .profile-submit-btn {
   width: auto;
   flex-shrink: 0;
 }

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CreateEventPage.css';
 import { useNotification } from '../../notification/NotificationContext';
+import ClockwiseLoader from '../../components/common/Loader';
 
 // иконки
+import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
 import { ReactComponent as DownIcon } from '../../icons/down-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -16,35 +18,25 @@ const DEFAULT_RADIUS = 0;
 
 // функция для анимирования радиусов углов элемента
 function animateRadii(btn) {
-  // получаем состояние анимации элемента
   const state = btn._animationState;
   if (!state) return;
 
   let isAnimationNeeded = false;
-  // перебираем все углы (tl, tr, br, bl)
   for (const corner in state.current) {
-    // вычисляем разницу между целевым и текущим значением радиуса
     const diff = state.target[corner] - state.current[corner];
-    
-    // если разница существенна, продолжаем анимацию
     if (Math.abs(diff) > 0.01) {
       isAnimationNeeded = true;
-      // плавно приближаем текущее значение к целевому
       state.current[corner] += diff * EASING_FACTOR;
     } else {
-      // если разница мала, присваиваем целевое значение
       state.current[corner] = state.target[corner];
     }
   }
 
-  // применяем вычисленные радиусы к стилю элемента
   btn.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
 
-  // если анимация все еще нужна, запрашиваем следующий кадр
   if (isAnimationNeeded) {
     requestAnimationFrame(() => animateRadii(btn));
   } else {
-    // иначе, помечаем, что анимация завершена
     state.isAnimating = false;
   }
 }
@@ -56,13 +48,10 @@ const handleMouseMoveForEffect = (e) => {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  // передаем координаты мыши в css переменные для градиентного эффекта
   el.style.setProperty('--mouse-x', `${x}px`);
   el.style.setProperty('--mouse-y', `${y}px`);
 
-  // если это кнопка формы, запускаем анимацию радиусов
   if (el.classList.contains('form-submit-btn') || el.classList.contains('form-secondary-btn')) {
-    // инициализируем состояние анимации, если его нет
     if (!el._animationState) {
       el._animationState = {
         isAnimating: false,
@@ -75,19 +64,16 @@ const handleMouseMoveForEffect = (e) => {
     const maxRadius = 25;
     const diagonal = Math.sqrt(width**2 + height**2);
     
-    // функция для расчета радиуса в зависимости от удаленности курсора от угла
     const calculateRadius = (cx, cy) => Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx)**2 + (y - cy)**2) / diagonal), 3));
     
-    // вычисляем целевые радиусы для каждого угла
     state.target.tl = calculateRadius(0, 0);
     state.target.tr = calculateRadius(width, 0);
     state.target.br = calculateRadius(width, height);
     state.target.bl = calculateRadius(0, height);
     
-    // запускаем анимацию, если она не активна
     if (!state.isAnimating) {
-        state.isAnimating = true;
-        requestAnimationFrame(() => animateRadii(el));
+      state.isAnimating = true;
+      requestAnimationFrame(() => animateRadii(el));
     }
   }
 };
@@ -95,41 +81,51 @@ const handleMouseMoveForEffect = (e) => {
 // обработчик увода мыши с кнопки
 const handleButtonLeave = (e) => {
   const btn = e.currentTarget;
-  // проверяем, является ли элемент кнопкой формы
-  if(btn.classList.contains('form-submit-btn') || btn.classList.contains('form-secondary-btn')) {
+  if (btn.classList.contains('form-submit-btn') || btn.classList.contains('form-secondary-btn')) {
     const state = btn._animationState;
     if (!state) return;
     
-    // сбрасываем целевые радиусы к значениям по умолчанию
     state.target.tl = DEFAULT_RADIUS;
     state.target.tr = DEFAULT_RADIUS;
     state.target.br = DEFAULT_RADIUS;
     state.target.bl = DEFAULT_RADIUS;
     
-    // запускаем анимацию возврата в исходное состояние
     if (!state.isAnimating) {
-        state.isAnimating = true;
-        requestAnimationFrame(() => animateRadii(btn));
+      state.isAnimating = true;
+      requestAnimationFrame(() => animateRadii(btn));
     }
   }
 };
 
+const FormField = ({ label, children, isTextarea }) => {
+    const inputRef = useRef(null);
 
-const FormField = ({ label, children }) => (
-    <div className="form-field">
-        <label>{label}</label>
-        <div className="input-wrapper">{children}</div>
-    </div>
-);
+    useEffect(() => {
+        if (isTextarea) {
+            const textarea = inputRef.current;
+            const handleInput = () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+            };
+            textarea.addEventListener('input', handleInput);
+            handleInput();
+            return () => textarea.removeEventListener('input', handleInput);
+        }
+    }, [isTextarea]);
 
+    const childrenWithRef = isTextarea ? React.cloneElement(children, { ref: inputRef, rows: 1 }) : children;
+
+    return (
+        <div className="form-field">
+            <label>{label}</label>
+            <div className="input-wrapper">{childrenWithRef}</div>
+        </div>
+    );
+};
 
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
-    // состояние для отслеживания, открыт ли список
     const [isOpen, setIsOpen] = useState(false);
-    // ссылка на корневой элемент для отслеживания кликов вне его
     const ref = useRef(null);
-
-    // эффект для закрытия списка при клике вне компонента
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (ref.current && !ref.current.contains(event.target)) {
@@ -140,7 +136,6 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [ref]);
 
-    // обработчик выбора опции
     const handleSelect = (option) => {
         onChange(option);
         setIsOpen(false);
@@ -153,7 +148,6 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
                 <DownIcon />
             </div>
             <div className="custom-select-options">
-                {/* рендерим список опций */}
                 {options.map(option => (
                     <div key={option} className={`custom-select-option ${value === option ? 'is-selected' : ''}`} onClick={() => handleSelect(option)}>
                         {option}
@@ -164,95 +158,157 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     );
 };
 
+// компонент для загрузки файлов
+const FileUploadArea = ({ files, setFiles }) => {
+    const [isDragging, setIsDragging] = useState(false);
+    const inputRef = useRef(null);
+
+    const handleFileChange = (selectedFiles) => {
+        const imageFiles = Array.from(selectedFiles).filter(file => file.type.startsWith('image/'));
+        const newFiles = imageFiles.filter(file => !files.some(f => f.name === file.name));
+        setFiles(prev => [...prev, ...newFiles]);
+    };
+
+    const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+    const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files);
+            e.dataTransfer.clearData();
+        }
+    };
+
+    const removeFile = (fileName) => {
+        setFiles(files.filter(file => file.name !== fileName));
+    };
+
+    return (
+        <div className="file-upload-container">
+            <div
+                className={`file-upload-area ${isDragging ? 'is-dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => inputRef.current.click()}
+                onMouseMove={handleMouseMoveForEffect}
+            >
+                {files.length === 0 ? (
+                    <>
+                        <UploadIcon className="file-upload-icon" />
+                        <p className="file-upload-text">
+                            Перетащите изображение сюда или <span>выберите его</span>
+                        </p>
+                    </>
+                ) : (
+                    <div className="file-list-inside">
+                        {files.map(file => (
+                            <div key={file.name} className="file-item">
+                                <span className="file-item-name">{file.name}</span>
+                                <button className="file-item-remove-btn" onClick={(e) => {e.stopPropagation(); removeFile(file.name);}}>
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                 <input
+                    ref={inputRef}
+                    type="file"
+                    multiple
+                    accept="image/*" // принимаем только изображения
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleFileChange(e.target.files)}
+                />
+            </div>
+        </div>
+    );
+}
 
 export default function CreateEventPage({ userLogin }) {
-    // хук для отображения уведомлений
-    const { addNotification } = useNotification();
-    
-    // статичный список опций для статуса мероприятия
-    const [statusOptions] = useState(['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']);
-    
-    // состояние для хранения данных формы
     const [formData, setFormData] = useState({
-        eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '',
+        eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', description: '', maxParticipants: '', teamSize: ''
     });
-    
-    // универсальный обработчик для обновления полей формы
+    const [files, setFiles] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { addNotification } = useNotification();
+    const [statusOptions] = useState(['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']);
+
     const handleInputChange = (field, value) => {
         setFormData(prev => ({...prev, [field]: value}));
     };
-    
-    // функция для очистки всех полей формы
+
     const clearForm = () => {
         setFormData({
-            eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '',
+            eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', description: '', maxParticipants: '', teamSize: ''
         });
+        setFiles([]);
     };
-    
-    // обработчик отправки формы
+
     const handleSubmit = async (e) => {
-        // предотвращаем стандартное поведение формы
         e.preventDefault();
-        
-        // проверка, определен ли пользователь
         if (!userLogin) {
-            addNotification('Ошибка: Не удалось определить пользователя. Пожалуйста, перезайдите в систему.', 'error');
+            addNotification("Ошибка: Не удалось определить пользователя. Пожалуйста, войдите в систему снова.", "error");
             return;
         }
-        
-        // простая валидация на заполненность всех полей
-        if (!formData.eventName || !formData.leader || !formData.organizer || !formData.location || !formData.eventStatus || !formData.eventDate) {
-            addNotification('Пожалуйста, заполните все поля формы.', 'warning');
-            return;
+
+        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate', 'maxParticipants', 'teamSize'];
+        for (const key of requiredFields) {
+            if (!formData[key]) {
+                addNotification("Пожалуйста, заполните все обязательные поля.", "error");
+                return;
+            }
         }
+
+        setIsSubmitting(true);
+        const data = new FormData();
         
-        // формируем тело запроса, добавляя логин пользователя
-        const body = { ...formData, user_login: userLogin };
-        
+        for (const key in formData) {
+            if (key === 'eventDate' && formData[key]) {
+                 data.append(key, new Date(formData[key]).toISOString());
+            } else if (formData[key]) {
+                 data.append(key, formData[key]);
+            }
+        }
+        data.append('user_login', userLogin);
+
+        files.forEach(file => {
+            data.append('files', file, file.name);
+        });
+
         try {
             const response = await fetch(`${API_BASE_URL}/api/events/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
+                body: data, 
             });
 
-            // если ответ успешный, показываем уведомление и очищаем форму
-            if (response.ok) {
-                addNotification('Мероприятие успешно создано!', 'success');
-                clearForm();
-            } else {
-                // если сервер вернул ошибку, пытаемся извлечь сообщение
-                const errorData = await response.json();
-                addNotification(`Ошибка при создании мероприятия: ${errorData.detail || response.statusText}`, 'error');
+            if (!response.ok) {
+                const errorResult = await response.json().catch(() => ({ detail: 'Произошла неизвестная ошибка на сервере.' }));
+                throw new Error(errorResult.detail || `Ошибка ${response.status}: ${response.statusText}`);
             }
+
+            addNotification('Мероприятие успешно создано!', 'success');
+            clearForm();
+
         } catch (error) {
-            // обрабатываем ошибки сети
-            console.error("Ошибка при отправке данных на сервер:", error);
-            addNotification('Не удалось подключиться к серверу. Попробуйте позже.', 'error');
+            addNotification(error.message, 'error');
+        } finally {
+            setIsSubmitting(false);
         }
     };
-    
+
     return (
         <div className="create-event-container">
             <h1>Создать мероприятие</h1>
-            
             <div className="page-content">
                 <form onSubmit={handleSubmit}>
                     <div className="form-grid">
-                        {/* поля для ввода данных о мероприятии */}
-                        <FormField label="Название мероприятия">
-                            <input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required />
-                        </FormField>
-                        <FormField label="Руководитель">
-                            <input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required />
-                        </FormField>
-                        <FormField label="Организатор">
-                            <input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required />
-                        </FormField>
-                        <FormField label="Место проведения">
-                            <input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required />
-                        </FormField>
-                        <FormField label="Статус мероприятия">
+                        <FormField label="Название мероприятия*"><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
+                        <FormField label="Руководитель*"><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
+                        <FormField label="Организатор*"><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
+                        <FormField label="Место проведения*"><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
+                        <FormField label="Статус мероприятия*">
                            <CustomSelect
                                 options={statusOptions}
                                 value={formData.eventStatus}
@@ -260,30 +316,18 @@ export default function CreateEventPage({ userLogin }) {
                                 placeholder="Выберите статус"
                            />
                         </FormField>
-                        <FormField label="Дата проведения">
-                            <input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required />
-                        </FormField>
-                    </div>
+                        <FormField label="Дата проведения*"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
+                        <FormField label="Макс. число участников*"><input className="form-input" type="number" value={formData.maxParticipants} onChange={(e) => handleInputChange('maxParticipants', e.target.value)} required /></FormField>
+                        <FormField label="Участников в команде*"><input className="form-input" type="number" value={formData.teamSize} onChange={(e) => handleInputChange('teamSize', e.target.value)} required /></FormField>
 
-                    <div className="form-actions-container">
-                        {/* кнопка для очистки формы */}
-                        <button
-                            type="button"
-                            className="form-secondary-btn"
-                            onClick={clearForm}
-                            onMouseMove={handleMouseMoveForEffect}
-                            onMouseLeave={handleButtonLeave}
-                        >
-                            <span>Очистить форму</span>
-                        </button>
-                        {/* кнопка для отправки формы */}
-                        <button
-                            type="submit"
-                            className="form-submit-btn"
-                            onMouseMove={handleMouseMoveForEffect}
-                            onMouseLeave={handleButtonLeave}
-                        >
-                            <span>Создать мероприятие</span>
+                        <FileUploadArea files={files} setFiles={setFiles} />
+                        
+                        <FormField label="Описание" isTextarea={true}><textarea className="form-input" name="description" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}></textarea></FormField>
+                    </div>
+                     <div className="form-actions-container">
+                        <button type="button" className="form-secondary-btn" onClick={clearForm} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>Очистить форму</span></button>
+                        <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                            {isSubmitting ? <ClockwiseLoader size={20} /> : <span>Создать мероприятие</span>}
                         </button>
                     </div>
                 </form>

@@ -4,6 +4,9 @@ import './EventsPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
 
+// импорт изображения по умолчанию
+import defaultEventImage from '../../images/event-default.jpg';
+
 // иконки
 import { ReactComponent as SearchIcon } from '../../icons/search-icon.svg';
 import { ReactComponent as AddIcon } from '../../icons/add-icon.svg';
@@ -11,17 +14,15 @@ import { ReactComponent as RemoveIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as CloseIcon } from '../../icons/exit-icon.svg';
 import { ReactComponent as DeleteIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as ListIcon } from '../../icons/add-icon.svg';
+import { ReactComponent as UsersIcon } from '../../icons/user-icon.svg'; // изменить иконку
+import { ReactComponent as GroupIcon } from '../../icons/user-icon.svg'; // изменить иконку
 
 const API_BASE_URL = 'http://localhost:8000';
 
 // АНИМАЦИЯ КНОПОК
-
-// коэффициент для плавности анимации радиусов углов
 const EASING_FACTOR = 0.15;
-// радиус углов по умолчанию
 const DEFAULT_RADIUS = 0;
 
-// функция для анимирования радиусов углов элемента
 function animateRadii(btn) {
     const state = btn._animationState;
     if (!state) return;
@@ -43,7 +44,6 @@ function animateRadii(btn) {
     }
 }
 
-// универсальный обработчик движения мыши для создания эффектов
 const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
     if (!el.classList.contains('interactive-button')) return;
@@ -53,7 +53,6 @@ const handleMouseMoveForEffect = (e) => {
     el.style.setProperty('--mouse-x', `${x}px`);
     el.style.setProperty('--mouse-y', `${y}px`);
 
-    // инициализируем состояние анимации, если его нет
     if (!el._animationState) {
         el._animationState = {
             isAnimating: false,
@@ -62,7 +61,6 @@ const handleMouseMoveForEffect = (e) => {
         };
     }
 
-    // вычисляем и запускаем анимацию радиусов
     const state = el._animationState;
     const { width, height } = rect;
     const maxRadius = 25;
@@ -78,7 +76,6 @@ const handleMouseMoveForEffect = (e) => {
     }
 };
 
-// обработчик увода мыши с интерактивного элемента
 const handleButtonLeave = (e) => {
     const btn = e.currentTarget;
     if (!btn.classList.contains('interactive-button')) return;
@@ -96,14 +93,9 @@ const handleButtonLeave = (e) => {
 
 // всплывающее окно для записи на мероприятие
 const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
-    // состояние для плавной анимации закрытия
     const [isClosing, setIsClosing] = useState(false);
-    // хук для уведомлений
     const { addNotification } = useNotification();
-    
-    // получение фио имени пользователя
     const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic].filter(Boolean).join(' ') : '';
-    
     const [participants, setParticipants] = useState(() => [{ fullName: getUserFullName(currentUser), group: currentUser.group || '' }]);
 
     const handleClose = () => {
@@ -111,31 +103,29 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
         setTimeout(onClose, 300);
     };
 
-    // добавляет нового участника в список
     const addParticipant = () => {
-        if (participants.length < 5) {
+        const maxGroupSize = event.max_group_size || 5;
+        if (participants.length < maxGroupSize) {
             setParticipants([...participants, { fullName: '', group: '' }]);
+        } else {
+            addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
         }
     };
-    
-    // удаляет участника из списка (кроме первого)
+
     const removeParticipant = (index) => {
         if (index > 0) {
             setParticipants(participants.filter((_, i) => i !== index));
         }
     };
 
-    // обновляет данные участника в списке
     const handleParticipantChange = (index, field, value) => {
         const newParticipants = [...participants];
         newParticipants[index][field] = value;
         setParticipants(newParticipants);
     };
-    
-    // обработчик отправки формы записи
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        // валидация на заполненность полей
         for (const p of participants) {
             if (!p.fullName.trim() || !p.group.trim()) {
                 addNotification('Пожалуйста, заполните все поля.', 'error');
@@ -146,7 +136,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
     };
 
     return ReactDOM.createPortal(
-        <div className="events-container">
+        <div className="events-page-scope">
             <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
                 <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()}>
                     <div className="chat-header">
@@ -175,13 +165,12 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
                                                 </div>
                                             </div>
                                         </div>
-                                        {/* кнопка удаления доступна для всех, кроме первого участника */}
                                         {index > 0 && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon/></button>}
                                     </div>
                                 ))}
                             </div>
                             <div className="form-actions-container participant-actions">
-                                <button type="button" className="form-secondary-btn" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={participants.length >= 5}>
+                                <button type="button" className="form-secondary-btn" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={participants.length >= (event.max_group_size || 5)}>
                                     <span>Добавить участника</span>
                                 </button>
                                 <button type="submit" className="form-submit-btn" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
@@ -199,10 +188,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
 
 // всплывающее окно для просмотра списка записавшихся
 const RegistrationsModal = ({ isOpen, onClose, eventName, registrations = [] }) => {
-    // состояние для плавной анимации закрытия
     const [isClosing, setIsClosing] = useState(false);
-
-    // группируем участников по id их заявки на запись
     const groupedSubmissions = useMemo(() =>
         registrations.reduce((acc, reg) => {
             const id = reg.submission_group_id;
@@ -211,7 +197,6 @@ const RegistrationsModal = ({ isOpen, onClose, eventName, registrations = [] }) 
             return acc;
         }, {}), [registrations]);
 
-    // обработчик закрытия окна
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(onClose, 300);
@@ -219,9 +204,8 @@ const RegistrationsModal = ({ isOpen, onClose, eventName, registrations = [] }) 
 
     if (!isOpen) return null;
 
-    // используем портал для рендеринга
     return ReactDOM.createPortal(
-        <div className="events-container">
+        <div className="events-page-scope">
             <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
                 <div className={`registrations-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()}>
                     <div className="chat-header">
@@ -252,12 +236,11 @@ const RegistrationsModal = ({ isOpen, onClose, eventName, registrations = [] }) 
     );
 };
 
-// карточка мероприятия
-const EventCard = memo(({ event, isActive, isExpanded, onCardClick, onSignUp, userRole, onDelete, onShowList, onMouseEnter, innerRef, isRegistered }) => {
-    // формируем классы для карточки в зависимости от ее состояния
-    const cardClassName = ['event-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
-    
-    // обертка для обработчиков, чтобы остановить всплытие события
+
+// карточка мероприятия для вида куратора
+const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDelete, onShowList, onMouseEnter, innerRef }) => {
+    const cardClassName = ['event-card', 'curator-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
+
     const handleAction = (e, callback, ...args) => {
         e.stopPropagation();
         callback(...args);
@@ -272,77 +255,252 @@ const EventCard = memo(({ event, isActive, isExpanded, onCardClick, onSignUp, us
                         <div className="card-date">{new Date(event.event_date).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="card-header-right">
-                        {/* статус записи виден только студенту */}
-                        {userRole === 'student' && (
-                            <div className={`registration-status interactive-button ${isRegistered ? 'btn-style-registered' : 'btn-style-unregistered'}`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                <span>{isRegistered ? 'Вы записаны' : 'Нет записи'}</span>
-                            </div>
-                        )}
-                        {/* кнопки действий зависят от роли пользователя */}
-                        {userRole === 'student' ? (
-                            <button className="interactive-button btn-style-register" onClick={(e) => handleAction(e, onSignUp, event)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isRegistered}>
-                                <span><AddIcon /> Записаться</span>
+                        <>
+                            <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                                <span><ListIcon /> Список</span>
                             </button>
-                        ) : (
-                            <>
-                                <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                    <span><ListIcon /> Список</span>
-                                </button>
-                                <button className="interactive-button btn-style-delete" onClick={(e) => handleAction(e, onDelete, event.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                    <span><DeleteIcon /> Удалить</span>
-                                </button>
-                            </>
-                        )}
+                            <button className="interactive-button btn-style-delete" onClick={(e) => handleAction(e, onDelete, event.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                                <span><DeleteIcon /> Удалить</span>
+                            </button>
+                        </>
                     </div>
                 </div>
             </div>
-            {/* детальная информация, видимая при раскрытии карточки */}
             <div className="card-details-wrapper">
-                <div className="card-body">
-                    <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
-                    <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
-                    <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
-                    <div className="detail-item"><span className="detail-label">Статус:</span> {event.event_status_level}</div>
+                <div className="card-body curator-card-body-grid">
+                    <div className="card-body-column column-image">
+                        <img src={defaultEventImage} alt={event.event_name} className="curator-card-image" />
+                    </div>
+                    <div className="card-body-column column-description">
+                        <div className="detail-item">
+                            <span className="detail-label">Описание:</span>
+                            {event.description || 'Тут будет описание, возможно, когда-нибудь'}
+                        </div>
+                    </div>
+                    <div className="card-body-column column-details">
+                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
+                        <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.event_status_level}</div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 });
 
+// карточка мероприятия для вида студента
+const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDetailed }) => {
+    const cardClassName = [
+        'event-card-student',
+        isCentral && 'is-central',
+        isDetailed && 'is-detailed-view'
+    ].filter(Boolean).join(' ');
 
+    const handleActionClick = (e, action) => {
+        e.stopPropagation();
+        action(event);
+    };
+
+    return (
+        <div className={cardClassName}>
+            <div className="student-card-inner">
+                <div
+                    className="cover-image"
+                    style={{ backgroundImage: `url(${event.imageUrl})` }}
+                />
+
+                <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
+                    {isRegistered ? 'Вы записаны' : 'Нет записи'}
+                </div>
+
+                <div className={`recruitment-status-badge status-${event.recruitment_status === 'Активен' ? 'active' : 'completed'}`}>
+                    {event.recruitment_status}
+                </div>
+
+                <div className="details-container">
+                    <div className="details-header">
+                        <div className="details-title-section">
+                            <h4>{event.event_name}</h4>
+                            <div className="card-date">{new Date(event.event_date).toLocaleDateString('ru-RU')}</div>
+                        </div>
+                        <div className="details-icons">
+                            <div className="icon-item" title="Макс. участников">
+                                <UsersIcon />
+                                <span>{event.max_participants || '∞'}</span>
+                            </div>
+                            <div className="icon-item" title="Макс. чел. в группе">
+                                <GroupIcon />
+                                <span>{event.max_group_size || 1}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="details-body">
+                        <div className="detail-description">{event.description}</div>
+
+                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
+                        <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.event_status_level}</div>
+                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(event.event_date).toLocaleDateString('ru-RU')}</div>
+                    </div>
+
+                    <div className="details-actions">
+                        <button
+                            className="interactive-button btn-style-register"
+                            onClick={(e) => handleActionClick(e, onSignUp)}
+                            onMouseMove={handleMouseMoveForEffect}
+                            onMouseLeave={handleButtonLeave}
+                            disabled={isRegistered}
+                        >
+                            <span><AddIcon /> {isRegistered ? 'Вы уже записаны' : 'Записаться'}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+// отображение карусели для студента
+const StudentEventsView = ({ events, userRegisteredEventIds, onSignUp, onCardClick, detailedCardId }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const carouselRef = useRef(null);
+    const isScrolling = useRef(false);
+
+    useEffect(() => {
+        if (currentIndex >= events.length) {
+            setCurrentIndex(Math.max(0, events.length - 1));
+        }
+    }, [events, currentIndex]);
+
+    const handleWheel = (e) => {
+        if (isScrolling.current || detailedCardId) return;
+        isScrolling.current = true;
+
+        if (e.deltaY > 0) {
+            setCurrentIndex(prev => Math.min(prev + 1, events.length - 1));
+        } else {
+            setCurrentIndex(prev => Math.max(prev - 1, 0));
+        }
+
+        setTimeout(() => { isScrolling.current = false; }, 500);
+    };
+
+    const handleItemClick = (index, eventId) => {
+        if (index !== currentIndex) {
+            setCurrentIndex(index);
+            if (detailedCardId) {
+                onCardClick(null);
+            }
+        } else {
+            onCardClick(eventId);
+        }
+    };
+
+    if (!events.length) {
+        return <p className="no-events-found">Мероприятия с выбранными фильтрами не найдены.</p>;
+    }
+
+    const cardWidth = 340;
+    const cardMargin = 20;
+    const cardTotalSpace = cardWidth + cardMargin;
+
+    return (
+        <div className="student-view-container" onWheel={handleWheel} ref={carouselRef}>
+            <div
+                className="events-carousel"
+                style={{ transform: `translateX(calc(50% - ${cardWidth / 2}px - ${currentIndex * cardTotalSpace}px))` }}
+            >
+                {events.map((event, index) => (
+                    <div
+                        key={event.id}
+                        className="carousel-item-wrapper"
+                        onClick={() => handleItemClick(index, event.id)}
+                    >
+                         <StudentEventCard
+                            event={event}
+                            isRegistered={userRegisteredEventIds.has(event.id)}
+                            onSignUp={onSignUp}
+                            isCentral={index === currentIndex}
+                            isDetailed={detailedCardId === event.id}
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// отображение списка для куратора
+const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, expandedCardId, hoveredCardId, setHoveredCardId, gliderStyle, cardElements }) => {
+    return (
+        <div className="page-content">
+            <div className="events-list-container" onMouseLeave={() => setHoveredCardId(null)}>
+                <div className="list-glider" style={gliderStyle}></div>
+                {events.length > 0 ? (
+                    events.map((event, index) => (
+                        <React.Fragment key={event.id}>
+                            <CuratorEventCard
+                                innerRef={node => node ? cardElements.current.set(event.id, node) : cardElements.current.delete(event.id)}
+                                event={event}
+                                isActive={expandedCardId ? event.id === expandedCardId : event.id === hoveredCardId}
+                                isExpanded={expandedCardId === event.id}
+                                onCardClick={onCardClick}
+                                onMouseEnter={() => { if (!expandedCardId) setHoveredCardId(event.id); }}
+                                onDelete={onDelete}
+                                onShowList={onShowList}
+                            />
+                            {index < events.length - 1 && <div className="event-divider" />}
+                        </React.Fragment>
+                    ))
+                ) : (
+                    <p className="no-events-found">Мероприятия не найдены.</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// главный компонент страницы
 export default function EventsPage({ userLogin, userRole }) {
-    // хук для уведомлений
     const { addNotification } = useNotification();
-    // состояние для списка мероприятий
     const [events, setEvents] = useState([]);
-    // состояние загрузки данных
     const [isLoading, setIsLoading] = useState(true);
-    // состояние для данных текущего пользователя
     const [currentUser, setCurrentUser] = useState(null);
     const [registrations, setRegistrations] = useState({});
     const [userRegisteredEventIds, setUserRegisteredEventIds] = useState(new Set());
-    // состояние для поискового запроса
     const [searchTerm, setSearchTerm] = useState('');
     const inputRef = useRef(null);
+
     const [expandedCardId, setExpandedCardId] = useState(null);
     const [hoveredCardId, setHoveredCardId] = useState(null);
+    const [detailedCardId, setDetailedCardId] = useState(null);
+
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
-    // состояние для открытия всплывающего окна записи
+
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-    // состояние для открытия всплывающего окна со списком записавшихся
     const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
-    // состояние для хранения данных выбранного мероприятия
     const [selectedEvent, setSelectedEvent] = useState(null);
-    // состояние для активного фильтра
     const [activeFilter, setActiveFilter] = useState('Все');
 
-    // эффект для загрузки начальных данных
     useEffect(() => {
         const fetchInitialData = async () => {
             setIsLoading(true);
             try {
-                const promises = [fetch(`${API_BASE_URL}/api/events`).then(res => res.json())];
+                const eventsData = await fetch(`${API_BASE_URL}/api/events`).then(res => res.json());
+                const processedEvents = eventsData.map((event, index) => ({
+                    ...event,
+                    imageUrl: event.image_url || defaultEventImage,
+                    max_participants: event.max_participants || [50, 100, 20, 150][index % 4],
+                    max_group_size: event.max_group_size || [1, 5, 10][index % 3],
+                    recruitment_status: 'Активен',
+                    description: event.description || 'Тут будет описание, возможно, когда-нибудь'
+                }));
+
+                const promises = [Promise.resolve(processedEvents)];
 
                 if (userRole === 'student' && userLogin) {
                     const profilePromise = fetch(`${API_BASE_URL}/api/profile/${userLogin}`).then(res => res.json());
@@ -350,15 +508,12 @@ export default function EventsPage({ userLogin, userRole }) {
                     promises.push(profilePromise, registrationsPromise);
                 }
 
-                const [eventsData, profileData, registrationIds] = await Promise.all(promises);
-                
-                setEvents(eventsData);
-                if (profileData) {
-                    setCurrentUser({ lastName: profileData.last_name, firstName: profileData.first_name, patronymic: profileData.patronymic, group: profileData.group, login: profileData.login });
-                }
-                if (registrationIds) {
-                    setUserRegisteredEventIds(new Set(registrationIds));
-                }
+                const [finalEventsData, profileData, registrationIds] = await Promise.all(promises);
+
+                setEvents(finalEventsData);
+                if (profileData) setCurrentUser({ lastName: profileData.last_name, firstName: profileData.first_name, patronymic: profileData.patronymic, group: profileData.group, login: profileData.login });
+                if (registrationIds) setUserRegisteredEventIds(new Set(registrationIds));
+
             } catch (error) {
                 addNotification(error.message, 'error');
             } finally {
@@ -367,11 +522,10 @@ export default function EventsPage({ userLogin, userRole }) {
         };
         fetchInitialData();
     }, [userLogin, userRole, addNotification]);
-    
+
     const filteredEvents = useMemo(() => {
         return events
             .filter(event => {
-                // логика фильтрации для студента
                 if (userRole === 'student' && activeFilter !== 'Все') {
                     const isRegistered = userRegisteredEventIds.has(event.id);
                     if (activeFilter === 'Записан') return isRegistered;
@@ -379,32 +533,41 @@ export default function EventsPage({ userLogin, userRole }) {
                 }
                 return true;
             })
-            // общая логика поиска по названию
             .filter(e => e.event_name.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [events, searchTerm, activeFilter, userRegisteredEventIds, userRole]);
-    
-    const gliderTargetId = expandedCardId ? null : hoveredCardId;
-    
+
     useEffect(() => {
-        const targetElement = gliderTargetId ? cardElements.current.get(gliderTargetId) : null;
-        if (targetElement) {
-            setGliderStyle({ transform: `translateY(${targetElement.offsetTop}px)`, height: `${targetElement.querySelector('.card-content-wrapper').offsetHeight}px`, opacity: 1 });
-        } else {
-            setGliderStyle(prev => ({ ...prev, opacity: 0 }));
+        if (detailedCardId && !filteredEvents.some(e => e.id === detailedCardId)) {
+            setDetailedCardId(null);
         }
-    }, [gliderTargetId, filteredEvents]);
-    
-    // обработчик клика по карточке для раскрытия/сворачивания
-    const handleCardClick = (id) => setExpandedCardId(prevId => prevId === id ? null : id);
-    
-    // открывает всплывающее окно записи на мероприятие
+    }, [filteredEvents, detailedCardId]);
+
+    const gliderTargetId = expandedCardId ? null : hoveredCardId;
+    useEffect(() => {
+        if (userRole === 'curator') {
+            const targetElement = gliderTargetId ? cardElements.current.get(gliderTargetId) : null;
+            if (targetElement) {
+                setGliderStyle({ transform: `translateY(${targetElement.offsetTop}px)`, height: `${targetElement.querySelector('.card-content-wrapper').offsetHeight}px`, opacity: 1 });
+            } else {
+                setGliderStyle(prev => ({ ...prev, opacity: 0 }));
+            }
+        }
+    }, [gliderTargetId, filteredEvents, userRole]);
+
+    const handleCardClick = (id) => {
+        if (userRole === 'student') {
+            setDetailedCardId(prevId => (prevId === id ? null : id));
+        } else {
+            setExpandedCardId(prevId => (prevId === id ? null : id));
+        }
+    };
+
     const handleSignUp = (event) => {
         if (!currentUser) return;
         setSelectedEvent(event);
         setIsSignUpModalOpen(true);
     };
 
-    // обработчик подтверждения записи
     const handleConfirmRegistration = async (data) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/events/${data.eventId}/register`, {
@@ -414,7 +577,7 @@ export default function EventsPage({ userLogin, userRole }) {
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.detail || 'Ошибка записи');
-            
+
             addNotification(result.message, 'success');
             setUserRegisteredEventIds(prev => new Set(prev).add(data.eventId));
             setIsSignUpModalOpen(false);
@@ -422,23 +585,20 @@ export default function EventsPage({ userLogin, userRole }) {
             addNotification(e.message, 'error');
         }
     };
-    
-    // обработчик удаления мероприятия (для куратора)
+
     const handleDeleteEvent = async (id) => {
         if (window.confirm('Вы уверены, что хотите удалить это мероприятие?')) {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/events/${id}`, { method: 'DELETE' });
                 if (!response.ok) throw new Error('Ошибка удаления');
                 addNotification('Мероприятие удалено.', 'success');
-                // обновляем список мероприятий, удаляя из него элемент
                 setEvents(prev => prev.filter(e => e.id !== id));
             } catch (e) {
                 addNotification(e.message, 'error');
             }
         }
     };
-    
-    // показывает список записавшихся (для куратора)
+
     const handleShowList = async (event) => {
         setSelectedEvent(event);
         setIsRegistrationsModalOpen(true);
@@ -454,68 +614,61 @@ export default function EventsPage({ userLogin, userRole }) {
         }
     };
 
-    // карта стилей для кнопок фильтра
     const filterStyleMap = { 'Все': 'btn-style-neutral', 'Записан': 'btn-style-registered-filter', 'Не записан': 'btn-style-unregistered-filter' };
 
     return (
-        <div className="events-container">
-            {/* рендерим всплывающие окна, если они активны */}
+        <div className="events-page-scope">
             {isSignUpModalOpen && <SignUpModal event={selectedEvent} onClose={() => setIsSignUpModalOpen(false)} onConfirm={handleConfirmRegistration} currentUser={currentUser} />}
             {isRegistrationsModalOpen && <RegistrationsModal isOpen={isRegistrationsModalOpen} onClose={() => setIsRegistrationsModalOpen(false)} eventName={selectedEvent?.event_name} registrations={registrations[selectedEvent?.id]} />}
-            
-            <h1>Мероприятия</h1>
-            
-            {isLoading ? (
-                <div className="page-loader-container"><ClockwiseLoader /></div>
-            ) : (
-                <>
-                    <div className={`filter-container ${userRole === 'curator' ? 'is-curator-view' : ''}`}>
-                        <div className="search-bar-wrapper">
-                            <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск по названию..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+
+            <div className="events-container">
+                <h1>Мероприятия</h1>
+
+                {isLoading ? (
+                    <div className="page-loader-container"><ClockwiseLoader /></div>
+                ) : (
+                    <>
+                        <div className={`filter-container ${userRole === 'curator' ? 'is-curator-view' : ''}`}>
+                            <div className="search-bar-wrapper">
+                                <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
+                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                                </div>
                             </div>
-                        </div>
-                        {/* фильтры доступны только студенту */}
-                        {userRole === 'student' && (
-                            <div className="filter-buttons">
-                                {Object.keys(filterStyleMap).map(status => (
-                                    <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${filterStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                        <span>{status}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-            
-                    <div className="page-content">
-                        <div className="events-list-container" onMouseLeave={() => setHoveredCardId(null)}>
-                            <div className="list-glider" style={gliderStyle}></div>
-                            {filteredEvents.length > 0 ? (
-                                filteredEvents.map((event, index) => (
-                                    <React.Fragment key={event.id}>
-                                        <EventCard
-                                            innerRef={node => node ? cardElements.current.set(event.id, node) : cardElements.current.delete(event.id)}
-                                            event={event}
-                                            isActive={expandedCardId ? event.id === expandedCardId : event.id === hoveredCardId}
-                                            isExpanded={expandedCardId === event.id}
-                                            isRegistered={userRegisteredEventIds.has(event.id)}
-                                            onCardClick={handleCardClick}
-                                            onMouseEnter={() => { if (!expandedCardId) setHoveredCardId(event.id); }}
-                                            onSignUp={handleSignUp}
-                                            onDelete={handleDeleteEvent}
-                                            onShowList={handleShowList}
-                                            userRole={userRole}
-                                        />
-                                        {index < filteredEvents.length - 1 && <div className="event-divider" />}
-                                    </React.Fragment>
-                                ))
-                            ) : (
-                                <p className="no-events-found">Мероприятия с выбранными фильтрами не найдены.</p>
+                            {userRole === 'student' && (
+                                <div className="filter-buttons">
+                                    {Object.keys(filterStyleMap).map(status => (
+                                        <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${filterStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                                            <span>{status}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             )}
                         </div>
-                    </div>
-                </>
-            )}
+
+                        {userRole === 'student' ? (
+                            <StudentEventsView
+                                events={filteredEvents}
+                                userRegisteredEventIds={userRegisteredEventIds}
+                                onSignUp={handleSignUp}
+                                onCardClick={handleCardClick}
+                                detailedCardId={detailedCardId}
+                            />
+                        ) : (
+                            <CuratorEventsView
+                                events={filteredEvents}
+                                onCardClick={handleCardClick}
+                                onDelete={handleDeleteEvent}
+                                onShowList={handleShowList}
+                                expandedCardId={expandedCardId}
+                                hoveredCardId={hoveredCardId}
+                                setHoveredCardId={setHoveredCardId}
+                                gliderStyle={gliderStyle}
+                                cardElements={cardElements}
+                            />
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }
