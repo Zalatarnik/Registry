@@ -16,13 +16,9 @@ import { ReactComponent as DownIcon } from '../../icons/down-icon.svg';
 import { ReactComponent as CloseIcon } from '../../icons/exit-icon.svg';
 
 // АНИМАЦИЯ КНОПОК
-
-// коэффициент для плавности анимации радиусов углов
 const EASING_FACTOR = 0.15;
-// радиус углов по умолчанию
 const DEFAULT_RADIUS = 0;
 
-// функция для анимирования радиусов углов элемента
 function animateRadii(btn) {
     const state = btn._animationState;
     if (!state) return;
@@ -44,7 +40,6 @@ function animateRadii(btn) {
     }
 }
 
-// универсальный обработчик движения мыши для создания эффектов
 const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
@@ -53,7 +48,6 @@ const handleMouseMoveForEffect = (e) => {
     el.style.setProperty('--mouse-x', `${x}px`);
     el.style.setProperty('--mouse-y', `${y}px`);
 
-    // если это интерактивный элемент, запускаем анимацию радиусов
     const isInteractive = el.classList.contains('interactive-button') || el.classList.contains('form-submit-btn') || el.classList.contains('form-secondary-btn');
     if (isInteractive) {
         if (!el._animationState) {
@@ -79,7 +73,6 @@ const handleMouseMoveForEffect = (e) => {
     }
 };
 
-// обработчик увода мыши с интерактивного элемента
 const handleButtonLeave = (e) => {
     const btn = e.currentTarget;
     const isInteractive = btn.classList.contains('interactive-button') || btn.classList.contains('form-submit-btn') || btn.classList.contains('form-secondary-btn');
@@ -97,7 +90,6 @@ const handleButtonLeave = (e) => {
     }
 };
 
-// утилита для скачивания файла по url
 const downloadFile = (fileUrl, fileName) => {
     const fullUrl = `http://localhost:8000${fileUrl}`;
     const link = document.createElement('a');
@@ -117,12 +109,9 @@ const FormField = ({ label, children }) => (
     </div>
 );
 
-// кастомный компонент выпадающего списка
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef(null);
-
-    // эффект для закрытия списка при клике вне компонента
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (ref.current && !ref.current.contains(event.target)) setIsOpen(false);
@@ -130,12 +119,10 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [ref]);
-
     const handleSelect = (option) => {
         onChange(option);
         setIsOpen(false);
     };
-
     return (
         <div ref={ref} className={`custom-select-container ${isOpen ? 'is-open' : ''}`}>
             <div className="form-input custom-select-value" onClick={() => setIsOpen(!isOpen)}>
@@ -153,16 +140,13 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     );
 };
 
-// компонент для загрузки файлов
 const FileUploadArea = ({ files, setFiles }) => {
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef(null);
-
     const handleFileChange = (selectedFiles) => {
         const newFiles = Array.from(selectedFiles).filter(file => !files.some(f => f.name === file.name));
         setFiles(prev => [...prev, ...newFiles]);
     };
-
     const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
     const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
     const handleDrop = (e) => {
@@ -173,11 +157,9 @@ const FileUploadArea = ({ files, setFiles }) => {
             e.dataTransfer.clearData();
         }
     };
-    
     const removeFile = (fileName) => {
         setFiles(files.filter(file => file.name !== fileName));
     };
-    
     return (
         <div className="file-upload-container">
             <div
@@ -196,7 +178,7 @@ const FileUploadArea = ({ files, setFiles }) => {
                 ) : (
                     <div className="file-list-inside">
                         {files.map(file => (
-                            <div key={file.name} className="file-item">
+                            <div key={file.name || file.url} className="file-item">
                                 <span className="file-item-name">{file.name}</span>
                                 <button className="file-item-remove-btn" onClick={(e) => { e.stopPropagation(); removeFile(file.name); }}>✕</button>
                             </div>
@@ -209,17 +191,11 @@ const FileUploadArea = ({ files, setFiles }) => {
     );
 };
 
-
-// ВСПЛЫВАЮЩЕЕ ОКНО - РЕДАКТИРОВАНИЕ
 const EditRequestModal = ({ request, onClose, onSave }) => {
     const { addNotification } = useNotification();
-    // состояние для плавной анимации закрытия
     const [isClosing, setIsClosing] = useState(false);
-    // состояние для отслеживания процесса отправки
     const [isSubmitting, setIsSubmitting] = useState(false);
-    // состояние для файлов
     const [files, setFiles] = useState(request.files || []);
-    // состояние для полей формы
     const [formData, setFormData] = useState({
         eventName: request.event_name || '',
         leader: request.leader || '',
@@ -228,19 +204,13 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
         eventStatus: request.event_status_level || '',
         eventDate: request.event_date ? new Date(request.event_date).toISOString().split('T')[0] : '',
     });
-
     const handleInputChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // запускает анимацию закрытия
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(onClose, 300);
     };
-    
-    // обработчик отправки формы
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // валидация на заполненность полей
         for (const key in formData) {
             if (!formData[key]) {
                 addNotification("Пожалуйста, заполните все обязательные поля.", "error");
@@ -248,18 +218,14 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
             }
         }
         setIsSubmitting(true);
-        // вызываем колбэк сохранения, переданный из родительского компонента
         await onSave({ id: request.id, ...formData, files });
         setIsSubmitting(false);
     };
-
     return (
         <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
             <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={e => e.stopPropagation()}>
                 <div className="chat-header">
-                    <div className="chat-title-wrapper">
-                        <h2>Редактирование заявки</h2>
-                    </div>
+                    <div className="chat-title-wrapper"><h2>Редактирование заявки</h2></div>
                     <button onClick={handleClose} className="chat-close-btn" title="Закрыть"><CloseIcon /></button>
                 </div>
                 <div className="edit-modal-body">
@@ -284,18 +250,46 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
     );
 };
 
-
-// карточка заявки
 const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseEnter, onDelete, onDownload, onEdit, onOpenChat, innerRef }) => {
-    // формируем классы для карточки в зависимости от ее состояния
     const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
-    // обертка для обработчиков, чтобы остановить всплытие события клика на карточку
     const handleActionClick = (e, callback, ...args) => {
         e.stopPropagation();
         if (typeof callback === 'function') callback(...args);
     };
-    // карта стилей для статусов
     const statusStyleMap = { 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
+
+    const [areButtonsRendered, setAreButtonsRendered] = useState(false);
+    const [animationClass, setAnimationClass] = useState('');
+    const prevIsExpanded = useRef(isExpanded);
+    const animationTimer = useRef();
+
+    useEffect(() => {
+        clearTimeout(animationTimer.current);
+
+        if (isExpanded) {
+            setAreButtonsRendered(true);
+            setAnimationClass('is-action-button-fly-in');
+        } else {
+            if (prevIsExpanded.current) {
+                setAnimationClass('is-action-button-fade-out');
+                animationTimer.current = setTimeout(() => {
+                    setAreButtonsRendered(false);
+                }, 300); 
+            }
+        }
+        prevIsExpanded.current = isExpanded;
+        
+        return () => clearTimeout(animationTimer.current);
+    }, [isExpanded]);
+
+    const formatFileText = (count) => {
+        if (count % 10 === 1 && count % 100 !== 11) {
+            return `${count} файл`;
+        } else if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
+            return `${count} файла`;
+        }
+        return `${count} файлов`;
+    };
 
     return (
         <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter}>
@@ -306,63 +300,82 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                         <div className="card-date">{new Date(request.event_date).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="card-header-right">
-                        <div className="card-actions">
-                            <button className="interactive-button is-icon btn-style-neutral" title="Скачать файлы" onClick={(e) => handleActionClick(e, onDownload, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><DownloadIcon /></span></button>
-                            {/* кнопка редактирования доступна только для заявок "на рассмотрении" */}
-                            {request.status === 'На рассмотрении' &&
-                                <button className="interactive-button is-icon btn-style-neutral" title="Редактировать" onClick={(e) => handleActionClick(e, onEdit, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
-                            }
-                            <button className="interactive-button is-icon btn-style-rejected" title="Отменить заявку" onClick={(e) => handleActionClick(e, onDelete, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
-                        </div>
+                        {areButtonsRendered && (
+                            <>
+                                {request.status === 'На рассмотрении' &&
+                                    <button className={`interactive-button is-icon btn-style-neutral ${animationClass}`} title="Редактировать" onClick={(e) => handleActionClick(e, onEdit, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
+                                }
+                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title="Отменить заявку" onClick={(e) => handleActionClick(e, onDelete, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
+                            </>
+                        )}
                         <button className="interactive-button is-icon btn-style-chat" title="Открыть чат" onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
                         <button className={`interactive-button is-status-button ${statusStyleMap[request.status]}`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{request.status}</span></button>
                     </div>
                 </div>
             </div>
-            {/* детальная информация, видимая при раскрытии карточки */}
             <div className="card-details-wrapper">
-                <div className="card-body">
-                    <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
-                    <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
-                    <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
-                    <div className="detail-item"><span className="detail-label">Статус мероприятия:</span> {request.event_status_level}</div>
-                    <div className="detail-item"><span className="detail-label">Ссылка на ресурс мероприятия:</span> {request.event_status_level}</div>
-                    <div className="detail-item"><span className="detail-label">Описание:</span> {request.event_status_level}</div>
+                <div className="card-body request-card-body-grid">
+                    <div className="card-body-column column-files">
+                        {(request.files && request.files.length > 0) ? (
+                            <div
+                                className="m-stack-download"
+                                onClick={(e) => handleActionClick(e, onDownload, request)}
+                                title="Скачать прикрепленные файлы"
+                            >
+                                <DownloadIcon className="stack-download-icon" />
+                                <div className="stack-label">{formatFileText(request.files.length)}</div>
+                            </div>
+                        ) : (
+                            <div className="m-stack-download is-empty">
+                                 <DownloadIcon className="stack-download-icon" />
+                                <div className="stack-label">Нет файлов</div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="card-body-column column-description">
+                        <div className="detail-item">
+                            <span className="detail-label">Описание:</span>
+                            {request.description || 'Описание для этой заявки еще не добавлено.'}
+                        </div>
+                        <div className="detail-item detail-item-link">
+                            <span className="detail-label">Ссылка на ресурс:</span>
+                            {request.resource_link ? (
+                                <a href={request.resource_link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                    {request.resource_link}
+                                </a>
+                            ) : 'Ссылка не указана.'}
+                        </div>
+                    </div>
+
+                    <div className="card-body-column column-details">
+                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
+                        <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.event_status_level}</div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 });
 
-
 const statusStyleMap = { 'Все': 'btn-style-neutral', 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
 
 export default function MyRequestsPage({ userLogin }) {
-    // состояние для хранения списка всех заявок
     const [requests, setRequests] = useState([]);
-    // состояние для индикации загрузки
     const [isLoading, setIsLoading] = useState(true);
-    // хук для отображения уведомлений
     const { addNotification } = useNotification();
-    // состояние для id карточки, на которую наведен курсор
     const [hoveredCardId, setHoveredCardId] = useState(null);
-    // состояние для id раскрытой карточки
     const [expandedCardId, setExpandedCardId] = useState(null);
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
-    const [gliderVersion, setGliderVersion] = useState(0);
-    // состояние для поискового запроса
     const [searchTerm, setSearchTerm] = useState('');
-    // состояние для активного фильтра по статусу
     const [activeFilter, setActiveFilter] = useState('Все');
-    // ref для доступа к полю ввода
     const inputRef = useRef(null);
-    // состояние для отслеживания активного чата
     const [activeChatRequest, setActiveChatRequest] = useState(null);
-    // состояние для отслеживания заявки
     const [editingRequest, setEditingRequest] = useState(null);
 
-    // эффект для загрузки заявок
     useEffect(() => {
         const fetchRequests = async () => {
             if (!userLogin) return;
@@ -371,7 +384,12 @@ export default function MyRequestsPage({ userLogin }) {
                 const response = await fetch(`http://localhost:8000/api/requests/student/${userLogin}`);
                 if (!response.ok) throw new Error('Не удалось загрузить заявки');
                 const data = await response.json();
-                setRequests(data);
+                const processedData = data.map(req => ({
+                    ...req,
+                    description: req.description || "Тут будет описание, возможно, когда-нибудь",
+                    resource_link: req.resource_link || "https://example.com"
+                }));
+                setRequests(processedData);
             } catch (error) {
                 addNotification(error.message, 'error');
             } finally {
@@ -381,36 +399,34 @@ export default function MyRequestsPage({ userLogin }) {
         fetchRequests();
     }, [userLogin, addNotification]);
 
-    const gliderTargetId = expandedCardId ? null : hoveredCardId;
-    const activeCardId = gliderTargetId || expandedCardId;
     const filteredRequests = useMemo(() => {
         return requests
             .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
             .filter(request => request.event_name.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [requests, searchTerm, activeFilter]);
 
+    const gliderTargetId = expandedCardId ? null : hoveredCardId;
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
+        if (userLogin) {
             const targetElement = gliderTargetId ? cardElements.current.get(gliderTargetId) : null;
             if (targetElement) {
-                setGliderStyle({ transform: `translateY(${targetElement.offsetTop}px)`, height: `${targetElement.querySelector('.card-content-wrapper').offsetHeight}px`, opacity: 1 });
+                setGliderStyle({
+                    transform: `translateY(${targetElement.offsetTop}px)`,
+                    height: `${targetElement.querySelector('.card-content-wrapper').offsetHeight}px`,
+                    opacity: 1
+                });
             } else {
-                setGliderStyle(prevStyle => ({ ...prevStyle, opacity: 0 }));
+                setGliderStyle(prev => ({ ...prev, opacity: 0 }));
             }
-        }, 0);
-        return () => clearTimeout(timeoutId);
-    }, [gliderTargetId, filteredRequests, gliderVersion]);
+        }
+    }, [gliderTargetId, filteredRequests, userLogin]);
 
-    // раскрытие/сворачивание
     const handleCardClick = (clickedId) => {
         setExpandedCardId(prevId => (prevId === clickedId ? null : clickedId));
-        setGliderVersion(v => v + 1);
     };
 
-    // обработчик для открытия модального окна редактирования
     const handleEditClick = (request) => setEditingRequest(request);
 
-    // обработчик скачивания всех файлов для заявки
     const handleDownloadAll = (request) => {
         if (!request.files || request.files.length === 0) {
             addNotification('У этой заявки нет приложенных файлов.', 'info');
@@ -422,7 +438,6 @@ export default function MyRequestsPage({ userLogin }) {
         });
     };
 
-    // обработчик удаления заявки
     const handleCancelRequest = async (requestId) => {
         if (!window.confirm("Вы уверены, что хотите безвозвратно отменить эту заявку?")) return;
         try {
@@ -435,15 +450,12 @@ export default function MyRequestsPage({ userLogin }) {
         }
     };
     
-    // обработчики для открытия и закрытия чата
     const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.event_name });
     const handleCloseChat = () => setActiveChatRequest(null);
     
-    // обработчик сохранения изменений в заявке
     const handleSaveRequest = async (updatedData) => {
         try {
             const data = new FormData();
-    
             data.append('eventName', updatedData.eventName);
             data.append('leader', updatedData.leader);
             data.append('organizer', updatedData.organizer);
@@ -453,12 +465,8 @@ export default function MyRequestsPage({ userLogin }) {
     
             const newFiles = updatedData.files.filter(f => f instanceof File);
             const existingFilesToKeep = updatedData.files.filter(f => !(f instanceof File));
-    
-            newFiles.forEach(file => {
-                data.append('files', file, file.name);
-            });
-    
-            data.append('existingFiles', JSON.stringify(existingFilesToKeep));
+            newFiles.forEach(file => data.append('files', file, file.name));
+            data.append('existingFiles', JSON.stringify(existingFilesToKeep.map(f => ({ name: f.name, url: f.url }))));
     
             const response = await fetch(`http://localhost:8000/api/requests/${updatedData.id}`, {
                 method: 'PUT',
@@ -471,10 +479,9 @@ export default function MyRequestsPage({ userLogin }) {
             }
     
             const savedRequest = await response.json();
-            // обновляем состояние на клиенте, чтобы сразу увидеть изменения
-            setRequests(prev => prev.map(r => r.id === savedRequest.id ? savedRequest : r));
+            setRequests(prev => prev.map(r => r.id === savedRequest.id ? { ...savedRequest, description: r.description, resource_link: r.resource_link } : r));
             addNotification('Заявка успешно обновлена!', 'success');
-            setEditingRequest(null); // закрываем всплывающее окно
+            setEditingRequest(null);
     
         } catch (error) {
             addNotification(error.message, 'error');
@@ -482,10 +489,8 @@ export default function MyRequestsPage({ userLogin }) {
     };
 
     return (
-        <>
-            {/* рендерим чат, если он активен */}
+        <div className="my-requests-scope">
             {activeChatRequest && (<ChatView userLogin={userLogin} request={activeChatRequest} onClose={handleCloseChat} />)}
-            {/* рендерим всплывающее окно редактирования через портал, если оно активно */}
             {editingRequest && ReactDOM.createPortal(<EditRequestModal request={editingRequest} onClose={() => setEditingRequest(null)} onSave={handleSaveRequest} />, document.body )}
 
             <div className="requests-container">
@@ -497,7 +502,7 @@ export default function MyRequestsPage({ userLogin }) {
                         <div className="filter-container">
                             <div className="search-bar-wrapper">
                                 <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск по названию..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
                                 </div>
                             </div>
                             <div className="filter-buttons">
@@ -517,10 +522,10 @@ export default function MyRequestsPage({ userLogin }) {
                                             <RequestCard
                                                 innerRef={node => node ? cardElements.current.set(request.id, node) : cardElements.current.delete(request.id)}
                                                 request={request}
-                                                isActive={activeCardId === request.id}
+                                                isActive={expandedCardId ? request.id === expandedCardId : request.id === hoveredCardId}
                                                 isExpanded={expandedCardId === request.id}
                                                 onCardClick={() => handleCardClick(request.id)}
-                                                onMouseEnter={() => setHoveredCardId(request.id)}
+                                                onMouseEnter={() => { if (!expandedCardId) setHoveredCardId(request.id); }}
                                                 onDelete={handleCancelRequest}
                                                 onDownload={handleDownloadAll}
                                                 onEdit={handleEditClick}
@@ -537,6 +542,6 @@ export default function MyRequestsPage({ userLogin }) {
                     </>
                 )}
             </div>
-        </>
+        </div>
     );
 }

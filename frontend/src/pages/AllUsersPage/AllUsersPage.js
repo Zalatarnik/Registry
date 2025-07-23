@@ -214,9 +214,9 @@ export default function AllUsersPage() {
     const handleCardClick = (id) => setExpandedCardId(prev => prev === id ? null : id);
 
     return (
-        <div className="all-users-container">
-            <h1>Все пользователи</h1>
-            <div className="page-content">
+        <div className="all-users-scope">
+            <div className="all-users-container">
+                <h1>Все пользователи</h1>
                 {isLoading ? (
                     // показываем загрузчик во время получения данных
                     <div className="page-loader-container"><ClockwiseLoader /></div>

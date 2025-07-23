@@ -32,10 +32,13 @@
 
 /* контейнер основного контента */
 .new-request-container .page-content {
-  padding: 10px;
+  margin-left: 26px;
+    padding: 10px;
   overflow-y: auto;
   background-color: #ffffff;
   box-shadow: none;
+  width: 109vh;
+  max-height: 55vh;
 }
 
 /* сетка формы */
@@ -49,6 +52,13 @@
 /* поля формы */
 .new-request-container .form-field {
     position: relative;
+    grid-column: auto;
+}
+
+/* Заставляем поля со ссылкой и описанием занимать всю ширину строки */
+.new-request-container .form-field:has(input[name="link"]),
+.new-request-container .form-field:has(textarea[name="description"]) {
+    grid-column: span 2;
 }
 
 .new-request-container .form-field label {
@@ -104,6 +114,13 @@
   background-color: transparent;
   font-size: 18px;
   font-weight: 600;
+}
+
+/* Стили для текстовой области */
+.new-request-container .form-input[as="textarea"] {
+    resize: vertical;
+    min-height: 40px; /* Минимальная высота, чтобы выглядело аккуратно */
+    line-height: 1.5;
 }
 
 /* иконка календаря для поля даты */
@@ -223,7 +240,7 @@
     z-index: 1;
     display: flex;
     padding: 5px;
-    min-height: 80px;
+    min-height: 120px;
     color: #6c757d;
     background-color: #fff;
     border-radius: 12px;
@@ -422,76 +439,4 @@
 
 .new-request-container .form-secondary-btn:hover span {
   color: #fff;
-}
-
-/* стили всплывающего окна */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(33, 37, 41, 0.6);
-  backdrop-filter: blur(5px);
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from { transform: translateY(-30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.modal-content {
-  width: 100%;
-  max-width: 450px;
-  padding: 30px 40px;
-  background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.modal-header { margin-bottom: 24px; }
-.modal-header h2 { margin: 0; color: #212529; font-size: 24px; font-weight: 700; }
-.modal-body .form-group { margin-bottom: 20px; }
-.modal-body label { display: block; margin-bottom: 8px; color: #6c757d; font-size: 14px; font-weight: 500; }
-
-.modal-body input,
-.modal-body textarea {
-    width: 100%;
-    padding: 4px 4px;
-    border: none;
-    border-radius: 0;
-    box-sizing: border-box;
-    font-size: 16px;
-    background-color: transparent;
-    transition: border-color 0.2s;
-    resize: vertical;
-}
-
-.modal-body .form-field {
-  margin-bottom: 25px;
-}
-
-.modal-body input:focus,
-.modal-body textarea:focus {
-    outline: none;
-    border-bottom-color: #d35400;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 12px;
-  margin-top: 30px;
-  justify-content: flex-end;
-}
-
-.modal-footer .form-secondary-btn,
-.modal-footer .form-submit-btn {
-  width: auto;
-  flex-shrink: 0;
 }

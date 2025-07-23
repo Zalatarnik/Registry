@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import './NewRequestPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
@@ -116,12 +115,32 @@ const handleButtonLeave = (e) => {
   }
 };
 
-const FormField = ({ label, children }) => (
-    <div className="form-field">
-        <label>{label}</label>
-        <div className="input-wrapper">{children}</div>
-    </div>
-);
+const FormField = ({ label, children, isTextarea }) => {
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (isTextarea) {
+            const textarea = inputRef.current;
+            const handleInput = () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+            };
+            textarea.addEventListener('input', handleInput);
+            // Вызываем handleInput при инициализации, чтобы установить правильную высоту
+            handleInput();
+            return () => textarea.removeEventListener('input', handleInput);
+        }
+    }, [isTextarea]);
+
+    const childrenWithRef = isTextarea ? React.cloneElement(children, { ref: inputRef, rows: 1 }) : children;
+
+    return (
+        <div className="form-field">
+            <label>{label}</label>
+            <div className="input-wrapper">{childrenWithRef}</div>
+        </div>
+    );
+};
 
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -232,85 +251,15 @@ const FileUploadArea = ({ files, setFiles }) => {
     );
 }
 
-// добавлено всплывающее окно
-const SubmissionModal = ({ isOpen, onClose, onFinalSubmit, isSubmitting }) => {
-    const [link, setLink] = useState('');
-    const [description, setDescription] = useState('');
-    const textareaRef = useRef(null);
-
-    useEffect(() => {
-        const textarea = textareaRef.current;
-        if (textarea) {
-            textarea.style.height = 'auto'; 
-            textarea.style.height = `${textarea.scrollHeight}px`;
-        }
-    }, [description]);
-
-    if (!isOpen) return null;
-
-    const handleSubmit = () => {
-        onFinalSubmit({ link, description });
-    };
-
-    const handleOverlayClick = (e) => {
-        if (e.target.id === 'modal-overlay') onClose();
-    };
-
-    return ReactDOM.createPortal(
-        <div className="modal-overlay" id="modal-overlay" onClick={handleOverlayClick}>
-            <div className="modal-content">
-                <div className="modal-header"><h2>Дополнительная информация</h2></div>
-                <div className="modal-body">
-                    <div className="form-field">
-                        <label>Ссылка на ресурс мероприятия</label>
-                        <div className="input-wrapper">
-                             <input 
-                                className="form-input" 
-                                type="text" 
-                                value={link} 
-                                onChange={(e) => setLink(e.target.value)} 
-                            />
-                        </div>
-                    </div>
-
-                    {/* Поле для описания */}
-                    <div className="form-field">
-                        <label>Описание</label>
-                        <div className="input-wrapper">
-                            <textarea 
-                                ref={textareaRef}
-                                className="form-input" 
-                                rows="1"
-                                value={description} 
-                                onChange={(e) => setDescription(e.target.value)} 
-                            ></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div className="modal-footer">
-                    <button className="form-secondary-btn" onClick={onClose} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
-                        <span>Пропустить</span>
-                    </button>
-                    <button className="form-submit-btn" onClick={handleSubmit} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
-                        {isSubmitting ? <ClockwiseLoader size={20} /> : <span>Отправить заявку</span>}
-                    </button>
-                </div>
-            </div>
-        </div>, document.body
-    );
-};
-// конец добавления
-
 export default function NewRequestPage({ userLogin }) {
     // состояние для хранения данных формы
     const [formData, setFormData] = useState({
-        eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '',
+        eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', link: '', description: '',
     });
     // состояние для хранения прикрепленных файлов
     const [files, setFiles] = useState([]);
     // состояние для отслеживания процесса отправки формы
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false); // добавлено
     // хук для отображения уведомлений
     const { addNotification } = useNotification();
 
@@ -322,43 +271,43 @@ export default function NewRequestPage({ userLogin }) {
     // функция для очистки всех полей формы и списка файлов
     const clearForm = () => {
         setFormData({
-            eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '',
+            eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', link: '', description: '',
         });
         setFiles([]);
     };
 
-    // обработчик отправки формы (изменено)
-    const handleSubmit = (e) => {
+    // обработчик отправки формы
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!userLogin) {
             addNotification("Ошибка: Не удалось определить пользователя. Пожалуйста, войдите в систему снова.", "error");
             return;
         }
-        for (const key in formData) {
+
+        // Проверяем только обязательные поля
+        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate'];
+        for (const key of requiredFields) {
             if (!formData[key]) {
                 addNotification("Пожалуйста, заполните все обязательные поля.", "error");
                 return;
             }
         }
-        setIsModalOpen(true);
-    };
 
-    const handleFinalSubmit = async (modalData) => {
         setIsSubmitting(true);
         const data = new FormData();
-        data.append('eventName', formData.eventName);
-        data.append('leader', formData.leader);
-        data.append('organizer', formData.organizer);
-        data.append('location', formData.location);
-        data.append('eventStatus', formData.eventStatus);
-        data.append('eventDate', new Date(formData.eventDate).toISOString());
+        // Добавляем все поля из formData
+        for (const key in formData) {
+            if (key === 'eventDate' && formData[key]) {
+                 data.append(key, new Date(formData[key]).toISOString());
+            } else if (formData[key]) {
+                 data.append(key, formData[key]);
+            }
+        }
         data.append('user_login', userLogin);
 
         files.forEach(file => {
             data.append('files', file, file.name);
         });
-        if (modalData.link) data.append('link', modalData.link);
-        if (modalData.description) data.append('description', modalData.description);
 
         try {
             const response = await fetch('http://localhost:8000/api/requests', {
@@ -373,8 +322,6 @@ export default function NewRequestPage({ userLogin }) {
 
             addNotification('Заявка успешно создана!', 'success');
             clearForm();
-        
-            setIsModalOpen(false);
 
         } catch (error) {
             addNotification(error.message, 'error');
@@ -390,11 +337,11 @@ export default function NewRequestPage({ userLogin }) {
             <div className="page-content">
                 <form onSubmit={handleSubmit}>
                     <div className="form-grid">
-                        <FormField label="Название мероприятия"><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
-                        <FormField label="Руководитель"><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
-                        <FormField label="Организатор"><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
-                        <FormField label="Место проведения"><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
-                        <FormField label="Статус мероприятия">
+                        <FormField label="Название мероприятия*"><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
+                        <FormField label="Руководитель*"><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
+                        <FormField label="Организатор*"><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
+                        <FormField label="Место проведения*"><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
+                        <FormField label="Статус мероприятия*">
                            <CustomSelect
                                 options={['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']}
                                 value={formData.eventStatus}
@@ -402,25 +349,21 @@ export default function NewRequestPage({ userLogin }) {
                                 placeholder="Выберите статус"
                            />
                         </FormField>
-                        <FormField label="Дата проведения"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
+                        <FormField label="Дата проведения*"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
                         <FileUploadArea files={files} setFiles={setFiles} />
+                        
+                        {/* поля, которые были в модальном окне */}
+                        <FormField label="Ссылка на ресурс мероприятия"><input className="form-input" name="link" type="text" value={formData.link} onChange={(e) => handleInputChange('link', e.target.value)} /></FormField>
+                        <FormField label="Описание" isTextarea={true}><textarea className="form-input" name="description" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}></textarea></FormField>
                     </div>
                      <div className="form-actions-container">
                         <button type="button" className="form-secondary-btn" onClick={clearForm} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>Очистить форму</span></button>
                         <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                            {/* меняем текст кнопки во время отправки */}
-                            <span>{isSubmitting ? 'Отправка...' : 'Подать заявку'}</span>
+                            {isSubmitting ? <ClockwiseLoader size={20} /> : <span>Подать заявку</span>}
                         </button>
                     </div>
                 </form>
             </div>
-            {/* добавлено всплывающее окно */}
-            <SubmissionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onFinalSubmit={handleFinalSubmit}
-                isSubmitting={isSubmitting}
-            />
         </div>
     );
 }
