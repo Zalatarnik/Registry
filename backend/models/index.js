@@ -10,4 +10,4 @@ const Request = require('./request')(sequelize, Sequelize.DataTypes);
 User.hasMany(Request, { foreignKey: 'userId' });
 Request.belongsTo(User, { foreignKey: 'userId' });
 
-module.exports = { sequelize, User, Request, Message };
+module.exports = { sequelize, User, Request };
