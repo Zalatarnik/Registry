@@ -17,6 +17,7 @@ app.use(bodyParser.json());
 //Роуты
 app.use('/api', require('./routes/userRoutes'));
 app.use('/api', require('./routes/requestRoutes'));
+app.use('/api', require('./routes/eventRoutes'));
 
 //Папки со статическими файлами
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -24,10 +25,10 @@ app.use('/static', express.static(path.join(__dirname, 'static')));
 
 //Синхранизация с БД и запуск сервера
 sequelize.sync().then(() => {
-  console.log('Database synced');
+  console.log('База данных синхронизирована');
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Сервер работает на ${PORT}`);
   });
 }).catch(err => {
-  console.error('Unable to connect to DB:', err);
+  console.error('Невозможно подключиться к Базе данных:', err);
 });

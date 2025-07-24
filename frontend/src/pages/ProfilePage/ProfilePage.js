@@ -450,7 +450,7 @@ export default function ProfilePage({ userRole, userLogin }) {
               </label>
               
               <div className="profile-form">
-                <EditableField label="Фамилия" value={userData.last_name} onValueChange={(val) => handleValueChange('last_name', val)} fieldId="lastName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('lastName')} />
+                <EditableField label="Фамилия" value={userData.lastName} onValueChange={(val) => handleValueChange('lastName', val)} fieldId="lastName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('lastName')} />
                 
                 {userRole === 'student' ? (
                   <EditableField label="№ студенческого билета" value={userData.student_id_number} fieldId="studentId" isLocked={true} />
@@ -458,7 +458,7 @@ export default function ProfilePage({ userRole, userLogin }) {
                   <EditableField label="Логин" value={userData.login} fieldId="login" isLocked={true} />
                 )}
 
-                <EditableField label="Имя" value={userData.first_name} onValueChange={(val) => handleValueChange('first_name', val)} fieldId="firstName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('firstName')} />
+                <EditableField label="Имя" value={userData.firstName} onValueChange={(val) => handleValueChange('firstName', val)} fieldId="firstName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('firstName')} />
 
                 {userRole === 'student' ? (
                   <EditableField label="Группа" value={userData.group} onValueChange={(val) => handleValueChange('group', val)} fieldId="group" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('group')}/>

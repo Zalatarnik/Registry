@@ -81,12 +81,12 @@ exports.getRequestsByStudent = async (req, res) => {
       }
       return {
         id: req.id,
-        event_name: req.eventName,
+        eventName: req.eventName,
         leader: req.leader,
         organizer: req.organizer,
         location: req.location,
-        event_status_level: req.eventStatus,
-        event_date: req.eventDate,
+        eventStatus: req.eventStatus,
+        eventDate: req.eventDate,
         description: req.description,
         link: req.link,
         status: req.status, 
@@ -145,12 +145,12 @@ exports.updateRequest = async (req, res) => {
     // Возвращаем обновлённую информацию о заявке
     res.json({
       id: request.id,
-      event_name: request.eventName,
+      eventName: request.eventName,
       leader: request.leader,
       organizer: request.organizer,
       location: request.location,
-      event_status_level: request.eventStatus,
-      event_date: request.eventDate,
+      eventStatus: request.eventStatus,
+      eventDate: request.eventDate,
       description: request.description,
       link: request.link,
       status: 'На рассмотрении',
@@ -215,26 +215,27 @@ exports.getAllRequests = async (req, res) => {
 
       return {
         id: req.id,
-        event_name: req.eventName,
+        eventName: req.eventName,
         leader: req.leader,
         organizer: req.organizer,
         location: req.location,
-        event_status_level: req.eventStatus,
-        event_date: req.eventDate,
+        eventStatus: req.eventStatus,
+        eventDate: req.eventDate,
         description: req.description,
         link: req.link,
         files,
         status: req.status || 'На рассмотрении',
+        created_at:req.createdAt,
 
         owner: req.User
           ? {
-              first_name: req.User.firstName,
-              last_name: req.User.lastName,
+              firstName: req.User.firstName,
+              lastName: req.User.lastName,
               login: req.User.login
             }
           : {
-              first_name: 'Неизвестно',
-              last_name: '',
+              firstName: 'Неизвестно',
+              lastName: '',
               login: 'удалён'
             }
       };

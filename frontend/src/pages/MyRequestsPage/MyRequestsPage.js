@@ -197,12 +197,12 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [files, setFiles] = useState(request.files || []);
     const [formData, setFormData] = useState({
-        eventName: request.event_name || '',
+        eventName: request.eventName || '',
         leader: request.leader || '',
         organizer: request.organizer || '',
         location: request.location || '',
-        eventStatus: request.event_status_level || '',
-        eventDate: request.event_date ? new Date(request.event_date).toISOString().split('T')[0] : '',
+        eventStatus: request.eventStatus || '',
+        eventDate: request.eventDate ? new Date(request.eventDate).toISOString().split('T')[0] : '',
     });
     const handleInputChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
     const handleClose = () => {
@@ -296,8 +296,8 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
             <div className="card-content-wrapper" onClick={onCardClick}>
                 <div className="card-header">
                     <div className="header-content">
-                        <h3>{request.event_name}</h3>
-                        <div className="card-date">{new Date(request.event_date).toLocaleDateString('ru-RU')}</div>
+                        <h3>{request.eventName}</h3>
+                        <div className="card-date">{new Date(request.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="card-header-right">
                         {areButtonsRendered && (
@@ -352,7 +352,7 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                         <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
                         <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
                         <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.event_status_level}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.eventStatus}</div>
                     </div>
                 </div>
             </div>
@@ -402,7 +402,7 @@ export default function MyRequestsPage({ userLogin }) {
     const filteredRequests = useMemo(() => {
         return requests
             .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
-            .filter(request => request.event_name.toLowerCase().includes(searchTerm.toLowerCase()));
+            .filter(request => request.eventName.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [requests, searchTerm, activeFilter]);
 
     const gliderTargetId = expandedCardId ? null : hoveredCardId;
@@ -450,7 +450,7 @@ export default function MyRequestsPage({ userLogin }) {
         }
     };
     
-    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.event_name });
+    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
     
     const handleSaveRequest = async (updatedData) => {

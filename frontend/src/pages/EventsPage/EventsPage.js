@@ -142,7 +142,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
                     <div className="chat-header">
                         <div className="chat-title-wrapper">
                             <h2>Запись на мероприятие</h2>
-                            <p>{event.event_name}</p>
+                            <p>{event.eventName}</p>
                         </div>
                         <button onClick={handleClose} className="chat-close-btn" title="Закрыть"><CloseIcon /></button>
                     </div>
@@ -251,8 +251,8 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
             <div className="card-content-wrapper" onClick={() => onCardClick(event.id)}>
                 <div className="card-header">
                     <div className="header-content">
-                        <h3>{event.event_name}</h3>
-                        <div className="card-date">{new Date(event.event_date).toLocaleDateString('ru-RU')}</div>
+                        <h3>{event.eventName}</h3>
+                        <div className="card-date">{new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="card-header-right">
                         <>
@@ -269,7 +269,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
             <div className="card-details-wrapper">
                 <div className="card-body curator-card-body-grid">
                     <div className="card-body-column column-image">
-                        <img src={defaultEventImage} alt={event.event_name} className="curator-card-image" />
+                        <img src={defaultEventImage} alt={event.eventName} className="curator-card-image" />
                     </div>
                     <div className="card-body-column column-description">
                         <div className="detail-item">
@@ -281,7 +281,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
                         <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
                         <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.event_status_level}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.eventStatus}</div>
                     </div>
                 </div>
             </div>
@@ -321,8 +321,8 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                 <div className="details-container">
                     <div className="details-header">
                         <div className="details-title-section">
-                            <h4>{event.event_name}</h4>
-                            <div className="card-date">{new Date(event.event_date).toLocaleDateString('ru-RU')}</div>
+                            <h4>{event.eventName}</h4>
+                            <div className="card-date">{new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                         </div>
                         <div className="details-icons">
                             <div className="icon-item" title="Макс. участников">
@@ -342,8 +342,8 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                         <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
                         <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
                         <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.event_status_level}</div>
-                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(event.event_date).toLocaleDateString('ru-RU')}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.eventStatus}</div>
+                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
 
                     <div className="details-actions">
@@ -533,7 +533,7 @@ export default function EventsPage({ userLogin, userRole }) {
                 }
                 return true;
             })
-            .filter(e => e.event_name.toLowerCase().includes(searchTerm.toLowerCase()));
+            .filter(e => e.eventName.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [events, searchTerm, activeFilter, userRegisteredEventIds, userRole]);
 
     useEffect(() => {
@@ -619,7 +619,7 @@ export default function EventsPage({ userLogin, userRole }) {
     return (
         <div className="events-page-scope">
             {isSignUpModalOpen && <SignUpModal event={selectedEvent} onClose={() => setIsSignUpModalOpen(false)} onConfirm={handleConfirmRegistration} currentUser={currentUser} />}
-            {isRegistrationsModalOpen && <RegistrationsModal isOpen={isRegistrationsModalOpen} onClose={() => setIsRegistrationsModalOpen(false)} eventName={selectedEvent?.event_name} registrations={registrations[selectedEvent?.id]} />}
+            {isRegistrationsModalOpen && <RegistrationsModal isOpen={isRegistrationsModalOpen} onClose={() => setIsRegistrationsModalOpen(false)} eventName={selectedEvent?.eventName} registrations={registrations[selectedEvent?.id]} />}
 
             <div className="events-container">
                 <h1>Мероприятия</h1>

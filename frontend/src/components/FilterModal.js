@@ -86,12 +86,12 @@ const FilterModal = ({
                 <div className="form-field">
                 <h4>Статус мероприятия</h4>
                 <label className="input-label">
-                    <input
+                  <input
                     type="checkbox"
-                    checked={filters.regional}
-                    onChange={() => setFilters(prev => ({ ...prev, regional: !prev.regional }))}
+                    checked={filters.international}
+                    onChange={() => setFilters(prev => ({ ...prev, international: !prev.international }))}
                     />
-                    <span>Региональные</span>
+                    <span>Международные</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -102,20 +102,20 @@ const FilterModal = ({
                     <span>Всероссийские</span>
                 </label>
                 <label className="input-label">
-                    <input
-                    type="checkbox"
-                    checked={filters.international}
-                    onChange={() => setFilters(prev => ({ ...prev, international: !prev.international }))}
-                    />
-                    <span>Международные</span>
-                </label>
-                <label className="input-label">
-                    <input
+                  <input
                     type="checkbox"
                     checked={filters.city}
                     onChange={() => setFilters(prev => ({ ...prev, city: !prev.city }))}
                     />
                     <span>Городские</span>
+                </label>
+                <label className="input-label">
+                    <input
+                    type="checkbox"
+                    checked={filters.regional}
+                    onChange={() => setFilters(prev => ({ ...prev, regional: !prev.regional }))}
+                    />
+                    <span>Региональные</span>
                 </label>
                 </div>
             </div>

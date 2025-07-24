@@ -6,8 +6,16 @@ const sequelize = require('../db');
 
 const User = require('./user')(sequelize, Sequelize.DataTypes);
 const Request = require('./request')(sequelize, Sequelize.DataTypes);
+const Event = require('./event')(sequelize, Sequelize.DataTypes);
+const EventRegistration = require('./eventRegistration')(sequelize, Sequelize.DataTypes);
 
 User.hasMany(Request, { foreignKey: 'userId' });
 Request.belongsTo(User, { foreignKey: 'userId' });
 
-module.exports = { sequelize, User, Request };
+User.hasMany(Event, { foreignKey: 'userId' });
+Event.belongsTo(User, { foreignKey: 'userId' });
+
+Event.hasMany(EventRegistration, { foreignKey: 'eventId' });
+EventRegistration.belongsTo(Event, { foreignKey: 'eventId' });
+
+module.exports = { sequelize, User, Request, Event, EventRegistration };
