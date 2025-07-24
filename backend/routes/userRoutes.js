@@ -9,5 +9,6 @@ router.post('/register', userController.registerUser);
 router.post('/login', userController.loginUser); 
 // Получение всех пользователей
 router.get('/users/all', userController.getAllUsers);
-
+// Получение профиля
+router.get('/profile/:login', userController.getUserProfile);
 module.exports = router;

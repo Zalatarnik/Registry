@@ -158,7 +158,7 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
                         <input type="checkbox" className="selection-checkbox" checked={isSelected} readOnly />
                     </div>
                     <div className="header-content">
-                        <h3>{request.event_name}</h3>
+                        <h3>{request.eventName}</h3>
                         <div className="card-date">От: {studentFullName} | Подана: {new Date(request.created_at).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="card-header-right">
@@ -204,8 +204,8 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
                         <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
                         <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
                         <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.event_status_level}</div>
-                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(request.event_date).toLocaleDateString('ru-RU')}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.eventStatus}</div>
+                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(request.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
                 </div>
             </div>
@@ -288,13 +288,13 @@ export default function ReviewRequestsPage({ userLogin }) {
     let result = requests
         .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
         .filter(request =>
-        request.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         `${request.owner.lastName} ${request.owner.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
     // сортировка
     if (advancedFilters.sort === 'recent') {
-        result = result.filter(r => new Date(r.event_date) > Date.now() - 30 * 24 * 60 * 60 * 1000);
+        result = result.filter(r => new Date(r.eventDate) > Date.now() - 30 * 24 * 60 * 60 * 1000);
     }
     if (advancedFilters.sort === 'alphabetical') {
         result = [...result].sort((a, b) => a.owner.lastName.localeCompare(b.owner.lastName));
@@ -312,7 +312,7 @@ export default function ReviewRequestsPage({ userLogin }) {
     if (advancedFilters.city) typeFilters.push('Городской');
 
     if (typeFilters.length > 0) {
-        result = result.filter(r => typeFilters.includes(r.event_status_level));
+        result = result.filter(r => typeFilters.includes(r.eventStatus));
     }
 
     return result;
@@ -370,7 +370,7 @@ export default function ReviewRequestsPage({ userLogin }) {
     const handleApprove = (id) => handleAction(id, 'approve');
     const handleReject = (id) => handleAction(id, 'reject');
 
-    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.event_name });
+    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
     
     const handleExport = () => alert('Функция выгрузки всех заявок находится в разработке.');

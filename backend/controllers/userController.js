@@ -1,8 +1,11 @@
 // Контроллер пользователей 
-// Логика:
+
+// Содержит:
 // - Регистрация студента или куратора
 // - Вход по логину и паролю
 // - Получение списка всех пользователей
+// - Получение основной информации для профиля о пользователе
+
 
 const { User } = require('../models');
 
@@ -89,5 +92,31 @@ exports.getAllUsers = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ detail: 'Ошибка при получении пользователей' });
+  }
+};
+
+// Получение основной информации для профиля о пользователе
+exports.getUserProfile = async (req, res) => {
+  const { login } = req.params;
+
+  try {
+    const user = await User.findOne({
+      where: { login },
+      attributes: ['login', 'firstName', 'lastName', 'middleName', 'group', 'role']
+    });
+
+    if (!user) return res.status(404).json({ detail: 'Пользователь не найден' });
+
+    res.json({
+      login: user.login,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      patronymic: user.middleName,
+      group: user.group,
+      role: user.role
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ detail: 'Ошибка при получении профиля пользователя' });
   }
 };
