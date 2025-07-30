@@ -26,7 +26,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
     // состояние для плавной анимации закрытия чата
     const [isClosing, setIsClosing] = useState(false);
     // хук для отображения уведомлений
-    const { addNotification } = useNotification();
+    const { addNotificationOnce } = useNotification();
     const messagesEndRef = useRef(null);
 
     // эффект для блокировки прокрутки основного контента, пока чат открыт
@@ -49,7 +49,10 @@ const ChatView = ({ userLogin, request, onClose }) => {
 
         const fetchMessages = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/api/requests/${request.id}/chat`);
+                const response = await fetch(
+                `http://localhost:8000/api/requests/${request.id}/chat`,
+                { credentials: 'include' } 
+                );
                 if (!response.ok) throw new Error('Не удалось загрузить сообщения чата.');
                 const data = await response.json();
                 
@@ -66,7 +69,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
             } catch (error) {
                 // показываем ошибку только при первой загрузке
                 if (messages.length === 0) {
-                   addNotification(error.message, 'error');
+                   addNotificationOnce(error.message, 'error');
                 }
             } finally {
                 setIsLoading(false);
@@ -82,7 +85,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
         
         // очищаем интервал
         return () => clearInterval(intervalId);
-    }, [request, addNotification]); // зависимости эффекта
+    }, [request, addNotificationOnce]); // зависимости эффекта
 
     // эффект для прокрутки вниз при получении новых сообщений
     useEffect(() => {
@@ -101,18 +104,24 @@ const ChatView = ({ userLogin, request, onClose }) => {
         if (!newMessage.trim()) return; // не отправляем пустое сообщение
 
         try {
-            const response = await fetch(`http://localhost:8000/api/requests/${request.id}/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: newMessage, sender_login: userLogin }),
-            });
+        const response = await fetch(
+        `http://localhost:8000/api/requests/${request.id}/chat`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text: newMessage, sender_login: userLogin })
+        }
+        );
             if (!response.ok) throw new Error('Не удалось отправить сообщение.');
             
             const sentMessage = await response.json();
             setMessages(prevMessages => [...prevMessages, { ...sentMessage, isNew: true }]);
             setNewMessage(''); // очищаем поле ввода
         } catch (error) {
-            addNotification(error.message, 'error');
+            addNotificationOnce(error.message, 'error');
         }
     };
 

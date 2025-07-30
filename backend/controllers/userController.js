@@ -6,46 +6,47 @@
 // - Получение списка всех пользователей
 // - Получение основной информации для профиля о пользователе
 
-
 const { User } = require('../models');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+require('dotenv').config({ path: './omni.env' });
 
-// Проверка роли, валидация логина и регистрация пользователя
-exports.registerUser = async (req, res) => {
+// Регистрация студента или куратора
+const registerUser = async (req, res) => {
   try {
     const { password, role, firstName, lastName, studentId, curatorLogin } = req.body;
 
     let login;
-    
-    // Опреляем логин на основании кто пользователь
+
     if (role === 'student') {
-      if (!studentId) {
-        return res.status(400).json({ detail: 'Номер студенческого билета обязателен' });
-      }
+      if (!studentId) return res.status(400).json({ detail: 'Номер студенческого билета обязателен' });
       login = studentId;
     } else if (role === 'curator') {
-      if (!curatorLogin) {
-        return res.status(400).json({ detail: 'Логин обязателен для куратора' });
-      }
+      if (!curatorLogin) return res.status(400).json({ detail: 'Логин обязателен для куратора' });
       login = curatorLogin;
     } else {
       return res.status(400).json({ detail: 'Некорректная роль пользователя' });
     }
 
-    // Создание пользователя
+    const existing = await User.findOne({ where: { login } });
+    if (existing) return res.status(400).json({ detail: 'Такой логин уже существует' });
+
+    const hashed = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       login,
-      password,
+      password: hashed,
       role,
       firstName,
       lastName,
       middleName: req.body.middleName || null,
       email: req.body.email || null,
       group: req.body.group || null,
-      studentIdNumber: req.body.studentId || null, 
+      studentIdNumber: req.body.studentId || null,
       avatar: '/static/default-avatar.png'
     });
 
-    res.status(201).json(user);
+    res.status(201).json({ message: 'Пользователь зарегистрирован' });
 
   } catch (e) {
     console.error(e);
@@ -53,34 +54,44 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Простая проверка логина и пароля без шифрования
-exports.loginUser = async (req, res) => {
+// Вход по логину и паролю
+const loginUser = async (req, res) => {
   const { login, password } = req.body;
 
-  // Поиск пользователя по логину
-  const user = await User.findOne({ where: { login } });
+  try {
+    const user = await User.findOne({ where: { login } });
+    if (!user) return res.status(401).json({ detail: 'Неверный логин или пароль' });
 
-  if (!user) {
-    return res.status(401).json({ detail: 'Неверный логин или пароль' });
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ detail: 'Неверный логин или пароль' });
+
+    const token = jwt.sign(
+      { id: user.id, login: user.login, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 день
+    });
+
+    res.json({
+      login: user.login,
+      role: user.role
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ detail: 'Ошибка при входе' });
   }
-
-  if (user.password !== password) {
-    return res.status(401).json({ detail: 'Неверный логин или пароль' });
-  }
-
-  // возврат кратой инфы о пользователе
-  res.json({
-    login: user.login,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    role: user.role,
-  });
 };
 
-// Возвращает список всех пользователей с основной информацией
-exports.getAllUsers = async (req, res) => {
+// Получение всех пользователей
+const getAllUsers = async (req, res) => {
   try {
-    // Запрашиваются основные поля (без пароля)
     const users = await User.findAll({
       attributes: [
         'id', 'login', 'firstName', 'lastName',
@@ -88,15 +99,15 @@ exports.getAllUsers = async (req, res) => {
         'group', 'studentIdNumber', 'avatar'
       ]
     });
-    res.json(users); // Отправка списка пользователей
+    res.json(users);
   } catch (error) {
     console.error(error);
     res.status(500).json({ detail: 'Ошибка при получении пользователей' });
   }
 };
 
-// Получение основной информации для профиля о пользователе
-exports.getUserProfile = async (req, res) => {
+// Получение профиля по логину
+const getUserProfile = async (req, res) => {
   const { login } = req.params;
 
   try {
@@ -120,3 +131,12 @@ exports.getUserProfile = async (req, res) => {
     res.status(500).json({ detail: 'Ошибка при получении профиля пользователя' });
   }
 };
+
+// Экспорт
+module.exports = {
+  registerUser,
+  loginUser,
+  getAllUsers,
+  getUserProfile
+};
+

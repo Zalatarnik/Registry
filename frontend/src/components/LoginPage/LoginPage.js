@@ -152,6 +152,7 @@ function LoginPage({ onLoginSuccess }) {
         const response = await fetch('http://localhost:8000/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(registrationData),
         });
 

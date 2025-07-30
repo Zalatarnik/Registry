@@ -204,6 +204,7 @@ const SecurityModal = ({ isOpen, onClose, userLogin }) => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -312,26 +313,33 @@ export default function ProfilePage({ userRole, userLogin }) {
   // состояние режима редактирования всей формы
   const [isEditingMode, setIsEditingMode] = useState(false);
 
+  const [errorShown, setErrorShown] = useState(false);
   // загрузка данных профиля
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!userLogin) return;
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${API_URL}/api/profile/${userLogin}`);
-        if (!response.ok) throw new Error('Не удалось загрузить данные профиля');
-        const data = await response.json();
-        // сохраняем полученные данные в оба состояния
-        setUserData(data);
-        setOriginalUserData(data);
-      } catch (error) {
-        addNotification(error.message, 'error');
-      } finally {
-        setIsLoading(false);
+useEffect(() => {
+  if (!userLogin) return;
+
+  setIsLoading(true);
+
+  fetch(`${API_URL}/api/profile/${userLogin}`, {
+    credentials: 'include'
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Не удалось загрузить данные профиля');
+      return res.json();
+    })
+    .then(data => {
+      setUserData(data);
+      setOriginalUserData(data);
+    })
+    .catch(err => {
+      console.error(err);
+      if (!errorShown) {                               // — уведомляем один раз
+        addNotification(err.message, 'error');
+        setErrorShown(true);
       }
-    };
-    fetchProfileData();
-  }, [userLogin, addNotification])
+    })
+    .finally(() => setIsLoading(false));
+}, []);   
 
   // обработчик изменения значения в любом редактируемом поле
   const handleValueChange = (field, value) => {
@@ -353,6 +361,7 @@ export default function ProfilePage({ userRole, userLogin }) {
         const response = await fetch(`${API_URL}/api/profile/avatar`, {
             method: 'POST',
             body: formData,
+            credentials: 'include'
         });
         if (!response.ok) {
             const errorData = await response.json();
@@ -391,6 +400,7 @@ export default function ProfilePage({ userRole, userLogin }) {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
+            credentials: 'include'
         });
         if (!response.ok) {
             const errorData = await response.json();
