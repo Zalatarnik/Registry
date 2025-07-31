@@ -189,36 +189,52 @@ const SecurityModal = ({ isOpen, onClose, userLogin }) => {
   if (!isOpen) return null;
 
   // обработчик сохранения данных безопасности
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-        // формируем тело запроса, отправляем только заполненные поля
-        const payload = {
-            login: userLogin,
-            email: email || undefined,
-            old_password: oldPassword || undefined,
-            new_password: newPassword || undefined,
-        };
-        
-        const response = await fetch(`${API_URL}/api/profile/security`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
+const handleSave = async () => {
+  setIsSaving(true);
+  try {
+    /* -------- формируем тело запроса -------- */
+    const payload = {};
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Ошибка обновления');
-        }
-        
-        addNotification('Данные безопасности успешно обновлены!');
-        onClose();
-    } catch (error) {
-        addNotification(error.message, 'error');
-    } finally {
+    // отправляем только непустые поля
+    if (email.trim()) {
+      const emailValid = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email.trim());
+      if (!emailValid) {
+        addNotification('Введите корректный адрес электронной почты', 'error');
         setIsSaving(false);
+        return;
+      }
+      payload.email = email.trim();
     }
-  };
+    if (oldPassword.trim())  payload.old_password = oldPassword.trim(); // ← тут snake_case!
+    if (newPassword.trim())  payload.new_password = newPassword.trim();
+
+    /* если пароль меняем или e-mail меняем — старый пароль обязателен */
+    if ((payload.email || payload.new_password) && !payload.old_password) {
+      addNotification('Сначала введите старый пароль', 'error');
+      setIsSaving(false);
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/api/profile/security`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Ошибка обновления');
+    }
+
+    addNotification('Данные безопасности обновлены!');
+    onClose();
+  } catch (e) {
+    addNotification(e.message, 'error');
+  } finally {
+    setIsSaving(false);
+  }
+};
   
   // обработчик клика для закрытия окна
   const handleOverlayClick = (e) => {
@@ -312,26 +328,37 @@ export default function ProfilePage({ userRole, userLogin }) {
   // состояние режима редактирования всей формы
   const [isEditingMode, setIsEditingMode] = useState(false);
 
+  const [errorShown, setErrorShown] = useState(false);
   // загрузка данных профиля
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!userLogin) return;
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${API_URL}/api/profile/${userLogin}`);
-        if (!response.ok) throw new Error('Не удалось загрузить данные профиля');
-        const data = await response.json();
-        // сохраняем полученные данные в оба состояния
-        setUserData(data);
-        setOriginalUserData(data);
-      } catch (error) {
-        addNotification(error.message, 'error');
-      } finally {
-        setIsLoading(false);
+useEffect(() => {
+  if (!userLogin) return;
+
+  setIsLoading(true);
+
+  fetch(`${API_URL}/api/profile/me`, {
+    credentials: 'include'
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Не удалось загрузить данные профиля');
+      return res.json();
+    })
+    .then(data => {
+      const normalized = {
+        ...data,
+        patronymic: data.patronymic ?? data.middleName ?? ''
+      };
+      setUserData(normalized);
+      setOriginalUserData(normalized);
+    })
+    .catch(err => {
+      console.error(err);
+      if (!errorShown) {                               // — уведомляем один раз
+        addNotification(err.message, 'error');
+        setErrorShown(true);
       }
-    };
-    fetchProfileData();
-  }, [userLogin, addNotification])
+    })
+    .finally(() => setIsLoading(false));
+}, []);   
 
   // обработчик изменения значения в любом редактируемом поле
   const handleValueChange = (field, value) => {
@@ -353,10 +380,18 @@ export default function ProfilePage({ userRole, userLogin }) {
         const response = await fetch(`${API_URL}/api/profile/avatar`, {
             method: 'POST',
             body: formData,
+            credentials: 'include'
         });
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Ошибка загрузки аватара');
+          // пробуем распарсить json; если это HTML — получим исключение
+          let message = 'Ошибка загрузки аватара';
+          try {
+            const errData = await response.json();
+            message = errData.detail ?? message;
+          } catch (_) {
+            // значит сервер вернул HTML или пустой ответ
+          }
+          throw new Error(message);
         }
         // обновляем данные профиля после успешной загрузки аватара
         const updatedProfile = await response.json();
@@ -386,20 +421,40 @@ export default function ProfilePage({ userRole, userLogin }) {
     setIsSaving(true);
     try {
         // Из userData исключаем поля, которые не должны отправляться на сервер
-        const { student_id_number, login, ...payload } = userData;
+        const { login, ...payload } = userData;
+        const fioFields = ['lastName', 'firstName', 'middleName'];
+        for (const field of fioFields) {
+          const value = payload[field]?.trim();
+          if (value) {
+            // если есть лишние символы — ошибка
+            if (!/^[A-Za-zА-Яа-яЁё]+$/.test(value)) {
+              throw new Error(`Фамилия, имя и отчество могут содержать только буквы (русские или английские)`);
+            }
+            // автозаглавие первой буквы
+            payload[field] = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+          }
+        }
+        // запрос на обновление профиля
         const response = await fetch(`${API_URL}/api/profile/${userLogin}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
+            credentials: 'include'
         });
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || 'Ошибка сохранения профиля');
         }
-        // после успешного сохранения обновляем оба состояния данных
+        // если всё ок — сохраняем обновлённые данные
         const savedData = await response.json();
-        setOriginalUserData(savedData);
-        setUserData(savedData);
+        setOriginalUserData({
+          ...originalUserData,
+          ...savedData
+        });
+        setUserData(prev => ({
+          ...prev,
+          ...savedData
+        }));
         setIsEditingMode(false);
         setEditingField(null);
         addNotification('Профиль успешно обновлен!');
@@ -453,7 +508,7 @@ export default function ProfilePage({ userRole, userLogin }) {
                 <EditableField label="Фамилия" value={userData.lastName} onValueChange={(val) => handleValueChange('lastName', val)} fieldId="lastName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('lastName')} />
                 
                 {userRole === 'student' ? (
-                  <EditableField label="№ студенческого билета" value={userData.student_id_number} fieldId="studentId" isLocked={true} />
+                  <EditableField label="№ студенческого билета" value={userData.studentIdNumber} fieldId="studentId" isLocked={true} />
                 ) : (
                   <EditableField label="Логин" value={userData.login} fieldId="login" isLocked={true} />
                 )}
