@@ -1,4 +1,4 @@
-//
+// Роуты для работы с мероприятиями
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
