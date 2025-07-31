@@ -1,0 +1,589 @@
+.notifications-component-scope {
+}
+
+.notifications-component-scope .notifications-view-wrapper {
+    position: absolute;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+@keyframes nc-slide-in-from-right {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes nc-slide-out-to-right {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+@keyframes nc-page-turn-in {
+    from {
+        transform: perspective(1200px) rotateY(-90deg);
+        opacity: 0;
+    }
+    to {
+        transform: perspective(1200px) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes nc-page-turn-out {
+    from {
+        transform: perspective(1200px) rotateY(0deg);
+        opacity: 1;
+    }
+    to {
+        transform: perspective(1200px) rotateY(-90deg);
+        opacity: 0;
+    }
+}
+
+@keyframes nc-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes nc-fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.notifications-component-scope .notifications-modal {
+    display: flex;
+    flex-direction: column;
+    width: 380px;
+    max-height: 500px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: nc-slide-in-from-right 0.4s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+}
+
+.notifications-component-scope .notifications-modal.is-closing {
+    animation: nc-slide-out-to-right 0.3s ease-in forwards;
+}
+
+.notifications-component-scope .info-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.notifications-component-scope .info-modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.notifications-component-scope .notifications-empty,
+.notifications-component-scope .notifications-loader {
+    padding: 40px 20px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.notifications-component-scope .info-modal-body {
+    padding: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.notifications-component-scope .notifications-list-container {
+    position: relative;
+    padding: 0px 0;
+}
+
+.notifications-component-scope .list-glider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    background-color: #d35400;
+    pointer-events: none;
+    will-change: transform, opacity, height, clip-path, background-color;
+    clip-path: inset(0% 0% 0% 0%);
+    transition: transform 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+                opacity 0.3s ease-in-out,
+                height 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+                clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1),
+                background-color 0.35s ease;
+}
+
+.notifications-component-scope .list-glider.is-fixed {
+    background-color: #b84900;
+}
+
+.notifications-component-scope .list-glider[style*="opacity: 0"] {
+    clip-path: inset(50% 50% 50% 50%);
+    transition-duration: 0.2s;
+}
+
+.notifications-component-scope .notification-card {
+    position: relative;
+    z-index: 2;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.notifications-component-scope .notification-divider {
+    height: 1px;
+    margin: 0 16px;
+    background-color: #e9ecef;
+}
+
+.notifications-component-scope .card-content-wrapper {
+    padding: 0 16px;
+    box-sizing: border-box;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.notifications-component-scope .notification-card-header {
+    display: flex;
+    width: 100%;
+    height: 80px;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notifications-component-scope .notification-item-info {
+    flex-grow: 1;
+    padding-right: 16px;
+}
+
+.notifications-component-scope .notification-item-info h5,
+.notifications-component-scope .notification-item-info p {
+    transition: color 0.3s ease;
+}
+
+.notifications-component-scope .notification-item-info h5 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #212529;
+}
+
+.notifications-component-scope .notification-item-info p {
+    margin: 0;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.notifications-component-scope .notification-card-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.notifications-component-scope .notification-card.is-active .notification-item-info h5,
+.notifications-component-scope .notification-card.is-active .notification-item-info p {
+    color: #ffffff;
+}
+
+.notifications-component-scope .notification-card.is-active .btn-style-accept {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.notifications-component-scope .notification-card.is-active .btn-style-accept:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.notifications-component-scope .btn-style-accept {
+    width: 120px;
+    color: #0d6931;
+    background-color: #e7f5ec;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    border-radius: 0px;
+}
+
+.notifications-component-scope .btn-style-accept::before {
+    background-color: #28a745;
+}
+
+.notifications-component-scope .detailed-event-container {
+    transform-origin: right center;
+    animation: nc-page-turn-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.notifications-component-scope .detailed-event-container.is-closing {
+    animation: nc-page-turn-out 0.4s ease-in forwards;
+}
+
+.notifications-component-scope .detailed-event-container .event-card-student:not(.is-detailed-view) {
+    cursor: pointer;
+}
+
+.notifications-component-scope .event-card-student {
+    --card-width: 280px;
+    --card-height: 280px;
+    --header-height: 80px;
+    width: var(--card-width);
+    height: var(--card-height);
+    flex-shrink: 0;
+    will-change: width, height;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notifications-component-scope .event-card-student.is-detailed-view {
+    width: 480px;
+    height: 560px;
+}
+
+.notifications-component-scope .student-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #e9ecef;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+}
+
+.notifications-component-scope .cover-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+.notifications-component-scope .registration-status-badge,
+.notifications-component-scope .recruitment-status-badge {
+    position: absolute;
+    top: 12px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    z-index: 3;
+    border-radius: 20px;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.notifications-component-scope .registration-status-badge {
+    left: 12px;
+}
+
+.notifications-component-scope .recruitment-status-badge {
+    right: 12px;
+}
+
+.notifications-component-scope .registration-status-badge.registered {
+    background-color: rgba(40, 167, 69, 0.7);
+}
+
+.notifications-component-scope .registration-status-badge.unregistered {
+    background-color: rgba(108, 117, 125, 0.7);
+}
+
+.notifications-component-scope .recruitment-status-badge.status-active {
+    background-color: rgba(40, 167, 69, 0.8);
+}
+
+.notifications-component-scope .recruitment-status-badge.status-completed {
+    background-color: rgba(108, 117, 125, 0.8);
+}
+
+.notifications-component-scope .event-card-student.is-detailed-view .registration-status-badge,
+.notifications-component-scope .event-card-student.is-detailed-view .recruitment-status-badge {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.notifications-component-scope .details-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: var(--header-height);
+    background: rgba(248, 249, 250, 0.98);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    will-change: height;
+    transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notifications-component-scope .event-card-student.is-detailed-view .details-container {
+    height: 100%;
+}
+
+.notifications-component-scope .details-header {
+    display: flex;
+    padding: 16px;
+    align-items: center;
+    background-color: #ffffff;
+    flex-shrink: 0;
+    height: var(--header-height);
+    box-sizing: border-box;
+    transition: background-color 0.4s ease;
+}
+
+.notifications-component-scope .details-title-section {
+    flex-grow: 1;
+}
+
+.notifications-component-scope .details-title-section h4,
+.notifications-component-scope .details-title-section .card-date,
+.notifications-component-scope .details-icons .icon-item,
+.notifications-component-scope .details-icons .icon-item svg {
+    transition: color 0.4s ease, fill 0.4s ease;
+}
+
+.notifications-component-scope .details-title-section h4 {
+    margin: 0 0 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+.notifications-component-scope .details-title-section .card-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.notifications-component-scope .details-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.notifications-component-scope .icon-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.notifications-component-scope .icon-item svg {
+    width: 20px;
+    height: 20px;
+    fill: #6c757d;
+}
+
+.notifications-component-scope .event-card-student:not(.is-detailed-view) .details-header {
+    background-color: #d35400;
+}
+
+.notifications-component-scope .event-card-student:not(.is-detailed-view) .details-header .details-title-section h4,
+.notifications-component-scope .event-card-student:not(.is-detailed-view) .details-header .details-title-section .card-date,
+.notifications-component-scope .event-card-student:not(.is-detailed-view) .details-header .details-icons .icon-item {
+    color: #fff;
+}
+
+.notifications-component-scope .event-card-student:not(.is-detailed-view) .details-header .details-icons .icon-item svg {
+    fill: #fff;
+}
+
+.notifications-component-scope .event-card-student.is-detailed-view .details-header {
+    background-color: #b84900;
+}
+
+.notifications-component-scope .event-card-student.is-detailed-view .details-header .details-title-section h4,
+.notifications-component-scope .event-card-student.is-detailed-view .details-header .details-title-section .card-date,
+.notifications-component-scope .event-card-student.is-detailed-view .details-header .details-icons .icon-item {
+    color: #fff;
+}
+
+.notifications-component-scope .event-card-student.is-detailed-view .details-header .details-icons .icon-item svg {
+    fill: #fff;
+}
+
+.notifications-component-scope .details-body {
+    flex-grow: 1;
+    line-height: 1.7;
+    overflow-y: auto;
+    padding: 24px;
+    background-color: #fff;
+}
+
+.notifications-component-scope .details-body .detail-item {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: #212529;
+}
+
+.notifications-component-scope .details-body .detail-label {
+    color: #6c757d;
+    margin-right: 8px;
+}
+
+.notifications-component-scope .details-body .detail-description {
+    font-size: 1rem;
+    color: #212529;
+    line-height: 1.7;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #d35400;
+}
+
+.notifications-component-scope .details-actions {
+    padding: 24px;
+    padding-top: 16px;
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+.notifications-component-scope .details-actions .interactive-button {
+    width: 100%;
+}
+
+.notifications-component-scope .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(33, 37, 41, 0.6);
+    backdrop-filter: blur(5px);
+    animation: nc-fade-in 0.3s ease-out forwards;
+}
+
+.notifications-component-scope .modal-overlay.is-closing {
+    animation: nc-fade-out 0.3s ease-in forwards;
+}
+
+.notifications-component-scope .signup-modal-content {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: nc-slide-in-from-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.notifications-component-scope .signup-modal-content.is-closing {
+    animation: nc-slide-out-to-right 0.3s ease-in forwards;
+}
+
+.notifications-component-scope .chat-header {
+    display: flex;
+    flex-shrink: 0;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9ecef;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notifications-component-scope .chat-close-btn {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.notifications-component-scope .chat-close-btn:hover {
+    color: #d35400;
+    transform: scale(1.1);
+}
+
+.notifications-component-scope .interactive-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0px;
+}
+
+.notifications-component-scope .interactive-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.notifications-component-scope .interactive-button:disabled:hover::before {
+    transform: scale(0);
+}
+
+.notifications-component-scope .interactive-button span {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.notifications-component-scope .interactive-button:hover:not(:disabled) span {
+    color: #fff;
+}
+
+.notifications-component-scope .interactive-button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.notifications-component-scope .btn-style-register {
+    color: #0d6931;
+    background-color: #e7f5ec;
+    height: 44px;
+    font-size: 16px;
+}
+
+.notifications-component-scope .btn-style-register::before {
+    background-color: #28a745;
+}
