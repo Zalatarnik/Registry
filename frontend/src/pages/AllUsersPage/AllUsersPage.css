@@ -1,4 +1,4 @@
-/* анимация */
+/* анимации */
 @keyframes all-users-fadeInPage {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -38,7 +38,7 @@
 }
 
 /* панель фильтрации */
-.all-users-container .filter-container {
+.filter-container {
     display: flex;
     gap: 16px;
     margin-bottom: 20px;
@@ -47,17 +47,17 @@
     flex-shrink: 0;
 }
 
-.all-users-container .search-bar-wrapper {
+.search-bar-wrapper {
     flex-grow: 1;
 }
 
-.all-users-container .search-bar-wrapper .interactive-button {
+.search-bar-wrapper .interactive-button {
     width: 100%;
     justify-content: flex-start;
     cursor: text;
 }
 
-.all-users-container .search-bar-wrapper input {
+.search-bar-wrapper input {
     width: 100%;
     height: 100%;
     border: none;
@@ -69,33 +69,29 @@
     cursor: text;
 }
 
-.all-users-container .search-bar-wrapper input::placeholder {
+.search-bar-wrapper input::placeholder {
     color: #6c757d;
     opacity: 0.9;
 }
 
-.all-users-container .search-bar-wrapper .interactive-button:hover input::placeholder {
-    color: #fff;
-}
-
-.all-users-container .filter-buttons {
+.filter-buttons {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
 }
 
-.all-users-container .filter-buttons .interactive-button.is-active-filter {
+.filter-buttons .interactive-button.is-active-filter {
     color: #fff;
     background-color: #495057;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.all-users-container .filter-buttons .interactive-button.is-active-filter:hover::before {
+.filter-buttons .interactive-button.is-active-filter:hover::before {
     transform: translate(-50%, -50%) scale(0);
 }
 
 /* контейнер списка пользователей */
-.all-users-container .users-list-container {
+.users-list-container {
     position: relative;
     flex-grow: 1;
     overflow-y: auto;
@@ -103,7 +99,7 @@
 }
 
 /* глайдер */
-.all-users-container .list-glider {
+.list-glider {
     position: absolute;
     top: 0;
     left: 0;
@@ -119,13 +115,13 @@
                 clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
 }
 
-.all-users-container .list-glider[style*="opacity: 0"] {
+.list-glider[style*="opacity: 0"] {
     clip-path: inset(50% 50% 50% 50%);
     transition-duration: 0.2s;
 }
 
 /* карточка пользователя */
-.all-users-container .user-card {
+.user-card {
     position: relative;
     z-index: 2;
     display: flex;
@@ -134,15 +130,14 @@
     cursor: pointer;
 }
 
-/* разделитель между карточками */
-.all-users-container .user-divider {
+.user-divider {
     height: 2px;
     margin: 0;
     background-color: #b84900;
     opacity: 0.4;
 }
 
-.all-users-container .card-content-wrapper {
+.card-content-wrapper {
     display: flex;
     min-height: 88px;
     padding: 0 24px;
@@ -151,19 +146,18 @@
     transition: background-color 0.3s ease-in-out;
 }
 
-.all-users-container .user-card.is-expanded .card-content-wrapper {
+.user-card.is-expanded .card-content-wrapper {
     background-color: #b84900;
 }
 
-/* шапка карточки */
-.all-users-container .card-header {
+.card-header {
     display: flex;
     width: 100%;
     gap: 16px;
     align-items: center;
 }
 
-.all-users-container .user-avatar {
+.user-avatar {
     width: 48px;
     height: 48px;
     border: 2px solid #fff;
@@ -173,33 +167,34 @@
     transition: transform 0.3s ease;
 }
 
-.all-users-container .user-card.is-active .user-avatar,
-.all-users-container .user-card.is-expanded .user-avatar {
+.user-card.is-active .user-avatar,
+.user-card.is-expanded .user-avatar {
     transform: scale(1.1);
     border-color: #fff;
 }
 
-
-.all-users-container .header-content {
+.header-content {
     flex-grow: 1;
 }
 
-.all-users-container .header-content h3 {
+.header-content h3, .header-content .card-subtitle {
+    transition: color 0.3s ease;
+}
+
+.header-content h3 {
     margin: 0 0 4px 0;
     color: #212529;
     font-size: 1.2rem;
     font-weight: 600;
-    transition: color 0.3s ease;
 }
 
-.all-users-container .header-content .card-subtitle {
+.header-content .card-subtitle {
     color: #6c757d;
     font-size: 0.9rem;
     font-weight: 500;
-    transition: color 0.3s ease;
 }
 
-.all-users-container .card-header-right {
+.card-header-right {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
@@ -207,8 +202,7 @@
     justify-content: flex-end;
 }
 
-/* значок роли */
-.all-users-container .role-badge {
+.role-badge {
     position: relative;
     padding: 6px 12px;
     border-radius: 0px;
@@ -220,13 +214,13 @@
     transition: all 0.3s ease;
 }
 
-.all-users-container .role-badge span {
+.role-badge span {
     position: relative;
     z-index: 1;
     transition: color 0.3s ease;
 }
 
-.all-users-container .role-badge::before {
+.role-badge::before {
     content: '';
     position: absolute;
     top: var(--mouse-y);
@@ -239,48 +233,51 @@
     transition: transform 0.4s ease-out;
 }
 
-.all-users-container .role-badge:hover::before {
+.role-badge:hover::before {
     transform: translate(-50%, -50%) scale(1);
 }
 
-.all-users-container .role-badge:hover span {
+.role-badge:hover span {
     color: #fff !important;
 }
 
-.all-users-container .role-student {
+.role-student {
     color: #0056b3;
     background-color: #e6f7ff;
 }
-
-.all-users-container .role-student::before {
+.role-student::before {
     background-color: #007bff;
 }
 
-.all-users-container .role-curator {
+.role-curator {
     color: #0d6931;
     background-color: #e7f5ec;
 }
-
-.all-users-container .role-curator::before {
+.role-curator::before {
     background-color: #28a745;
 }
 
-/* стили для активной/раскрытой карточки */
-.all-users-container .user-card.is-active .header-content h3,
-.all-users-container .user-card.is-active .header-content .card-subtitle,
-.all-users-container .user-card.is-expanded .header-content h3,
-.all-users-container .user-card.is-expanded .header-content .card-subtitle {
+/* cтили для активной/раскрытой карточки */
+.user-card.is-active .header-content h3,
+.user-card.is-active .header-content .card-subtitle,
+.user-card.is-expanded .header-content h3,
+.user-card.is-expanded .header-content .card-subtitle {
     color: #ffffff !important;
 }
 
-.all-users-container .user-card.is-active .role-badge,
-.all-users-container .user-card.is-expanded .role-badge {
+.user-card.is-active .role-badge,
+.user-card.is-expanded .role-badge {
     color: #fff;
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* раскрывающаяся часть карточки */
-.all-users-container .card-details-wrapper {
+.user-card.is-active .role-badge:hover,
+.user-card.is-expanded .role-badge:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* детали карточки */
+.card-details-wrapper {
     position: relative;
     max-height: 0;
     overflow: hidden;
@@ -289,27 +286,20 @@
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.all-users-container .user-card.is-expanded .card-details-wrapper {
+.user-card.is-expanded .card-details-wrapper {
     max-height: 150px;
 }
 
-.all-users-container .card-body {
+.card-body {
     padding: 24px 84px;
     line-height: 1.7;
 }
 
-.all-users-container .detail-item {
-    font-size: 1rem;
-}
-
-.all-users-container .detail-label {
-    margin-right: 8px;
-    color: #6c757d;
-    font-weight: 600;
-}
+.detail-item { font-size: 1rem; }
+.detail-label { margin-right: 8px; color: #6c757d; font-weight: 600; }
 
 /* общие стили интерактивных кнопок */
-.all-users-container .interactive-button {
+.interactive-button {
     position: relative;
     display: flex;
     height: 40px;
@@ -323,12 +313,11 @@
     justify-content: center;
     font-size: 14px;
     font-weight: 600;
-    text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.all-users-container .interactive-button::before {
+.interactive-button::before {
     content: '';
     position: absolute;
     top: var(--mouse-y);
@@ -341,11 +330,11 @@
     transition: transform 0.4s ease-out;
 }
 
-.all-users-container .interactive-button:hover::before {
+.interactive-button:hover::before {
     transform: translate(-50%, -50%) scale(1);
 }
 
-.all-users-container .interactive-button span {
+.interactive-button span {
     position: relative;
     z-index: 1;
     display: flex;
@@ -354,40 +343,42 @@
     transition: color 0.3s ease;
 }
 
-.all-users-container .interactive-button:hover span {
+.interactive-button:hover span {
     color: #fff !important;
 }
 
-.all-users-container .interactive-button svg {
+.interactive-button svg {
     width: 18px;
     height: 18px;
     fill: currentColor;
 }
 
-/* цветовые схемы для вынесенных фильтров */
-.all-users-container .btn-style-neutral {
-    color: #495057;
-    background-color: #f0f2f5;
-}
-.all-users-container .btn-style-neutral::before {
-    background-color: #6c757d;
-}
-.all-users-container .btn-style-student {
-    color: #0056b3;
-    background-color: #e6f7ff;
-}
-.all-users-container .btn-style-student::before {
-    background-color: #007bff;
-}
-.all-users-container .btn-style-curator {
-    color: #0d6931;
-    background-color: #e7f5ec;
-}
-.all-users-container .btn-style-curator::before {
-    background-color: #28a745;
+/* цветовые схемы кнопок */
+.btn-style-neutral { color: #495057; background-color: #f0f2f5; }
+.btn-style-neutral::before { background-color: #6c757d; }
+
+.btn-style-student { color: #0056b3; background-color: #e6f2ff; }
+.btn-style-student::before { background-color: #007bff; }
+
+.btn-style-curator { color: #0d6931; background-color: #e7f5ec; }
+.btn-style-curator::before { background-color: #28a745; }
+
+.btn-style-delete { color: #c62828; background-color: #fdebe9; }
+.btn-style-delete::before { background-color: #e74c3c; }
+
+/* стили кнопок на темном фоне (активная карточка) */
+.user-card.is-active .interactive-button,
+.user-card.is-expanded .interactive-button {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-.all-users-container .no-results-message {
+.user-card.is-active .interactive-button:hover:not(:disabled),
+.user-card.is-expanded .interactive-button:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.no-results-message {
     padding: 40px;
     text-align: center;
     color: #6c757d;

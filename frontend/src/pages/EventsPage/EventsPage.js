@@ -14,8 +14,8 @@ import { ReactComponent as RemoveIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as CloseIcon } from '../../icons/exit-icon.svg';
 import { ReactComponent as DeleteIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as ListIcon } from '../../icons/add-icon.svg';
-import { ReactComponent as UsersIcon } from '../../icons/user-icon.svg'; // изменить иконку
-import { ReactComponent as GroupIcon } from '../../icons/user-icon.svg'; // изменить иконку
+import { ReactComponent as UsersIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as GroupIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
 
 const API_BASE_URL = 'http://localhost:8000';
 
