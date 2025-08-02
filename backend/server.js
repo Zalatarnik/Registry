@@ -12,7 +12,7 @@ const path = require('path');
 const app = express();
 const PORT = 8000;
 
-// ───────── Middleware ─────────
+// Middleware
 app.use(cookieParser());
 app.use(cors({
   origin: 'http://localhost:3000', // адрес фронта
@@ -21,16 +21,16 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(cookieParser()); 
 
-// ───────── Роуты ─────────
+// Роуты
 app.use('/api', require('./routes/userRoutes'));
 app.use('/api', require('./routes/requestRoutes'));
 app.use('/api', require('./routes/eventRoutes'));
 
-// ───────── Статика ─────────
+// Статика 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
-// ───────── Старт ─────────
+// Старт 
 sequelize.sync().then(() => {
   console.log('База данных синхронизирована');
   app.listen(PORT, () => {

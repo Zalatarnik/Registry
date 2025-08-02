@@ -31,6 +31,11 @@ const registerUser = async (req, res) => {
     const existing = await User.findOne({ where: { login } });
     if (existing) return res.status(400).json({ detail: 'Такой логин уже существует' });
 
+    if (email) {
+      const existingEmail = await User.findOne({ where: { email: email.trim() } });
+      if (existingEmail) return res.status(400).json({ detail: 'Такая почта уже используется' });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -40,7 +45,7 @@ const registerUser = async (req, res) => {
       firstName,
       lastName,
       middleName: req.body.middleName || null,
-      email: req.body.email || null,
+      email: req.body.email ? req.body.email.trim().toLowerCase() : null,
       group: req.body.group || null,
       studentIdNumber: req.body.studentId || null,
       avatar: '/static/default-avatar.png'
@@ -49,9 +54,13 @@ const registerUser = async (req, res) => {
     res.status(201).json({ message: 'Пользователь зарегистрирован' });
 
   } catch (e) {
+    if (e.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ detail: 'Такая почта уже используется' });
+    }
     console.error(e);
-    res.status(500).json({ detail: 'Ошибка регистрации' });
+    return res.status(500).json({ detail: 'Ошибка регистрации' });
   }
+
 };
 
 // Вход по логину и паролю
@@ -109,16 +118,15 @@ const getAllUsers = async (req, res) => {
 // Получение профиля по логину
 const getUserProfile = async (req, res) => {
   try {
-    /* ----------- 1. /profile/me ------------- */
+    // 1. /profile/me 
     if (req.params.login === 'me') {
-      // authMiddleware уже положил данные токена в req.user
       return res.json({
         login : req.user.login,
         role  : req.user.role
       });
     }
 
-    /* ----------- 2. /profile/:login --------- */
+    // 2. /profile/:login
     const user = await User.findOne({
       where: { login: req.params.login },
       attributes: [
@@ -170,7 +178,7 @@ const updateProfile = async (req, res) => {
     if (group      !== undefined) user.group      = group;
     if (position   !== undefined) user.position   = position;
 
-    await user.save();               // сохраняем в бд
+    await user.save();     // сохраняем в бд
 
     // Отдаём обратно клиенту обновлённые данные
     res.json({
@@ -208,7 +216,7 @@ const getMyProfile = async (req, res) => {
   }
 };
 
-// ---------- загрузка аватара ----------
+// загрузка аватара
 const uploadAvatar = async (req, res) => {
   // файл уже лежит в req.file благодаря multer
   if (!req.file) return res.status(400).json({ detail: 'Файл не получен' });
@@ -258,7 +266,21 @@ const updateSecurity = async (req, res) => {
     if (!ok) return res.status(401).json({ detail: 'Старый пароль неверен' });
 
     // обновляем e-mail (если прислали)
-    if (email !== undefined) user.email = email;
+    if (email !== undefined) {
+      const trimmedEmail = email.trim();
+      const emailTaken = await User.findOne({
+        where: {
+          email: trimmedEmail,
+          id: { [Op.ne]: user.id }  // исключаем себя
+        }
+      });
+
+      if (emailTaken) {
+        return res.status(400).json({ detail: 'Такая почта уже используется' });
+      }
+
+      user.email = trimmedEmail;
+    }
 
     // обновляем пароль (если прислали)
     if (new_password !== undefined)
@@ -277,10 +299,10 @@ const updateSecurity = async (req, res) => {
 
 
 const { Op } = require('sequelize');
-
+// Проверка на существующую почту
 const checkEmailExists = async (req, res) => {
   try {
-    const { email } = req.query;
+    const { email } = req.body;
     if (!email) return res.status(400).json({ taken: false });
 
     const user = await User.findOne({ where: { email: email.trim() } });
@@ -290,9 +312,10 @@ const checkEmailExists = async (req, res) => {
   }
 };
 
+// Проверка на существующий студак
 const checkStudentIdExists = async (req, res) => {
   try {
-    const { studentIdNumber } = req.query;
+    const { studentIdNumber } = req.body;
     if (!studentIdNumber) return res.status(400).json({ taken: false });
 
     const user = await User.findOne({ where: { studentIdNumber: studentIdNumber.trim() } });
@@ -302,8 +325,9 @@ const checkStudentIdExists = async (req, res) => {
   }
 };
 
+// Выход из аккаунта
 const logoutUser = (req, res) => {
-  /* Стираем ту же cookie, которую ставили при входе. */
+  // Стираем ту же cookie, которую ставили при входе.
   res.clearCookie('token', {
     httpOnly : true,
     secure   : process.env.NODE_ENV === 'production',

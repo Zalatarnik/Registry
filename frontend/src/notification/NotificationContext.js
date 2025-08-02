@@ -149,7 +149,7 @@ const Toast = ({ message, isClosing, onStartClose, onEndClose }) => {
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
-  /** обычное уведомление */
+  // обычное уведомление
   const addNotification = (message, type = 'info') => {
     const id = Date.now() + Math.random();
     setNotifications(prev => [
@@ -158,7 +158,7 @@ export const NotificationProvider = ({ children }) => {
     ]);
   };
 
-  /** покажет уведомление, только если такого текста ещё нет среди открытых */
+  // покажет уведомление, только если такого текста ещё нет среди открытых 
   const addNotificationOnce = (message, type = 'info') => {
     const already = notifications.some(
       n => n.message === message && !n.isClosing

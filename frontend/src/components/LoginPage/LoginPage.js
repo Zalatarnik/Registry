@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
+import { useNotification } from '../../notification/NotificationContext';
+import { validateRegistration } from '../../validation/ValidationContext';
+
 
 // иконки
 import { ReactComponent as UserIcon } from '../../icons/user-icon.svg';
@@ -117,79 +120,32 @@ function LoginPage({ onLoginSuccess }) {
     onLoginSuccess(login, password);
   };
   
+  // хук для отображения уведомлений
+  const { addNotification } = useNotification();
+
   // обработчик отправки формы регистрации
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    // сбрасываем предыдущие ошибки
-    setPasswordError('');
-    setRegisterError('');
+const handleRegisterSubmit = async (e) => {
+  e.preventDefault();
+  setPasswordError('');
+  setRegisterError('');
 
-    // проверка ФИО: только буквы, с заглавной
-    const nameRegex = /^[A-ZА-ЯЁ][a-zа-яё]+$/i;
-    if (!nameRegex.test(lastName)) {
-      setRegisterError('Фамилия должна начинаться с заглавной буквы и содержать только буквы');
-      return;
-    }
-    if (!nameRegex.test(firstName)) {
-      setRegisterError('Имя должно начинаться с заглавной буквы и содержать только буквы');
-      return;
-    }
-    if (middleName && !nameRegex.test(middleName)) {
-      setRegisterError('Отчество должно начинаться с заглавной буквы и содержать только буквы');
-      return;
-    }
-    
-    // проверка почты
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    if (!emailRegex.test(email.trim())) {
-      setRegisterError('Введите корректный адрес электронной почты');
-      return;
-    }
+  const validationResult = await validateRegistration({
+    lastName,
+    firstName,
+    middleName,
+    email,
+    password: registerPassword,
+    confirmPassword,
+    role: selectedRole,
+    studentId,
+    group,
+    curatorLogin
+  });
 
-    // проверка пароля
-    if (registerPassword.length < 6) {
-      setRegisterError('Пароль должен быть не менее 6 символов');
-      return;
-    }
-    if (registerPassword !== confirmPassword) {
-      setPasswordError('Пароли не совпадают!');
-      return;
-    }
-    
-    // если студент — валидация номера и группы
-    if (selectedRole === 'student') {
-      const idRegex = /^\d+$/;
-      const groupRegex = /^[А-ЯЁа-яё\-0-9]+$/;
-
-      if (!idRegex.test(studentId)) {
-        setRegisterError('Номер студенческого должен содержать только цифры');
-        return;
-      }
-      if (!groupRegex.test(group)) {
-        setRegisterError('Группа должна содержать только русские буквы, цифры и дефис');
-        return;
-      }
-    }
-
-    // проверка — не занята ли почта
-    const checkResponse = await fetch(`http://localhost:8000/api/check-email?email=${encodeURIComponent(email)}`);
-    if (checkResponse.ok) {
-      const exists = await checkResponse.json();
-      if (exists?.taken) {
-        setRegisterError('Такая почта уже используется');
-        return;
-      }
-    }
-
-    // проверка — не занят ли номер студенческого
-    const checkIdResponse = await fetch(`http://localhost:8000/api/check-student-id?studentId=${encodeURIComponent(studentId)}`);
-    if (checkIdResponse.ok) {
-      const exists = await checkIdResponse.json();
-      if (exists?.taken) {
-        setRegisterError('Такой номер студенческого уже зарегистрирован');
-        return;
-      }
-    }
+  if (!validationResult.valid) {
+    addNotification(validationResult.message, 'error');
+    return;
+  }
 
     // формируем базовый объект с общими данными для всех ролей
     const baseData = {
@@ -242,7 +198,7 @@ function LoginPage({ onLoginSuccess }) {
 
     } catch (error) {
         // отображаем ошибку, полученную от сервера или сети
-        setRegisterError(error.message);
+        addNotification(error.message);
     }
   };
 
@@ -294,7 +250,6 @@ function LoginPage({ onLoginSuccess }) {
             <div className="form-group"><label htmlFor="reg-confirm-password">Подтвердите пароль</label><div className="input-wrapper"><PasswordIcon className="input-icon" /><input type="password" id="reg-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></div></div>
             
             {passwordError && <p className="form-error">{passwordError}</p>}
-            {registerError && <p className="form-error">{registerError}</p>}
             
             {/* переключатель ролей */}
             <div className="role-toggle" onMouseLeave={() => setHoveredRole(selectedRole)}>
