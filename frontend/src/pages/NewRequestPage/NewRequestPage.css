@@ -440,3 +440,48 @@
 .new-request-container .form-secondary-btn:hover span {
   color: #fff;
 }
+
+body[data-theme='dark'] {
+      .new-request-container{
+    background: var(--bg-main, #212529);
+  }
+
+  /* фон всего контейнера */
+  .new-request-container{
+    background: var(--bg-main, #212529);
+  }
+  .new-request-container .page-content{
+    background: var(--bg-panel, #181a1b);
+    box-shadow: none;
+  }
+
+  /* заголовок страницы */
+  .new-request-container h1{
+    color: var(--text-primary, #ffffff);
+  }
+
+  /* подписи к полям */
+  .new-request-container .form-field label{
+    color: var(--text-muted, #9ca3af);
+  }
+
+  /* текст внутри инпутов */
+  .new-request-container .form-input{
+    color: var(--text-primary, #ffffff);
+  }
+  .new-request-container .form-input::placeholder{
+    color: var(--text-muted, #9ca3af);
+  }
+
+  /* нижние линии под полями */
+  .new-request-container .input-wrapper::before{
+    background: var(--border-light, rgba(255,255,255,.20));
+  }
+
+  .new-request-container .file-upload-container{
+    border-color: var(--border-light, rgba(255,255,255,.20));
+  }
+  ::-webkit-scrollbar-thumb{
+    background: #555;
+  }
+}

@@ -20,7 +20,7 @@
 .profile-container h1 {
   margin-bottom: 24px;
   margin-left: 36px;
-  color: #212529;
+  color: var(--text);
   font-size: 32px;
   font-weight: 700;
 }
@@ -29,8 +29,10 @@
 .profile-container .page-content {
   padding: 40px;
   overflow-y: auto;
-  background-color: #ffffff;
+  color: var(--text);
+  background: var(--surface);
   box-shadow: none;
+  border-color: var(--surface-soft);
 }
 
 /* сетка макета профиля */
@@ -49,6 +51,18 @@
   overflow: hidden;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.profile-form label,
+.profile-container .modal-header h2,
+.profile-page-modal-scope .modal-body label {
+  color: var(--text-soft);
+}
+
+.editable-field-value,
+.editable-input,
+.profile-page-modal-scope .modal-body input {
+  color: var(--text);
 }
 
 /* радиальный градиент при наведении на аватар */
@@ -227,6 +241,11 @@
   transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
+body[data-theme='dark'] .editable-field-value-wrapper::before,
+body[data-theme='dark'] .profile-page-modal-scope .modal-body input {
+  border-color: #4c4f52;
+}
+
 .editable-field-container:hover .editable-field-value-wrapper::after,
 .editable-field-container.is-editing .editable-field-value-wrapper::after {
   transform: scaleX(1);
@@ -297,8 +316,8 @@
 
 /* второстепенная кнопка */
 .profile-secondary-btn {
-  color: #495057;
-  background-color: #f0f2f5;
+  color: var(--text);
+  background: var(--surface-soft);
 }
 
 /* эффект наведения для кнопок */
@@ -360,7 +379,8 @@
   width: 100%;
   max-width: 450px;
   padding: 30px 40px;
-  background-color: #fff;
+  background: var(--surface);
+  color: var(--text);
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -399,4 +419,36 @@
 .profile-page-modal-scope .modal-footer .profile-submit-btn {
   width: auto;
   flex-shrink: 0;
+}
+/* основной текст */
+body[data-theme='dark'] .editable-field-value,
+body[data-theme='dark'] .editable-input {
+  color: var(--text);
+}
+/* плейсхолдер */
+body[data-theme='dark'] .editable-input::placeholder {
+  color: var(--text-soft);
+}
+
+body[data-theme='dark'] .profile-page-modal-scope .modal-content {
+  background: var(--surface);
+  color: var(--text);
+}
+
+body[data-theme='dark'] .profile-page-modal-scope .modal-header h2 {
+  color: var(--text); 
+}
+
+body[data-theme='dark'] .profile-page-modal-scope .modal-body label {
+  color: var(--text-soft);
+}
+
+body[data-theme='dark'] .profile-page-modal-scope .modal-body input {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-bottom-color: var(--surface); 
+}
+
+body[data-theme='dark'] .profile-page-modal-scope .modal-body input::placeholder {
+  color: var(--text-soft);
 }

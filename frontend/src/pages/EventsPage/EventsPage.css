@@ -1067,3 +1067,102 @@
   color: #6c757d;
   font-size: 13px;
 }
+
+/* темная тема */
+body[data-theme='dark'] .events-page-scope {
+
+  --bg-main        : #212529;
+  --bg-panel       : #181a1b;
+  --text-primary   : #ffffff;
+  --text-muted     : #9ca3af;
+  --border-light   : rgba(255,255,255,.15);
+
+    .events-container1  {
+     background: var(--bg-main); 
+    }
+
+  /* контейнер и заголовок */
+  .events-container  {
+     background: var(--bg-main); 
+    }
+  .events-container h1 { 
+    color: var(--text-primary); 
+  }
+
+  /* строка поиска */
+  .search-bar-wrapper .interactive-button{
+    background : var(--bg-panel);
+    color      : var(--text-muted);
+  }
+  .search-bar-wrapper input{
+    color            : var(--text-primary);
+  }
+  .search-bar-wrapper input::placeholder{
+    color            : var(--text-muted);
+  }
+
+  /* кнопка Все */
+  .interactive-button.is-active-filter   {
+    background : #5a6268;
+    color      : #fff;
+  }
+
+  /* для вида куратора фон */
+  .events-container .page-content        { background: var(--bg-panel); }
+
+  /* карточка */
+  .card-content-wrapper                  { background: var(--bg-panel); }
+  .header-content h3                    { color: var(--text-primary); }
+  .header-content .card-date            { color: var(--text-muted); }
+  .event-divider                         { background: var(--border-light); }
+
+  /* раскрытая часть карточки */
+  .card-details-wrapper                  { background: var(--bg-panel); }
+
+  .details-body,
+  .details-body .detail-item,
+  .details-body .detail-label{
+    color: var(--text-primary, #ffffff);
+  }
+
+  .details-body .detail-label{
+     opacity: .8;
+  }
+
+  .details-actions{
+    background : rgba(24,24,27,.95);  /* почти #181a1b */
+    border-top : 1px solid var(--border-light, rgba(255,255,255,.15));
+  }
+  .interactive-button.btn-style-neutral  { background: var(--bg-panel); color: var(--text-primary); }
+  .interactive-button.btn-style-list     { background: rgba(0,123,255,.18); color:#7db7ff; }
+  .interactive-button.btn-style-delete   { background: rgba(231,76,60,.18); color:#ff7b7b; }
+  .interactive-button.btn-style-register { background: rgba(40,167,69,.18); color:#66e28b; }
+
+  .student-view-container::before{
+    background: linear-gradient(to right, var(--bg-main) 2%, transparent);
+  }
+  .student-view-container::after{
+    background: linear-gradient(to left , var(--bg-main) 2%, transparent);
+  }
+  .btn-style-register{
+    background : #28a745;
+    color      : #ffffff;
+  }
+  .btn-style-register::before{
+    background : #1e7e34;
+  }
+  .btn-style-register:hover span{
+    color: #fff;
+  }
+
+  .details-container                     { background: rgba(24,24,27,.95); }
+  .details-body                          { color: var(--text-primary); }
+  .detail-description                    { border-bottom-color: var(--accent, #d35400); }
+
+  .detail-description {
+    color      : #ffffff;
+}
+
+  /* скроллбар внутри карточек */
+  ::-webkit-scrollbar-thumb              { background: #555; }
+}

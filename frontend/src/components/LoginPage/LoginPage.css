@@ -229,3 +229,102 @@
   position: relative;
   z-index: 1;
 }
+
+body[data-theme="dark"] {
+
+  /* фон страницы и блоков */
+  .auth-container                       { background: var(--bg); }
+  .auth-container                       { background: var(--bg); }
+  .form-toggle,
+  .role-toggle,
+  .form-box                             { background: var(--surface); border-color: var(--surface-soft); }
+
+  /* текстовые цвета */
+  .toggle-button                        { color: var(--text-soft); }
+  .toggle-button.selected,
+  .toggle-button.hover-active           { color: #fff; }
+
+  .glider                               { background: var(--accent); }
+
+  /* подписи, иконки*/
+  .form-group label,
+  .input-icon                           { color: var(--text-muted, #9ca3af); }
+  .form-group input::placeholder        { color: var(--text-muted, #9ca3af); }
+
+  .form-group::before                   { background: var(--surface-soft); }
+
+  /* поля ввода */
+  .form-group input                     { color: var(--text); }
+
+  /* кнопка отправки */
+  .submit-btn                           { background: var(--accent); }
+  .submit-btn::before                   { background: #a64d05; }
+
+  .form-box::-webkit-scrollbar-thumb    { background: #555; }
+}
+
+body[data-theme="dark"] {
+
+  /* сам input снова полностью прозрачный */
+  .form-group input{
+    background : transparent !important;   /* убираем #1b1c1e */
+    border     : none;                     /* на случай авто-стилей */
+    box-shadow : none;
+  }
+
+  /* “сероватая” линия внизу (по умолчанию) */
+  .form-group::before{
+    background : rgba(255,255,255,.15);     /* чуть ярче, чем .12 */
+  }
+
+  /* активная оранжевая линия при hover / focus */
+  .form-group:hover::after,
+  .form-group:focus-within::after{
+    background : var(--accent);             /* тот же #e88b4d */
+  }
+
+  /* иконки — на полтона светлее для контраста */
+  .input-icon{
+    color : #d0d4d8;
+  }
+}
+
+body[data-theme="dark"] {
+    .app-logo{
+    filter: brightness(.80) contrast(1.05);
+  }
+
+  .app-logo{
+    filter: brightness(.80) contrast(1.05);
+  }
+
+  .form-box{
+    box-shadow : 0 4px 12px rgba(0,0,0,.25); 
+    border     : 1px solid #2c2d31;
+  }
+
+
+  .form-group{
+    background: transparent !important;
+  }
+
+  .form-group::before{
+    background : rgba(255,255,255,.10);
+  }
+
+  .glider{
+    background: #d27a3c;
+  }
+
+  .form-box{
+    scrollbar-width: thin;
+    scrollbar-color: #444 #1b1c1e;
+  }
+  .form-box::-webkit-scrollbar{
+    width: 6px;
+  }
+  .form-box::-webkit-scrollbar-thumb{
+    background: #444;
+    border-radius: 3px;
+  }
+}

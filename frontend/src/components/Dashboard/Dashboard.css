@@ -33,8 +33,10 @@
 .menu-container {
   position: relative;
   flex-shrink: 0;
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background-color: var(--surface);
+  border: 1px solid var(--surface-soft);
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: width 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
               height 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
@@ -47,11 +49,11 @@
   width: 200px;
   height: 80px;
   border: none;
-  outline: 1px solid #eee;
+  outline: 1px solid var(--surface-soft);
   background-color: transparent;
   gap: 8px;
   z-index: 2;
-  color: #333;
+  color: var(--text);
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -87,7 +89,7 @@
   width: 200px;
   height: 80px;
   z-index: 1;
-  background-color: #d35400;
+  background-color: var(--accent);
   pointer-events: none;
   clip-path: inset(0% 0% 0% 0%);
   transition: transform 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
@@ -105,8 +107,8 @@
   flex-shrink: 0;
   box-sizing: border-box;
   overflow: hidden;
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background-color: var(--surface);
+  border: 1px solid var(--surface-soft);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: width 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
               height 0.3s cubic-bezier(0.65, 0.05, 0.36, 1),
@@ -124,13 +126,13 @@
 
 .page-content h1 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text);
   font-size: 2rem;
 }
 
 .page-content p {
   margin: 0;
-  color: #555;
+  color: var(--text-soft);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -149,3 +151,19 @@
   height: 70vh;
   opacity: 1;
 }
+
+.theme-toggle-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+
+.theme-toggle:hover { transform: scale(1.25); }

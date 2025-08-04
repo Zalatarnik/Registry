@@ -113,7 +113,7 @@
 
 .review-requests-scope .filter-buttons-panel .interactive-button.is-active-filter {
   color: #fff;
-  background-color: #495057;
+  background-color: var(--accent);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -136,7 +136,7 @@
   left: 0;
   z-index: 1;
   width: calc(100% - 5px);
-  background-color: #d35400;
+  background-color: var(--accent);
   pointer-events: none;
   will-change: transform, opacity, height, clip-path;
   clip-path: inset(0% 0% 0% 0%);
@@ -154,14 +154,14 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
+  background-color: var(--accent);
   cursor: pointer;
 }
 
 .review-requests-scope .request-divider {
   height: 2px;
   margin: 0;
-  background-color: #b84900;
+  background-color: var(--accent);
   opacity: 0.4;
 }
 
@@ -175,7 +175,7 @@
 }
 
 .review-requests-scope .request-card.is-expanded .card-content-wrapper {
-  background-color: #b84900;
+  background-color: var(--accent);
 }
 
 .review-requests-scope .card-header {
@@ -236,7 +236,7 @@
   position: relative;
   max-height: 0;
   overflow: hidden;
-  background-color: #f8f9fa;
+  background-color: var(--accent);
   will-change: max-height;
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -324,7 +324,7 @@
   justify-content: center;
   gap: 8px;
   transition: transform 0.25s ease;
-  background-color: #ffffff;
+  background-color: var(--accent);
   border-radius: 0px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   z-index: 1;
@@ -336,7 +336,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #ffffff;
+  background-color: var(--accent);
   border-radius: 0px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -383,7 +383,7 @@
 }
 
 .review-requests-scope .m-stack-download.is-empty {
-  background-color: #f0f2f5;
+  background-color: var(--accent);
   box-shadow: none;
   cursor: default;
 }
@@ -766,4 +766,65 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+body[data-theme='dark'] {
+  --accent-soft: #ffa76b;
+}
+
+body[data-theme='dark'] {
+    /* шапка карточки + фон строки */
+  .request-card:hover {
+      background: var(--accent) !important;
+  }
+
+  /* шапка карточки + фон строки */
+  .request-card:hover            .card-content-wrapper,
+  .request-card.is-active        .card-content-wrapper,
+  .request-card.is-expanded      .card-content-wrapper,
+  .request-card.is-selected-card .card-content-wrapper {
+      background: var(--accent) !important;
+  }
+
+  /* заголовок, подзаголовок, дата */
+  .request-card:hover            .header-content h3,
+  .request-card:hover            .header-content .card-date,
+  .request-card.is-active        .header-content h3,
+  .request-card.is-active        .header-content .card-date,
+  .request-card.is-expanded      .header-content h3,
+  .request-card.is-expanded      .header-content .card-date {
+      color: #fff !important;
+  }
+
+  /* ВСЕ кнопки справа в шапке */
+  .request-card:hover            .card-header-right .interactive-button,
+  .request-card.is-active        .card-header-right .interactive-button,
+  .request-card.is-expanded      .card-header-right .interactive-button {
+      background: rgba(255,255,255,0.20) !important; /* полупрозр. */
+      color: #fff !important;
+  }
+  /* иконки в этих кнопках → белые */
+  .request-card:hover            .card-header-right .interactive-button svg,
+  .request-card.is-active        .card-header-right .interactive-button svg,
+  .request-card.is-expanded      .card-header-right .interactive-button svg {
+      fill: #fff !important;
+  }
+
+  /* если внутри стоит status-badge “На рассмотрении” */
+  .request-card:hover       .btn-style-pending,
+  .request-card.is-active   .btn-style-pending,
+  .request-card.is-expanded .btn-style-pending {
+      background: rgba(255,255,255,0.20) !important;
+      color: #fff !important;
+  }
+
+  
+}
+
+body[data-theme='dark'] {
+  --heading-color: #ffffff;
+}
+
+.review-requests-scope .review-requests-container h1 {
+  color: var(--heading-color, #212529);
 }

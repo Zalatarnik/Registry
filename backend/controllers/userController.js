@@ -14,7 +14,7 @@ require('dotenv').config({ path: './omni.env' });
 // Регистрация студента или куратора
 const registerUser = async (req, res) => {
   try {
-    const { password, role, firstName, lastName, studentId, curatorLogin } = req.body;
+    const { password, role, firstName, lastName, studentId, curatorLogin, email } = req.body;
 
     let login;
 

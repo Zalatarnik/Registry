@@ -4,6 +4,15 @@
     to { opacity: 1; }
 }
 
+:root{
+  --bg-main      : #ffffff;
+  --bg-panel     : #f8f9fa;
+  --text-primary : #212529;
+  --text-muted   : #6c757d;
+  --border-light : #e9ecef;
+  --accent       : #d35400;
+}
+
 /* общие стили страницы */
 .all-users-scope {
     display: flex;
@@ -19,12 +28,13 @@
     max-height: 85vh;
     animation: all-users-fadeInPage 0.5s ease;
     box-sizing: border-box;
+    background: var(--bg-main);
 }
 
 .all-users-container h1 {
     margin-bottom: 24px;
     margin-left: 36px;
-    color: #212529;
+    color: var(--text-primary);
     font-size: 32px;
     font-weight: 700;
     flex-shrink: 0;
@@ -70,7 +80,7 @@
 }
 
 .all-users-container .search-bar-wrapper input::placeholder {
-    color: #6c757d;
+    color: var(--text-muted);
     opacity: 0.9;
 }
 
@@ -138,7 +148,7 @@
 .all-users-container .user-divider {
     height: 2px;
     margin: 0;
-    background-color: #b84900;
+    background-color: var(--border-light);
     opacity: 0.4;
 }
 
@@ -186,14 +196,14 @@
 
 .all-users-container .header-content h3 {
     margin: 0 0 4px 0;
-    color: #212529;
+    color: var(--text-primary);
     font-size: 1.2rem;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
 .all-users-container .header-content .card-subtitle {
-    color: #6c757d;
+    color: var(--text-muted);
     font-size: 0.9rem;
     font-weight: 500;
     transition: color 0.3s ease;
@@ -391,4 +401,58 @@
     padding: 40px;
     text-align: center;
     color: #6c757d;
+}
+
+body[data-theme='dark']{
+  --bg-main      : #212529;
+  --bg-panel     : #181a1b;
+  --text-primary : #ffffff;
+  --text-muted   : #adb5bd;
+  --border-light : rgba(255,255,255,.15);
+}
+
+body[data-theme='dark']
+  .all-users-container .interactive-button.btn-style-neutral{
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+body[data-theme='dark'] ::-webkit-scrollbar-thumb{
+  background: #555;
+}
+
+body[data-theme='dark']
+  .all-users-container 
+  .interactive-button.btn-style-neutral.is-active-filter {
+  background: #5a6268;
+  color: #fff;
+}
+
+body[data-theme='dark']
+  .all-users-container .search-bar-wrapper .interactive-button{
+  background: #2b2d30; 
+}
+
+body[data-theme='dark'] {
+      .all-users-container .card-details-wrapper{
+    background: var(--bg-panel, #181a1b);
+  }
+    
+
+  .all-users-container .card-details-wrapper{
+    background: var(--bg-panel, #181a1b);
+  }
+
+  .all-users-container .detail-label{
+    color: var(--text-muted , #9ca3af);
+  }
+
+  /* значения справа от подписи */
+  .all-users-container .detail-item{
+    color: var(--text-primary, #ffffff);
+  }
+
+  .all-users-container .detail-value{
+    color: var(--text-primary, #ffffff);
+  }
 }
