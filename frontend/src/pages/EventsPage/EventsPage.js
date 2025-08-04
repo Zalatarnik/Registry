@@ -490,7 +490,12 @@ export default function EventsPage({ userLogin, userRole }) {
         const fetchInitialData = async () => {
             setIsLoading(true);
             try {
-                const eventsData = await fetch(`${API_BASE_URL}/api/events`).then(res => res.json());
+                // Загружаем данные о мероприятиях
+                const eventsResponse = await fetch(`${API_BASE_URL}/api/events`);
+                if (!eventsResponse.ok) throw new Error('Не удалось загрузить мероприятия.');
+                const eventsData = await eventsResponse.json();
+
+                // Обрабатываем данные мероприятий
                 const processedEvents = eventsData.map((event, index) => ({
                     ...event,
                     imageUrl: event.image_url || defaultEventImage,
@@ -500,28 +505,33 @@ export default function EventsPage({ userLogin, userRole }) {
                     description: event.description || 'Тут будет описание, возможно, когда-нибудь'
                 }));
 
-                const promises = [Promise.resolve(processedEvents)];
-
+                setEvents(processedEvents);
+                // Если пользователь - студент, загружаем дополнительные данные
                 if (userRole === 'student' && userLogin) {
-                    const profilePromise = fetch(`${API_BASE_URL}/api/profile/${userLogin}`).then(res => res.json());
-                    const registrationsPromise = fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`).then(res => res.json());
-                    promises.push(profilePromise, registrationsPromise);
+                    const profileResponse = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`);
+                    if (!profileResponse.ok) throw new Error('Не удалось загрузить профиль.');
+                    const profileData = await profileResponse.json();
+                    setCurrentUser({
+                        lastName: profileData.last_name,
+                        firstName: profileData.first_name,
+                        patronymic: profileData.patronymic,
+                        group: profileData.group,
+                        login: profileData.login
+                    });
+                    // Загружаем записи на мероприятия
+                    const registrationsResponse = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`);
+                    if (!registrationsResponse.ok) throw new Error('Не удалось загрузить записи.');
+                    const registrationIds = await registrationsResponse.json();
+                    setUserRegisteredEventIds(new Set(registrationIds));
                 }
-
-                const [finalEventsData, profileData, registrationIds] = await Promise.all(promises);
-
-                setEvents(finalEventsData);
-                if (profileData) setCurrentUser({ lastName: profileData.last_name, firstName: profileData.first_name, patronymic: profileData.patronymic, group: profileData.group, login: profileData.login });
-                if (registrationIds) setUserRegisteredEventIds(new Set(registrationIds));
+                setIsLoading(false);
 
             } catch (error) {
-                addNotification(error.message, 'error');
-            } finally {
-                setIsLoading(false);
+                console.error("Ошибка при загрузке данных для страницы мероприятий:", error);
             }
         };
         fetchInitialData();
-    }, [userLogin, userRole, addNotification]);
+    }, [userLogin, userRole]);
 
     const filteredEvents = useMemo(() => {
         return events

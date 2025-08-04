@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import './LogoutConfirmation.css';
 
-const EASING_FACTOR = 0.15;
+// АНИМАЦИЯ
+const EASING_FACTOR = 0.15; 
 const DEFAULT_RADIUS = 0;
 
 function animateRadii(btn) {
@@ -21,7 +22,6 @@ function animateRadii(btn) {
   }
 
   btn.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
-
   if (isAnimationNeeded) {
     requestAnimationFrame(() => animateRadii(btn));
   } else {
@@ -29,8 +29,9 @@ function animateRadii(btn) {
   }
 }
 
+
 const handleMouseMoveForEffect = (e) => {
-  const btn = e.currentTarget;
+  const btn = e.currentTarget; 
   if (!btn._animationState) {
     btn._animationState = {
       isAnimating: false,
@@ -43,12 +44,12 @@ const handleMouseMoveForEffect = (e) => {
   btn.style.setProperty('--mouse-y', `${e.clientY - btn.getBoundingClientRect().top}px`);
 
   const state = btn._animationState;
-  const rect = btn.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const { width, height } = rect;
+  const rect = btn.getBoundingClientRect(); 
+  const x = e.clientX - rect.left; 
+  const y = e.clientY - rect.top; 
+  const { width, height } = rect; 
   const maxRadius = 25;
-  const diagonal = Math.sqrt(width**2 + height**2);
+  const diagonal = Math.sqrt(width**2 + height**2); 
 
   const calculateRadius = (cx, cy) => Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx)**2 + (y - cy)**2) / diagonal), 3));
   
@@ -79,20 +80,21 @@ const handleButtonLeave = (e) => {
   }
 };
 
+// Компонент модального окна для подтверждения выхода
 const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
   const [isClosing, setIsClosing] = useState(false);
-  const modalRef = useRef(null);
+  const modalRef = useRef(null); 
 
   const handleClose = () => {
-    setIsClosing(true);
+    setIsClosing(true); 
     setTimeout(() => {
       onClose();
-      setIsClosing(false); 
+      setIsClosing(false);
     }, 250); 
   };
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return; 
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
         handleClose();
@@ -103,8 +105,8 @@ const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
   }, [isOpen, onClose]);
 
   const handleConfirmAction = () => {
-    onConfirm();
-    handleClose();
+    onConfirm(); 
+    handleClose(); 
   };
   
   if (!isOpen) return null;
@@ -129,15 +131,15 @@ const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
           className="logout-modal-button neutral" 
           onClick={handleClose} 
           onMouseMove={handleMouseMoveForEffect} 
-          onMouseLeave={handleButtonLeave}
+          onMouseLeave={handleButtonLeave} 
         >
           <span>Отмена</span>
         </button>
         <button 
           className="logout-modal-button reject" 
           onClick={handleConfirmAction} 
-          onMouseMove={handleMouseMoveForEffect} 
-          onMouseLeave={handleButtonLeave}
+          onMouseMove={handleMouseMoveForEffect}
+          onMouseLeave={handleButtonLeave} 
         >
           <span>Выйти</span>
         </button>

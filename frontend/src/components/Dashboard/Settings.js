@@ -6,10 +6,14 @@ const GliderToggle = ({ options, selectedOption, onOptionSelect }) => {
     const [hoveredOption, setHoveredOption] = useState(selectedOption);
     useEffect(() => { setHoveredOption(selectedOption); }, [selectedOption]);
     const gliderIndex = options.findIndex(opt => opt.id === hoveredOption);
+
     return (
         <div className="glider-toggle" onMouseLeave={() => setHoveredOption(selectedOption)}>
             {options.map(option => (
-                <button key={option.id} onClick={() => onOptionSelect(option.id)} onMouseEnter={() => setHoveredOption(option.id)}
+                <button 
+                    key={option.id} 
+                    onClick={() => onOptionSelect(option.id)} 
+                    onMouseEnter={() => setHoveredOption(option.id)}
                     className={`glider-toggle-button ${selectedOption === option.id ? 'selected' : ''} ${hoveredOption === option.id ? 'hover-active' : ''}`}>
                     {option.label}
                 </button>
@@ -19,18 +23,24 @@ const GliderToggle = ({ options, selectedOption, onOptionSelect }) => {
     );
 };
 
+// Компонент, содержащий содержимое настроек
 const SettingsContent = () => {
+    // Состояния для хранения выбранного языка и темы
     const [language, setLanguage] = useState('ru');
     const [theme, setTheme] = useState('light');
+
+    // Опции для выбора языка
     const langOptions = [ { id: 'ru', label: 'Русский' }, { id: 'en', label: 'English' } ];
+    // Опции для выбора темы
     const themeOptions = [ { id: 'light', label: 'Светлая' }, { id: 'dark', label: 'Темная' } ];
+
     return (
         <div className="settings-content-container">
             <div className="settings-section">
                 <p className="settings-label">Язык</p>
                 <GliderToggle options={langOptions} selectedOption={language} onOptionSelect={setLanguage} />
             </div>
-            <div className="settings-divider" />
+            <div className="settings-divider" /> 
             <div className="settings-section">
                 <p className="settings-label">Тема</p>
                 <GliderToggle options={themeOptions} selectedOption={theme} onOptionSelect={setTheme} />
@@ -39,6 +49,7 @@ const SettingsContent = () => {
     );
 };
 
+// Основной компонент панели настроек
 const Settings = ({ isOpen, onClose, position }) => {
   const [isClosing, setIsClosing] = useState(false);
 
@@ -46,14 +57,14 @@ const Settings = ({ isOpen, onClose, position }) => {
     setIsClosing(true);
     setTimeout(() => {
         onClose();
-        setIsClosing(false);
+        setIsClosing(false); 
     }, 400); 
   }, [onClose]);
 
   if (!isOpen) return null;
 
   const wrapperStyle = {
-      top: `${(position?.bottom || 0) + 8}px`,
+      top: `${(position?.bottom || 0) + 8}px`, 
       right: `${window.innerWidth - (position?.right || 0)}px`,
   };
 

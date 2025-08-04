@@ -134,7 +134,7 @@ export default function AllUsersPage() {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     // хук для отображения уведомлений
-    const { addNotificationOnce } = useNotification();
+    const { addNotification } = useNotification();
     const [hoveredCardId, setHoveredCardId] = useState(null);
     const [expandedCardId, setExpandedCardId] = useState(null);
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
@@ -151,20 +151,21 @@ export default function AllUsersPage() {
         const fetchUsers = async () => {
             setIsLoading(true);
             try {
-            const response = await fetch(`${API_BASE_URL}/api/users/all`, {
-                credentials: 'include'
-            });
-                if (!response.ok) throw new Error('Не удалось загрузить список пользователей');
+                const response = await fetch(`${API_BASE_URL}/api/users/all`, {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error('Не удалось загрузить список пользователей');
+                }
                 const data = await response.json();
                 setUsers(data);
+                setIsLoading(false); 
             } catch (error) {
-                addNotificationOnce(error.message, 'error');
-            } finally {
-                setIsLoading(false);
+                console.error("Ошибка при загрузке пользователей:", error);
             }
         };
         fetchUsers();
-    }, []); 
+    }, []);
     
     const promptDeleteUser = (user, e) => {
         const rect = e.currentTarget.getBoundingClientRect();
