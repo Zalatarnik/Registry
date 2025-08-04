@@ -1260,199 +1260,101 @@
   font-size: 13px;
 }
 
-.events-page-scope .registration-modal-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  width: 60%;
-  margin-left: auto;
+/* темная тема */
+body[data-theme='dark'] .events-page-scope {
+
+  --bg-main        : #212529;
+  --bg-panel       : #181a1b;
+  --text-primary   : #ffffff;
+  --text-muted     : #9ca3af;
+  --border-light   : rgba(255,255,255,.15);
+
+    .events-container1  {
+     background: var(--bg-main); 
+    }
+
+  /* контейнер и заголовок */
+  .events-container  {
+     background: var(--bg-main); 
+    }
+  .events-container h1 { 
+    color: var(--text-primary); 
+  }
+
+  /* строка поиска */
+  .search-bar-wrapper .interactive-button{
+    background : var(--bg-panel);
+    color      : var(--text-muted);
+  }
+  .search-bar-wrapper input{
+    color            : var(--text-primary);
+  }
+  .search-bar-wrapper input::placeholder{
+    color            : var(--text-muted);
+  }
+
+  /* кнопка Все */
+  .interactive-button.is-active-filter   {
+    background : #5a6268;
+    color      : #fff;
+  }
+
+  /* для вида куратора фон */
+  .events-container .page-content        { background: var(--bg-panel); }
+
+  /* карточка */
+  .card-content-wrapper                  { background: var(--bg-panel); }
+  .header-content h3                    { color: var(--text-primary); }
+  .header-content .card-date            { color: var(--text-muted); }
+  .event-divider                         { background: var(--border-light); }
+
+  /* раскрытая часть карточки */
+  .card-details-wrapper                  { background: var(--bg-panel); }
+
+  .details-body,
+  .details-body .detail-item,
+  .details-body .detail-label{
+    color: var(--text-primary, #ffffff);
+  }
+
+  .details-body .detail-label{
+     opacity: .8;
+  }
+
+  .details-actions{
+    background : rgba(24,24,27,.95);  /* почти #181a1b */
+    border-top : 1px solid var(--border-light, rgba(255,255,255,.15));
+  }
+  .interactive-button.btn-style-neutral  { background: var(--bg-panel); color: var(--text-primary); }
+  .interactive-button.btn-style-list     { background: rgba(0,123,255,.18); color:#7db7ff; }
+  .interactive-button.btn-style-delete   { background: rgba(231,76,60,.18); color:#ff7b7b; }
+  .interactive-button.btn-style-register { background: rgba(40,167,69,.18); color:#66e28b; }
+
+  .student-view-container::before{
+    background: linear-gradient(to right, var(--bg-main) 2%, transparent);
+  }
+  .student-view-container::after{
+    background: linear-gradient(to left , var(--bg-main) 2%, transparent);
+  }
+  .btn-style-register{
+    background : #28a745;
+    color      : #ffffff;
+  }
+  .btn-style-register::before{
+    background : #1e7e34;
+  }
+  .btn-style-register:hover span{
+    color: #fff;
+  }
+
+  .details-container                     { background: rgba(24,24,27,.95); }
+  .details-body                          { color: var(--text-primary); }
+  .detail-description                    { border-bottom-color: var(--accent, #d35400); }
+
+  .detail-description {
+    color      : #ffffff;
 }
 
-/* стили для модального окна приглашения */
-.events-page-scope .invite-modal .edit-modal-body {
-  padding: 16px 0;
-}
-.events-page-scope .invite-modal .filter-container {
-  padding: 8px 16px;
-  margin-bottom: 8px;
-  flex-shrink: 0;
-}
-.invite-users-list-container {
-  position: relative;
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-.invite-users-list-container .list-glider {
-  width: 100%;
-}
-.invite-user-card {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 24px;
-  height: 70px;
-  align-items: center;
-  background-color: transparent;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.invite-user-card-main-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-grow: 1;
-}
-
-.invite-user-card .header-content h3,
-.invite-user-card .header-content .card-subtitle {
-  transition: color 0.3s ease;
-}
-.invite-user-card.is-active .header-content h3,
-.invite-user-card.is-active .header-content .card-subtitle {
-  color: #ffffff;
-}
-
-.user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-.invite-user-card .header-content {
-  flex-grow: 1;
-}
-.invite-user-card .header-content h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-.invite-user-card .header-content .card-subtitle {
-  font-size: 0.85rem;
-  color: #6c757d;
-}
-
-.invite-user-card-actions .interactive-button {
-  padding: 0 12px;
-  height: 36px;
-  font-size: 13px;
-}
-
-.invite-user-divider {
-  height: 1px;
-  margin: 0 24px;
-  background-color: #e9ecef;
-}
-
-.no-results-message {
-  padding: 40px;
-  text-align: center;
-  color: #6c757d;
-}
-
-.events-page-scope .invite-modal .search-bar-wrapper {
-  flex-grow: 1;
-}
-
-.events-page-scope .confirmation-modal-content {
-  position: fixed;
-  width: 380px;
-  z-index: 2000;
-  background-color: rgba(248, 249, 250, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-  border-radius: 16px;
-  padding: 20px;
-  box-sizing: border-box;
-  transform-origin: top left;
-  animation: confirmation-pop-in 0.2s ease-out forwards;
-}
-
-.events-page-scope .confirmation-modal-content.is-closing {
-  animation: confirmation-pop-out 0.2s ease-in forwards;
-}
-
-.events-page-scope .confirmation-modal-header h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  color: #212529;
-}
-
-.events-page-scope .confirmation-modal-body p {
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0 0 20px 0;
-  color: #495057;
-}
-
-.events-page-scope .confirmation-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.events-page-scope .confirmation-modal-button {
-  position: relative;
-  display: flex;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 0px;
-  overflow: hidden;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
-}
-
-.events-page-scope .confirmation-modal-button::before {
-  content: '';
-  position: absolute;
-  top: var(--mouse-y);
-  left: var(--mouse-x);
-  z-index: 0;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  transition: transform 0.4s ease-out;
-}
-
-.events-page-scope .confirmation-modal-button:hover::before {
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.events-page-scope .confirmation-modal-button span {
-  position: relative;
-  z-index: 1;
-  transition: color 0.3s ease;
-}
-
-.events-page-scope .confirmation-modal-button:hover span {
-  color: #fff !important;
-}
-
-.events-page-scope .confirmation-modal-button.neutral {
-  background-color: #f0f2f5;
-  color: #495057;
-}
-
-.events-page-scope .confirmation-modal-button.neutral::before {
-  background-color: #6c757d;
-}
-
-.events-page-scope .confirmation-modal-button.reject {
-  background-color: #fdeaea;
-  color: #9b1c1c;
-}
-
-.events-page-scope .confirmation-modal-button.reject::before {
-  background-color: #dc3545;
+  /* скроллбар внутри карточек */
+  ::-webkit-scrollbar-thumb              { background: #555; }
 }

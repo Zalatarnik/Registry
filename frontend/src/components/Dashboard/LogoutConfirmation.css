@@ -175,3 +175,41 @@
     line-height: 1.5;
     margin-bottom: 0;
 }
+
+body[data-theme='dark'] {
+
+  /* фон, бордер, текст */
+  .logout-modal-container{
+    background: rgba(33, 37, 41, .92);
+    border   : 1px solid rgba(255,255,255,.12);
+    color    : #fff;
+  }
+
+  .logout-modal-header h2{ 
+    color: #ffffff; 
+  } 
+  .logout-modal-body  p { 
+    color: #adb5bd; 
+  }
+
+  /* кнопки */
+  .logout-modal-button.neutral{
+    background: #495057;
+    color     : #ffffff;
+  }
+  .logout-modal-button.neutral::before{
+    background: #6c757d;
+  }
+
+  .logout-modal-button.reject{
+    background: #7b1c1c;
+    color     : #ffffff;
+  }
+  .logout-modal-button.reject::before{
+    background: #b02a37;
+  }
+}
+
+.logout-modal-button:hover::before{
+  opacity: .85;
+}

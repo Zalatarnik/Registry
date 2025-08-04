@@ -14,6 +14,15 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+:root {
+  --bg-main      : #ffffff;
+  --bg-panel     : #f8f9fa;
+  --text-primary : #212529;
+  --text-muted   : #6c757d;
+  --border-light : #e9ecef;
+  --border-dark  : rgba(255,255,255,.15);
+}
+
 /* общие стили контейнера */
 .create-event-container {
     padding: 20px;
@@ -25,7 +34,7 @@
 .create-event-container h1 {
   margin-bottom: 24px;
   margin-left: 36px;
-  color: #212529;
+  color: var(--heading-color);
   font-size: 32px;
   font-weight: 700;
 }
@@ -35,7 +44,7 @@
   margin-left: 26px;
   padding: 10px;
   overflow-y: auto;
-  background-color: #ffffff;
+  background-color: var(--bg-main);
   box-shadow: none;
   width: 109vh;
   max-height: 55vh;
@@ -64,7 +73,7 @@
 .create-event-container .form-field-span-2 label {
   display: block;
   margin-bottom: 5px;
-  color: #6c757d;
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 500;
 }
@@ -82,7 +91,7 @@
   bottom: 0;
   width: 100%;
   height: 2px;
-  background-color: #e9ecef;
+  background-color: var(--border-light);
 }
 
 .create-event-container .input-wrapper::after {
@@ -110,7 +119,7 @@
   border: none;
   outline: none;
   box-sizing: border-box;
-  color: #212529;
+  color: var(--text-primary);
   background-color: transparent;
   font-size: 18px;
   font-weight: 600;
@@ -540,4 +549,26 @@
 
 .create-event-container .form-secondary-btn:hover span {
   color: #fff;
+}
+
+/* темная тема */
+
+body[data-theme='dark']
+  .create-event-container h1 {
+  color: var(--heading-color)
+}
+
+body[data-theme='dark'] {
+  --bg-main      : #181a1b;   /* фон страницы */
+  --bg-panel     : #181a1b;   /* выпадашки, инпуты и т.д. */
+  --bg-input     : transparent;
+  --text-primary : #ffffff;
+  --text-muted   : #9ca3af;
+  --border-light : rgba(255,255,255,0.15);
+}
+
+body[data-theme='dark']
+  .create-event-container .page-content {
+  background: transparent;
+  box-shadow: none;
 }

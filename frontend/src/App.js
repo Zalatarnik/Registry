@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { NotificationProvider, useNotification } from './notification/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 import LoginPage from './components/LoginPage/LoginPage';
 import Dashboard from './components/Dashboard/Dashboard';
 import localLogo from './images/logo.png';
+
 
 function AppContent() {
   const [user, setUser] = useState(null);
@@ -73,15 +75,20 @@ const handleLoginSuccess = async (login, password) => {
 };
 
   // Выход
-  const handleLogout = async () => {
+const handleLogout = async () => {
+  try {
     await fetch('http://localhost:8000/api/logout', {
       method: 'POST',
       credentials: 'include',
     });
-
-    setActivePage(null);
+  } catch (e) {
+    console.warn('logout fail:', e);
+  } finally {
+    // чистим локальный стейт
     setUser(null);
-  };
+    setActivePage(null);
+  }
+};
 
   const isLogoHidden = user && activePage;
 
@@ -110,8 +117,10 @@ const handleLoginSuccess = async (login, password) => {
 
 export default function App() {
   return (
-    <NotificationProvider>
-      <AppContent />
-    </NotificationProvider>
+    <ThemeProvider>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }

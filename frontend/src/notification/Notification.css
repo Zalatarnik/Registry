@@ -108,3 +108,22 @@
   color: #fff;
   transition: color 0.3s ease;
 }
+
+
+body[data-theme="dark"] {
+
+  /* карточка уведомления */
+  .toast{
+    background : #181a1b;
+    box-shadow : 0 4px 12px rgba(0,0,0,.4);
+  }
+
+  .toast-message{
+    color : #ffffff;
+  }
+
+  .toast::before{
+    background-color : #e06a1a;
+  }
+
+}

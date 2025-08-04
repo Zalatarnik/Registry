@@ -11,3 +11,98 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Переключатели стиля темы */
+
+.theme-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+body {
+ background-color: #f0f2f5;
+ color: #1f1f1f;
+ background-color: var(--bg);
+ color: var(--text);
+}
+
+/* карточки/плитки меню */
+.tile-button {
+ background: #ffffff;
+ color: #1f1f1f;
+ background: var(--surface);
+ color: var(--text);
+}
+
+/* выбранный пункт меню */
+.tile-button.selected {
+ background: #d35400;
+ background: var(--accent);
+  color: #fff;
+}
+
+
+:root {
+  --bg:           #f0f2f5;
+  --surface:      #ffffff;
+  --surface-soft: #e6e7eb;
+  --text:         #1f1f1f;
+  --text-soft:    #4c4f52;
+  --accent:       #c35602;
+}
+
+
+body[data-theme='dark'] {
+  --bg:           #121314;
+  --surface:      #202124;
+  --surface-soft: #2a2b2f;
+  --text:         #f1f3f4;
+  --text-soft:    #b0b3b8;
+  --accent:       #c35602;
+}
+
+body[data-theme='dark'] {
+  /* 1. сама большая «карточка» контента */
+  --content-bg:      var(--surface-soft);   /* #2f3034 */
+  --content-border:  #3a3c40;
+  --content-shadow:  rgba(0, 0, 0, 0.45);
+}
+
+/* 2. фон и бордер у .content-area -- тянем из кастомных переменных */
+.content-area {
+  background: var(--content-bg);
+  border-color: var(--content-border);
+  box-shadow: 0 4px 12px var(--content-shadow);
+}
+
+/* 3. заголовки страниц */
+.page-content h1 {
+  color: var(--text);            /* светлый текст в dark mode */
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
+
+/* 4. «оранжевый» акцент тоже через переменную --
+      будет автоматически меняться по теме  */
+.menu-glider,
+.tile-button.selected {
+  background: var(--accent);     /* #c35602  |  #ff944d */
+}
+
+/* 5. мелкие разделители / инпут-бордеры можно немного смягчить */
+body[data-theme='dark'] input,
+body[data-theme='dark'] textarea,
+body[data-theme='dark'] select {
+  border-color: #4c4f52;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* 6. placeholder-текст в инпуте – побледнее */
+body[data-theme='dark'] ::placeholder {
+  color: var(--text-soft);
+}

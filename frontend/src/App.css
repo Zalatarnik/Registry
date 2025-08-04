@@ -1,5 +1,5 @@
 body {
-  background-color: #f0f2f5; 
+  background-color: var(--bg);
   margin: 0; 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
   overflow: hidden !important; 
@@ -106,4 +106,38 @@ body {
   flex-grow: 1;
   align-items: center;
   justify-content: center;
+}
+
+:root {
+  --bg:           #f0f2f5;
+  --surface:      #ffffff;
+  --surface-soft: #e6e7eb;
+  --text:         #1f1f1f;
+  --text-soft:    #4c4f52;
+  --accent:       #c35602;
+}
+
+
+body[data-theme='dark'] {
+  --bg:           #121314;
+  --surface:      #202124;
+  --surface-soft: #2a2b2f;
+  --text:         #f1f3f4;
+  --text-soft:    #b0b3b8;
+  --accent:       #e88b4d;
+}
+
+body[data-theme='dark'] {
+  .background-triangle{
+    background-color: rgba(200, 86, 0, .10);
+  }
+  
+
+  .background-triangle{
+    background-color: rgba(200, 86, 0, .10);
+  }
+
+  .background-shape-right{
+    filter: brightness(.35) contrast(1.1);
+  }
 }

@@ -1134,3 +1134,58 @@
 .my-requests-scope .form-secondary-btn:hover:not(:disabled) span {
   color: #fff;
 }
+
+body[data-theme='dark'] {
+    .my-requests-scope .requests-container{
+    background: var(--bg-main, #212529);
+  }
+
+  /* фон и текст заголовка страницы */
+  .my-requests-scope .requests-container{
+    background: var(--bg-main, #212529);
+  }
+  .my-requests-scope .requests-container h1{
+    color: var(--text-primary, #ffffff);
+  }
+
+  /* ПОИСК */
+  .my-requests-scope .search-bar-wrapper .interactive-button{
+    background: #2b2d30;
+  }
+  .my-requests-scope .search-bar-wrapper input::placeholder{
+    color: var(--text-muted,#9ca3af);
+  }
+
+  .my-requests-scope .card-details-wrapper{
+    background: var(--bg-panel, #181a1b);
+  }
+
+  /* подписи слева  */
+  .my-requests-scope .detail-label{
+    color: var(--text-muted,#9ca3af);
+  }
+
+  .my-requests-scope .detail-item,
+  .my-requests-scope .detail-item-link a{
+    color: var(--text-primary,#ffffff);
+  }
+
+  /* вертикальная разделительная линия между колонками */
+  .my-requests-scope .column-details{
+    border-left: 2px solid rgba(255,255,255,.15);
+  }
+
+  /* статус-бэйдж в хедере раскрытой карточки (На рассмотрении) */
+  .my-requests-scope .btn-style-pending{
+    background: rgba(230,247,255,.15);
+    color: #8ab5ff;
+  }
+
+  .my-requests-scope .request-card.is-expanded .interactive-button{
+    color: #fff;
+    background: rgba(255,255,255,.25);
+  }
+  .my-requests-scope .request-card.is-expanded .interactive-button:hover{
+    background: rgba(255,255,255,.35);
+  }
+}

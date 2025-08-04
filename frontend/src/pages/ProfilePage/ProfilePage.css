@@ -20,7 +20,7 @@
 .profile-container h1 {
   margin-bottom: 24px;
   margin-left: 36px;
-  color: #212529;
+  color: var(--text);
   font-size: 32px;
   font-weight: 700;
 }
@@ -29,8 +29,10 @@
 .profile-container .page-content {
   padding: 40px;
   overflow-y: auto;
-  background-color: #ffffff;
+  color: var(--text);
+  background: var(--surface);
   box-shadow: none;
+  border-color: var(--surface-soft);
 }
 
 /* сетка макета профиля */
@@ -49,6 +51,18 @@
   overflow: hidden;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.profile-form label,
+.profile-container .modal-header h2,
+.profile-page-modal-scope .modal-body label {
+  color: var(--text-soft);
+}
+
+.editable-field-value,
+.editable-input,
+.profile-page-modal-scope .modal-body input {
+  color: var(--text);
 }
 
 /* радиальный градиент при наведении на аватар */
@@ -227,6 +241,11 @@
   transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
+body[data-theme='dark'] .editable-field-value-wrapper::before,
+body[data-theme='dark'] .profile-page-modal-scope .modal-body input {
+  border-color: #4c4f52;
+}
+
 .editable-field-container:hover .editable-field-value-wrapper::after,
 .editable-field-container.is-editing .editable-field-value-wrapper::after {
   transform: scaleX(1);
@@ -297,8 +316,8 @@
 
 /* второстепенная кнопка */
 .profile-secondary-btn {
-  color: #495057;
-  background-color: #f0f2f5;
+  color: var(--text);
+  background: var(--surface-soft);
 }
 
 /* эффект наведения для кнопок */
@@ -378,13 +397,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 800px;
-  z-index: 2000;
-  background-color: rgba(248, 249, 250, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  max-width: 450px;
+  padding: 30px 40px;
+  background: var(--surface);
+  color: var(--text);
   border-radius: 16px;
   overflow: hidden;
   animation: profile-modal-slide-in-from-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
@@ -538,85 +554,40 @@
   justify-content: flex-end;
 }
 
-.profile-page-modal-scope .form-submit-btn,
-.profile-page-modal-scope .form-secondary-btn {
-  position: relative;
-  padding: 12px 32px;
-  border: none;
-  overflow: hidden;
-  box-sizing: border-box;
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  border-radius: 0px;
+.profile-page-modal-scope .modal-footer .profile-secondary-btn,
+.profile-page-modal-scope .modal-footer .profile-submit-btn {
+  width: auto;
+  flex-shrink: 0;
+}
+/* основной текст */
+body[data-theme='dark'] .editable-field-value,
+body[data-theme='dark'] .editable-input {
+  color: var(--text);
+}
+/* плейсхолдер */
+body[data-theme='dark'] .editable-input::placeholder {
+  color: var(--text-soft);
 }
 
-.profile-page-modal-scope .form-submit-btn {
-  color: #fff;
-  background-color: #d35400;
+body[data-theme='dark'] .profile-page-modal-scope .modal-content {
+  background: var(--surface);
+  color: var(--text);
 }
 
-.profile-page-modal-scope .form-secondary-btn {
-  color: #495057;
-  background-color: #f0f2f5;
+body[data-theme='dark'] .profile-page-modal-scope .modal-header h2 {
+  color: var(--text); 
 }
 
-.profile-page-modal-scope .form-secondary-btn:disabled {
-  color: #6c757d;
-  background-color: #e9ecef;
-  cursor: not-allowed;
+body[data-theme='dark'] .profile-page-modal-scope .modal-body label {
+  color: var(--text-soft);
 }
 
-.profile-page-modal-scope .form-submit-btn:disabled,
-.profile-page-modal-scope .form-secondary-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+body[data-theme='dark'] .profile-page-modal-scope .modal-body input {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-bottom-color: var(--surface); 
 }
 
-.profile-page-modal-scope .form-submit-btn:disabled:hover::before,
-.profile-page-modal-scope .form-secondary-btn:disabled:hover::before {
-    transform: translate(-50%, -50%) scale(0);
-}
-
-.profile-page-modal-scope .form-submit-btn::before,
-.profile-page-modal-scope .form-secondary-btn::before {
-  content: '';
-  position: absolute;
-  top: var(--mouse-y);
-  left: var(--mouse-x);
-  z-index: 0;
-  width: 400px;
-  height: 400px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  transition: transform 0.4s ease-out;
-}
-
-.profile-page-modal-scope .form-submit-btn::before {
-  background-color: #b84a00;
-}
-
-.profile-page-modal-scope .form-secondary-btn::before {
-  background-color: #6c757d;
-}
-
-.profile-page-modal-scope .form-submit-btn:hover::before,
-.profile-page-modal-scope .form-secondary-btn:hover:not(:disabled)::before {
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.profile-page-modal-scope .form-submit-btn span,
-.profile-page-modal-scope .form-secondary-btn span {
-  position: relative;
-  z-index: 1;
-  transition: color 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-page-modal-scope .form-secondary-btn:hover:not(:disabled) span {
-  color: #fff;
+body[data-theme='dark'] .profile-page-modal-scope .modal-body input::placeholder {
+  color: var(--text-soft);
 }
