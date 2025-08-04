@@ -1137,12 +1137,12 @@
 
 body[data-theme='dark'] {
     .my-requests-scope .requests-container{
-    background: var(--bg-main, #212529);
+    background: var(--surface-soft);
   }
 
   /* фон и текст заголовка страницы */
   .my-requests-scope .requests-container{
-    background: var(--bg-main, #212529);
+      background: var(--surface);
   }
   .my-requests-scope .requests-container h1{
     color: var(--text-primary, #ffffff);
@@ -1150,7 +1150,7 @@ body[data-theme='dark'] {
 
   /* ПОИСК */
   .my-requests-scope .search-bar-wrapper .interactive-button{
-    background: #2b2d30;
+    background: #181a1b;
   }
   .my-requests-scope .search-bar-wrapper input::placeholder{
     color: var(--text-muted,#9ca3af);
@@ -1189,3 +1189,19 @@ body[data-theme='dark'] {
     background: rgba(255,255,255,.35);
   }
 }
+
+body[data-theme='dark'] .my-claims-scope {
+  --bg-main  : #212529;
+  --bg-panel : #181a1b;
+
+  background : var(--bg-main);
+}
+
+body[data-theme='dark'] .my-claims-scope .claims-container{
+  background : var(--bg-panel);
+}
+
+body[data-theme='dark'] .my-claims-scope .page-content{
+  background : var(--bg-panel);
+}
+

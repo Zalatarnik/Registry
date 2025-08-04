@@ -1275,7 +1275,10 @@ body[data-theme='dark'] .events-page-scope {
 
   /* контейнер и заголовок */
   .events-container  {
-     background: var(--bg-main); 
+    background: var(--bg-main); 
+    background: transparent;
+    box-shadow: none;
+    border: 0;      
     }
   .events-container h1 { 
     color: var(--text-primary); 

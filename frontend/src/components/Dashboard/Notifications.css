@@ -904,3 +904,80 @@
     height: 24px;
     fill: currentColor;
 }
+
+body[data-theme='dark'] .notifications-component-scope{
+  .notifications-modal{
+    background: rgba(24,24,27,.92);
+    box-shadow: 0 8px 28px rgba(0,0,0,.55);
+  }
+
+  .info-modal-header{
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .info-modal-header h2{ color:#fff; }
+
+  .notifications-empty,
+  .notifications-loader{ color:#b5b9be; }
+
+  .card-content-wrapper{ background:#181a1b; }
+  .notification-divider{ background:rgba(255,255,255,.07); }
+
+  .notification-item-info h5{ color:#f1f3f4; }
+  .notification-item-info p { color:#adb5bd; }
+
+  .btn-style-accept{
+    background:rgba(40,167,69,.18);
+    color:#66e28b;
+  }
+  .btn-style-accept::before{ background:#28a745; }
+  .notification-card.is-active .btn-style-accept{
+    background:rgba(255,255,255,.20);
+    color:#fff;
+  }
+
+  .details-container{ background:rgba(24,24,27,.94); }
+  .details-body{
+    background:#181a1b;
+    color:#e0e0e0;
+  }
+  .details-header{
+    background:#b84900;
+  }
+
+  .details-title-section h4,
+  .details-title-section .card-date,
+  .details-icons .icon-item{ color:#fff; }
+  .details-icons .icon-item svg{ fill:#fff; }
+
+  .details-actions{
+    background:#1f2023;
+    border-top:1px solid rgba(255,255,255,.10);
+  }
+
+  ::-webkit-scrollbar-thumb{ background:#555; }
+}
+
+body[data-theme='dark'] .notifications-component-scope {
+  .info-modal-header svg,
+  .info-modal-header svg path{
+    fill:#f1f3f4 !important;
+  }
+  .info-modal-header button:hover svg path{
+    fill:#ff6961;
+  }
+}
+
+body[data-theme='dark'] {
+
+  .details-body{
+    color:#e0e0e0 !important;
+    background:#181a1b !important;
+  }
+  .details-body .detail-label{
+    color:#9ca3af !important;
+  }
+}
+
+body[data-theme='dark'] .detail-item, .detail-description {
+  color:#f1f3f4 !important;
+}

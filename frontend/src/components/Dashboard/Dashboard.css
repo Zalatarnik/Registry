@@ -242,3 +242,39 @@
 }
 
 .theme-toggle:hover { transform: scale(1.25); }
+
+body[data-theme='dark'] {
+
+  .header-buttons-container:hover,
+  .header-buttons-container.is-active{
+    background: #181a1b;
+    border-color: rgba(255,255,255,.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,.45);
+  }
+
+  .header-button:not(:last-child){
+    border-right: 1px solid rgba(255,255,255,.12);
+  }
+
+  .header-icon path      { fill: #adb5bd; }
+  .header-label          { color:#adb5bd; }
+}
+
+body[data-theme='dark'] {
+
+  .menu-container{
+    border-color: rgba(255,255,255,.12);
+  }
+
+  .tile-button{
+    outline-color: rgba(255,255,255,.12);
+    color: #e0e0e0;
+  }
+  .tile-button.selected{
+    box-shadow: inset 0 0 0 1000px rgba(211,84,0,.15);
+    color:#fff;
+  }
+  .menu-glider{
+    box-shadow: 0 4px 16px rgba(211,84,0,.35);
+  }
+}

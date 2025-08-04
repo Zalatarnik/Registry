@@ -442,16 +442,13 @@
 }
 
 body[data-theme='dark'] {
-      .new-request-container{
-    background: var(--bg-main, #212529);
-  }
 
   /* фон всего контейнера */
   .new-request-container{
-    background: var(--bg-main, #212529);
+    background: var(--surface);
   }
   .new-request-container .page-content{
-    background: var(--bg-panel, #181a1b);
+    background: var(--surface);
     box-shadow: none;
   }
 
@@ -484,4 +481,31 @@ body[data-theme='dark'] {
   ::-webkit-scrollbar-thumb{
     background: #555;
   }
+}
+
+body[data-theme='dark'] .apply-claim-scope{
+  --bg-main  : #212529;
+  --bg-panel : #181a1b;
+  background : var(--bg-main);
+}
+
+body[data-theme='dark'] .apply-claim-scope .application-form-container{
+  background : var(--bg-panel);
+  border     : 1px solid rgba(255,255,255,.07);
+}
+
+body[data-theme='dark'] .apply-claim-scope input,
+body[data-theme='dark'] .apply-claim-scope textarea,
+body[data-theme='dark'] .apply-claim-scope select{
+  color            : #f1f3f4;
+  background-color : transparent;
+}
+
+body[data-theme='dark'] .apply-claim-scope input::placeholder,
+body[data-theme='dark'] .apply-claim-scope textarea::placeholder{
+  color: #9ca3af;
+}
+
+body[data-theme='dark'] .apply-claim-scope .form-divider{
+  background: rgba(255,255,255,.12);
 }
