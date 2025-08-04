@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
+import { useNotification } from '../../notification/NotificationContext';
+import { validateRegistration } from '../../validation/ValidationContext';
+
 
 // иконки
 import { ReactComponent as UserIcon } from '../../icons/user-icon.svg';
@@ -117,19 +120,33 @@ function LoginPage({ onLoginSuccess }) {
     onLoginSuccess(login, password);
   };
   
-  // обработчик отправки формы регистрации
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    // сбрасываем предыдущие ошибки
-    setPasswordError('');
-    setRegisterError('');
+  // хук для отображения уведомлений
+  const { addNotification } = useNotification();
 
-    // простая валидация на совпадение паролей
-    if (registerPassword !== confirmPassword) {
-      setPasswordError('Пароли не совпадают!');
-      return;
-    }
-    
+  // обработчик отправки формы регистрации
+const handleRegisterSubmit = async (e) => {
+  e.preventDefault();
+  setPasswordError('');
+  setRegisterError('');
+
+  const validationResult = await validateRegistration({
+    lastName,
+    firstName,
+    middleName,
+    email,
+    password: registerPassword,
+    confirmPassword,
+    role: selectedRole,
+    studentId,
+    group,
+    curatorLogin
+  });
+
+  if (!validationResult.valid) {
+    addNotification(validationResult.message, 'error');
+    return;
+  }
+
     // формируем базовый объект с общими данными для всех ролей
     const baseData = {
       lastName: lastName,
@@ -152,6 +169,7 @@ function LoginPage({ onLoginSuccess }) {
         const response = await fetch('http://localhost:8000/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(registrationData),
         });
 
@@ -180,7 +198,7 @@ function LoginPage({ onLoginSuccess }) {
 
     } catch (error) {
         // отображаем ошибку, полученную от сервера или сети
-        setRegisterError(error.message);
+        addNotification(error.message);
     }
   };
 
@@ -232,7 +250,6 @@ function LoginPage({ onLoginSuccess }) {
             <div className="form-group"><label htmlFor="reg-confirm-password">Подтвердите пароль</label><div className="input-wrapper"><PasswordIcon className="input-icon" /><input type="password" id="reg-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></div></div>
             
             {passwordError && <p className="form-error">{passwordError}</p>}
-            {registerError && <p className="form-error">{registerError}</p>}
             
             {/* переключатель ролей */}
             <div className="role-toggle" onMouseLeave={() => setHoveredRole(selectedRole)}>

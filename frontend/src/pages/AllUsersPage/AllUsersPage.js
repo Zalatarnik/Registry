@@ -133,7 +133,8 @@ const roleStyleMap = { 'Все': 'btn-style-neutral', 'Студенты': 'btn-s
 export default function AllUsersPage() {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { addNotification } = useNotification();
+    // хук для отображения уведомлений
+    const { addNotificationOnce } = useNotification();
     const [hoveredCardId, setHoveredCardId] = useState(null);
     const [expandedCardId, setExpandedCardId] = useState(null);
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
@@ -150,18 +151,20 @@ export default function AllUsersPage() {
         const fetchUsers = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/users/all`);
+            const response = await fetch(`${API_BASE_URL}/api/users/all`, {
+                credentials: 'include'
+            });
                 if (!response.ok) throw new Error('Не удалось загрузить список пользователей');
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {
-                addNotification(error.message, 'error');
+                addNotificationOnce(error.message, 'error');
             } finally {
                 setIsLoading(false);
             }
         };
         fetchUsers();
-    }, [addNotification]);
+    }, []); 
     
     const promptDeleteUser = (user, e) => {
         const rect = e.currentTarget.getBoundingClientRect();

@@ -147,31 +147,37 @@ const Toast = ({ message, isClosing, onStartClose, onEndClose }) => {
 
 // управляет состоянием уведомлений
 export const NotificationProvider = ({ children }) => {
-  // состояние, хранящее массив активных уведомлений
   const [notifications, setNotifications] = useState([]);
 
-  // функция для добавления нового уведомления
-  const addNotification = (message) => {
-    // создаем уникальный id для уведомления
+  // обычное уведомление
+  const addNotification = (message, type = 'info') => {
     const id = Date.now() + Math.random();
-    // добавляем новое уведомление в начало массива для отображения сверху
-    setNotifications(prev => [...prev, { id, message, isClosing: false }]);
+    setNotifications(prev => [
+      ...prev,
+      { id, message, type, isClosing: false }
+    ]);
   };
 
-  // функция, которая инициирует закрытие уведомления (запускает анимацию)
-  const startCloseNotification = (id) => {
+  // покажет уведомление, только если такого текста ещё нет среди открытых 
+  const addNotificationOnce = (message, type = 'info') => {
+    const already = notifications.some(
+      n => n.message === message && !n.isClosing
+    );
+    if (!already) addNotification(message, type);
+  };
+
+  const startCloseNotification = id =>
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, isClosing: true } : n))
     );
-  };
 
-  // функция, которая окончательно удаляет уведомление из состояния
-  const endCloseNotification = (id) => {
+  const endCloseNotification = id =>
     setNotifications(prev => prev.filter(n => n.id !== id));
-  };
 
   return (
-    <NotificationContext.Provider value={{ addNotification }}>
+    <NotificationContext.Provider
+      value={{ addNotification, addNotificationOnce }}
+    >
       {children}
       {ReactDOM.createPortal(
         <div className="notification-container">

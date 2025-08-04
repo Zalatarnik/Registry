@@ -6,81 +6,83 @@ import Dashboard from './components/Dashboard/Dashboard';
 import localLogo from './images/logo.png';
 
 function AppContent() {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    try {
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch (e) {
-      console.error("Could not parse user from localStorage", e);
-      return null;
-    }
-  });
-
-  // состояние для управления анимацией исчезновения экрана входа
+  const [user, setUser] = useState(null);
   const [isHidingLogin, setIsHidingLogin] = useState(false);
-  // состояние для отслеживания активной страницы в Dashboard
-  // 'profile' - страница по умолчанию после входа
   const [activePage, setActivePage] = useState('profile');
   const { addNotification } = useNotification();
 
-  // эффект для обработки нажатия клавиши esc
+  //  Эффект проверки авторизации при запуске (кука будет отправлена автоматически)
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/profile/me', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setUser({ login: data.login, role: data.role });
+      } catch (error) {
+        console.warn('Пользователь не авторизован');
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  //  Обработка нажатия ESC
   useEffect(() => {
     const handleKeyDown = (event) => {
-      // если пользователь авторизован, нажатие esc сбрасывает activePage
-      if (user && event.key === 'Escape') {
-        setActivePage(null); // возвращает пользователя в главное меню Dashboard
-      }
+      if (user && event.key === 'Escape') setActivePage(null);
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [user]);
 
-  // функция для обработки попытки входа
-  const handleLoginSuccess = async (login, password) => {
-    try {
-      const response = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login, password }),
-      });
+  //  Вход в систему
+const handleLoginSuccess = async (login, password) => {
+  try {
+    const response = await fetch('http://localhost:8000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ login, password }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Ошибка аутентификации');
-      }
-
-      // получаем данные пользователя (login, role)
-      const data = await response.json();
-      const userData = { login: data.login, role: data.role };
-
-      localStorage.setItem('user', JSON.stringify(userData));
-
-      // показываем приветственное уведомление
-      addNotification(`Добро пожаловать! Вы вошли как ${data.role === 'student' ? 'студент' : 'куратор'}.`);
-      // запускаем анимацию скрытия формы входа
-      setIsHidingLogin(true);
-
-      setTimeout(() => {
-        setUser(userData);
-        setActivePage('profile'); // устанавливаем 'profile' как страницу по умолчанию
-        setIsHidingLogin(false); // сбрасываем состояние анимации
-      }, 400);
-
-    } catch (error) {
-      console.error("Login Error:", error);
-      addNotification(error.message, 'error');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Ошибка входа');
     }
-  };
-  
-  // функция для выхода из системы
-  const handleLogout = () => {
-    // удаляет данные пользователя из localStorage
-    localStorage.removeItem('user');
+    const data = await response.json();
+    const user = { login: data.login, role: data.role };
+
+    addNotification(`Добро пожаловать! Вы вошли как ${user.role === 'student' ? 'студент' : 'куратор'}.`);
+
+    setIsHidingLogin(true);
+    setTimeout(() => {
+      setUser(user);
+      setActivePage('profile');
+      setIsHidingLogin(false);
+    }, 400);
+  } catch (error) {
+    console.error('Ошибка входа:', error);
+    addNotification(error.message, 'error');
+  }
+};
+
+  // Выход
+  const handleLogout = async () => {
+    await fetch('http://localhost:8000/api/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
     setActivePage(null);
     setUser(null);
   };
 
-  // вычисляемая переменная, чтобы определить, должен ли логотип быть скрыт
   const isLogoHidden = user && activePage;
 
   return (
