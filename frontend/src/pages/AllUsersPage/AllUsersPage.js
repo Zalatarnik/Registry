@@ -2,20 +2,18 @@ import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { useNotification } from '../../notification/NotificationContext';
 import './AllUsersPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
+import ConfirmationModal from '../../pages/ConfirmationModal'; 
 
 // иконки
 import { ReactComponent as SearchIcon } from '../../icons/search-icon.svg';
+import { ReactComponent as DeleteIcon } from '../../icons/remove-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
 
-// АНИМАЦИЯ КНОПОК
-
-// коэффициент для плавности анимации радиусов углов
+// АНИМАЦИЯ
 const EASING_FACTOR = 0.15;
-// радиус углов по умолчанию
 const DEFAULT_RADIUS = 0;
 
-// функция для анимирования радиусов углов элемента
 function animateRadii(el) {
     const state = el._animationState;
     if (!state) return;
@@ -37,30 +35,17 @@ function animateRadii(el) {
     }
 }
 
-// универсальный обработчик движения мыши для создания эффектов
 const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
-    // передаем координаты мыши в CSS переменные для градиентного эффекта
     el.style.setProperty('--mouse-x', `${x}px`);
     el.style.setProperty('--mouse-y', `${y}px`);
-    
-    // если это интерактивный элемент, запускаем анимацию радиусов
     if (el.classList.contains('interactive-button') || el.classList.contains('role-badge')) {
-        const initialRadius = el.classList.contains('role-badge') ? DEFAULT_RADIUS : 0;
-        // инициализируем состояние анимации, если его нет
         if (!el._animationState) {
-            el._animationState = {
-                isAnimating: false,
-                current: { tl: initialRadius, tr: initialRadius, br: initialRadius, bl: initialRadius },
-                target: { tl: initialRadius, tr: initialRadius, br: initialRadius, bl: initialRadius },
-            };
+            el._animationState = { isAnimating: false, current: { tl: 0, tr: 0, br: 0, bl: 0 }, target: { tl: 0, tr: 0, br: 0, bl: 0 } };
         }
-        
-        // вычисляем и запускаем анимацию радиусов
         const state = el._animationState;
         const { width, height } = rect;
         const maxRadius = 25;
@@ -77,17 +62,15 @@ const handleMouseMoveForEffect = (e) => {
     }
 };
 
-// обработчик увода мыши с интерактивного элемента
 const handleButtonLeave = (e) => {
     const el = e.currentTarget;
     if (el.classList.contains('interactive-button') || el.classList.contains('role-badge')) {
         const state = el._animationState;
         if (!state) return;
-        const initialRadius = el.classList.contains('role-badge') ? DEFAULT_RADIUS : 0;
-        state.target.tl = initialRadius;
-        state.target.tr = initialRadius;
-        state.target.br = initialRadius;
-        state.target.bl = initialRadius;
+        state.target.tl = 0;
+        state.target.tr = 0;
+        state.target.br = 0;
+        state.target.bl = 0;
         if (!state.isAnimating) {
             state.isAnimating = true;
             requestAnimationFrame(() => animateRadii(el));
@@ -97,18 +80,15 @@ const handleButtonLeave = (e) => {
 
 
 // карточка пользователя
-const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, innerRef }) => {
+const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, innerRef, onDeleteUser }) => {
     const cardClassName = ['user-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
-    // формируем фио пользователя
     const userFullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`.trim();
-    // карта для отображения названий ролей
     const roleDisplayMap = { student: 'Студент', curator: 'Куратор' };
-    // формируем текст с ролью (и группой для студента)
     const roleText = user.role === 'student' ? `${roleDisplayMap[user.role]}, ${user.group}` : roleDisplayMap[user.role];
 
     return (
         <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter}>
-            <div className="card-content-wrapper" onClick={onCardClick}>
+            <div className="card-content-wrapper" onClick={() => onCardClick(user.id)}>
                 <div className="card-header">
                     <img src={`${API_BASE_URL}${user.avatar}`} alt="avatar" className="user-avatar" />
                     <div className="header-content">
@@ -116,14 +96,24 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
                         <div className="card-subtitle">{roleText}</div>
                     </div>
                     <div className="card-header-right">
-                        {/* значок с ролью пользователя */}
-                        <div className={`role-badge role-${user.role} interactive-button`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                        <button 
+                            className="interactive-button btn-style-delete" 
+                            onClick={(e) => { e.stopPropagation(); onDeleteUser(user, e); }}
+                            onMouseMove={handleMouseMoveForEffect}
+                            onMouseLeave={handleButtonLeave}
+                        >
+                            <span><DeleteIcon /> Удалить</span>
+                        </button>
+                        <div 
+                            className={`interactive-button role-badge role-${user.role}`} 
+                            onMouseMove={handleMouseMoveForEffect} 
+                            onMouseLeave={handleButtonLeave}
+                        >
                            <span>{roleDisplayMap[user.role]}</span>
                         </div>
                     </div>
                 </div>
             </div>
-            {/* детальная информация, видимая при раскрытии карточки */}
             <div className="card-details-wrapper">
                 <div className="card-body">
                     <div className="detail-item"><span className="detail-label">Логин:</span> {user.login}</div>
@@ -139,11 +129,9 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
 
 const roleStyleMap = { 'Все': 'btn-style-neutral', 'Студенты': 'btn-style-student', 'Кураторы': 'btn-style-curator' };
 
-
+// главный компонент страницы
 export default function AllUsersPage() {
-    // состояние для хранения списка всех пользователей
     const [users, setUsers] = useState([]);
-    // состояние для индикации загрузки
     const [isLoading, setIsLoading] = useState(true);
     // хук для отображения уведомлений
     const { addNotificationOnce } = useNotification();
@@ -151,13 +139,14 @@ export default function AllUsersPage() {
     const [expandedCardId, setExpandedCardId] = useState(null);
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
-    // состояние для поискового запроса
     const [searchTerm, setSearchTerm] = useState('');
-    // состояние для активного фильтра по ролям
     const [activeFilter, setActiveFilter] = useState('Все');
     const inputRef = useRef(null);
 
-    // эффект для загрузки списка пользователей
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+
     useEffect(() => {
         const fetchUsers = async () => {
             setIsLoading(true);
@@ -177,25 +166,55 @@ export default function AllUsersPage() {
         fetchUsers();
     }, []); 
     
+    const promptDeleteUser = (user, e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const modalWidth = 380; 
+        const gap = 15;
+        const top = rect.top;
+        let left = rect.left - modalWidth - gap;
+
+        if (left < gap) {
+            left = rect.right + gap;
+        }
+
+        setModalPosition({ top, left });
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/users/${userToDelete.id}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: 'Не удалось удалить пользователя' }));
+                throw new Error(errorData.detail);
+            }
+            setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
+            addNotification('Пользователь успешно удален', 'success');
+        } catch (error) {
+            addNotification(error.message, 'error');
+        } finally {
+            setUserToDelete(null); 
+        }
+    };
+
     const filteredUsers = useMemo(() => {
         return users
-            // сначала фильтруем по роли
             .filter(user => {
                 if (activeFilter === 'Все') return true;
                 if (activeFilter === 'Студенты') return user.role === 'student';
                 if (activeFilter === 'Кураторы') return user.role === 'curator';
                 return true;
             })
-            // затем фильтруем по поисковому запросу
             .filter(user => {
                 const fullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`.toLowerCase();
                 const search = searchTerm.toLowerCase();
-                return fullName.includes(search) ||
-                       user.login.toLowerCase().includes(search) ||
-                       (user.group && user.group.toLowerCase().includes(search));
+                return fullName.includes(search) || user.login.toLowerCase().includes(search) || (user.group && user.group.toLowerCase().includes(search));
             });
     }, [users, searchTerm, activeFilter]);
-    
+
     const gliderTargetId = expandedCardId ? null : hoveredCardId;
     const activeCardId = expandedCardId ? expandedCardId : gliderTargetId;
 
@@ -212,18 +231,26 @@ export default function AllUsersPage() {
         }
     }, [gliderTargetId, filteredUsers]);
 
-    // обработчик клика по карточке для раскрытия/сворачивания
     const handleCardClick = (id) => setExpandedCardId(prev => prev === id ? null : id);
 
     return (
         <div className="all-users-scope">
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                position={modalPosition}
+                title="Подтверждение удаления"
+                message={`Вы уверены, что хотите удалить пользователя "${userToDelete?.firstName || ''} ${userToDelete?.lastName || ''}"? Это действие необратимо.`}
+                confirmText="Удалить"
+                cancelText="Отмена"
+            />
+
             <div className="all-users-container">
                 <h1>Все пользователи</h1>
                 {isLoading ? (
-                    // показываем загрузчик во время получения данных
                     <div className="page-loader-container"><ClockwiseLoader /></div>
                 ) : (
-                    // если загрузка завершена, показываем контент
                     <>
                         <div className="filter-container">
                             <div className="search-bar-wrapper">
@@ -243,7 +270,6 @@ export default function AllUsersPage() {
                         <div className="users-list-container" onMouseLeave={() => setHoveredCardId(null)}>
                             <div className="list-glider" style={gliderStyle}></div>
                             {filteredUsers.length > 0 ? (
-                                // рендерим список отфильтрованных пользователей
                                 filteredUsers.map((user, index) => (
                                     <React.Fragment key={user.id}>
                                         <UserCard
@@ -251,15 +277,14 @@ export default function AllUsersPage() {
                                             user={user}
                                             isActive={activeCardId === user.id}
                                             isExpanded={expandedCardId === user.id}
-                                            onCardClick={() => handleCardClick(user.id)}
+                                            onCardClick={handleCardClick}
                                             onMouseEnter={() => { if (!expandedCardId) setHoveredCardId(user.id); }}
+                                            onDeleteUser={promptDeleteUser}
                                         />
-                                        {/* добавляем разделитель между карточками */}
                                         {index < filteredUsers.length - 1 && <div className="user-divider" />}
                                     </React.Fragment>
                                 ))
                             ) : (
-                                // сообщение, если пользователи не найдены
                                 <div className="no-results-message">Пользователи с такими параметрами не найдены.</div>
                             )}
                         </div>
