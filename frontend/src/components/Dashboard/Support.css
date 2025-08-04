@@ -1,0 +1,172 @@
+.support-component-scope .support-view-wrapper {
+    position: absolute;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    z-index: 4000;
+}
+
+@keyframes sup-slide-in-from-right {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes sup-slide-out-to-right {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+.support-component-scope .support-modal {
+    display: flex;
+    flex-direction: column;
+    width: 380px;
+    max-height: 500px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: sup-slide-in-from-right 0.4s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+}
+
+.support-component-scope .support-modal.is-closing {
+    animation: sup-slide-out-to-right 0.3s ease-in forwards;
+}
+
+.support-component-scope .info-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.support-component-scope .info-modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.support-component-scope .chat-close-btn {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.support-component-scope .chat-close-btn:hover {
+    color: #d35400;
+    transform: scale(1.1);
+}
+
+.support-component-scope .info-modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex-grow: 1;
+    color: #212529;
+}
+
+.support-component-scope .support-intro-text {
+    font-size: 14px;
+    color: #495057;
+    line-height: 1.6;
+    margin: 0 0 20px 0;
+}
+
+.support-component-scope .support-contact-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.support-component-scope .support-contact-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+    will-change: border-radius;
+}
+
+.support-component-scope .support-contact-item:hover {
+    background-color: #f1f3f5;
+}
+
+.support-component-scope .contact-icon-wrapper {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    border-radius: 50%;
+    color: #d35400;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.support-component-scope .support-contact-item:hover .contact-icon-wrapper {
+    background-color: #d35400;
+    color: #fff;
+}
+
+.support-component-scope .contact-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.support-component-scope .contact-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.support-component-scope .contact-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #868e96;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+}
+
+.support-component-scope .contact-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: #343a40;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.support-component-scope .contact-value:hover {
+    color: #d35400;
+}
+
+.support-component-scope .support-divider {
+    height: 1px;
+    margin: 8px 0;
+    background-color: transparent;
+    border: none;
+}

@@ -30,9 +30,8 @@ body {
   top: 5vh;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
-  width: 25vw;
-  max-width: 180px;
+  z-index: 0;
+  max-width: 20vh;
   height: auto;
   transition: opacity 0.4s ease-in-out, 
               transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);

@@ -1,35 +1,120 @@
-/* анимации появления панели */
 @keyframes fade-in-main {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes page-turn-in {
-  from {
+    from {
+        opacity: 0;
+        transform: translateX(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.header-buttons-container {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    display: flex;
+    z-index: 100;
+    background-color: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+    border-radius: 0px;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-buttons-container:hover,
+.header-buttons-container.is-active {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.header-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.header-button:not(:last-child) {
+    border-right: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.header-buttons-container:hover .header-button:not(:last-child),
+.header-buttons-container.is-active .header-button:not(:last-child) {
+    border-right: 1px solid #e0e0e0;
+}
+
+.header-button.selected {
+    box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.1);
+}
+
+.header-button.hover-active {
+    width: 155px;
+    background-color: #d35400;
+    box-shadow: 0 6px 16px rgba(211, 84, 0, 0.3);
+}
+
+.header-button.selected.hover-active {
+    background-color: #b84a00;
+}
+
+.header-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    transition: fill 0.3s ease;
+}
+
+.header-icon path {
+    fill: #555;
+}
+
+.header-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
     opacity: 0;
-    transform: translateX(25px);
-  }
-  to {
+    transition: opacity 0.3s ease-out 0.15s, color 0.3s ease;
+}
+
+.header-button.hover-active .header-label {
     opacity: 1;
-    transform: translateX(0);
-  }
+    color: #fff;
 }
 
-/* главный контейнер панели */
+.header-button.hover-active .header-icon path {
+    fill: #fff;
+}
+
 .dashboard-container {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  animation: fade-in-main 0.4s ease-in-out forwards;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    animation: fade-in-main 0.4s ease-in-out forwards;
 }
 
-/* контейнер для кнопок меню */
 .menu-container {
   position: relative;
   flex-shrink: 0;
@@ -42,7 +127,6 @@
               height 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
 }
 
-/* кнопка-плитка в меню */
 .tile-button {
   position: absolute;
   display: flex;
@@ -65,23 +149,19 @@
               box-shadow 0.2s ease-in-out;
 }
 
-/* иконка внутри кнопки */
 .tile-icon {
-  width: 20px;
-  height: 20px;
+    width: 20px;
+    height: 20px;
 }
 
-/* состояние кнопки при наведении глайдера */
 .tile-button.hover-active {
-  color: #fff;
+    color: #fff;
 }
 
-/* состояние выбранной кнопки */
 .tile-button.selected {
-  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.15);
 }
 
-/* оранжевый фон-глайдер для меню */
 .menu-glider {
   position: absolute;
   top: 0;
@@ -97,12 +177,10 @@
               clip-path 0.35s cubic-bezier(0.65, 0.05, 0.36, 1);
 }
 
-/* анимация исчезновения глайдера */
 .menu-glider[style*="opacity: 0"] {
-  clip-path: inset(50% 50% 50% 50%);
+    clip-path: inset(50% 50% 50% 50%);
 }
 
-/* область для контента страниц */
 .content-area {
   flex-shrink: 0;
   box-sizing: border-box;
@@ -115,13 +193,12 @@
               opacity 0.2s 0.1s ease-in-out;
 }
 
-
 .page-content {
-  width: 100%;
-  height: 100%;
-  padding: 40px;
-  box-sizing: border-box;
-  animation: page-turn-in 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) forwards;
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    box-sizing: border-box;
+    animation: page-turn-in 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) forwards;
 }
 
 .page-content h1 {
@@ -137,19 +214,17 @@
   line-height: 1.6;
 }
 
-/* вид, когда отображается только меню */
 .dashboard-container.menu-view .content-area {
-  width: 0;
-  opacity: 0;
-  border: none;
-  box-shadow: none;
+    width: 0;
+    opacity: 0;
+    border: none;
+    box-shadow: none;
 }
 
-/* вид, когда отображается страница */
 .dashboard-container.page-view .content-area {
-  width: 120vh;
-  height: 70vh;
-  opacity: 1;
+    width: 120vh;
+    height: 70vh;
+    opacity: 1;
 }
 
 .theme-toggle-tile {
