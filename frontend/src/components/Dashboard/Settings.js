@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import './Settings.css';
+import { ThemeContext } from '../../context/ThemeContext';
+
 
 const GliderToggle = ({ options, selectedOption, onOptionSelect }) => {
     const [hoveredOption, setHoveredOption] = useState(selectedOption);
@@ -21,7 +23,10 @@ const GliderToggle = ({ options, selectedOption, onOptionSelect }) => {
 
 const SettingsContent = () => {
     const [language, setLanguage] = useState('ru');
-    const [theme, setTheme] = useState('light');
+    const { theme, toggleTheme } = useContext(ThemeContext);
+      const handleThemeChange = (selectedId) => {
+    if (selectedId !== theme) toggleTheme();
+  };
     const langOptions = [ { id: 'ru', label: 'Русский' }, { id: 'en', label: 'English' } ];
     const themeOptions = [ { id: 'light', label: 'Светлая' }, { id: 'dark', label: 'Темная' } ];
     return (
@@ -33,7 +38,7 @@ const SettingsContent = () => {
             <div className="settings-divider" />
             <div className="settings-section">
                 <p className="settings-label">Тема</p>
-                <GliderToggle options={themeOptions} selectedOption={theme} onOptionSelect={setTheme} />
+                <GliderToggle options={themeOptions} selectedOption={theme} onOptionSelect={handleThemeChange}  />
             </div>
         </div>
     );

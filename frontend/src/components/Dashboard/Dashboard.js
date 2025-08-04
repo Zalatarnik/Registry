@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import PageComponent from '../PageComponent';
 import ChatView from '../Chat/Chat';
 import './Dashboard.css';
+import ThemeToggle from '../common/ThemeToggle';
 import LogoutConfirmation from './LogoutConfirmation';
 import Notifications from './Notifications';
 import Support from './Support';

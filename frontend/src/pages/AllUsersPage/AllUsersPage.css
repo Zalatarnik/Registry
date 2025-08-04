@@ -447,3 +447,33 @@ body[data-theme='dark'] {
     color: var(--text-primary, #ffffff);
   }
 }
+
+body[data-theme='dark'] .all-users-scope {
+    
+
+  .all-users-container {
+    background : transparent;
+    box-shadow : none;
+    border     : 0;
+  }
+
+  .users-list-container {
+    background : transparent;
+  }
+}
+
+body[data-theme='dark'] .all-users-container
+  .search-bar-wrapper input:-webkit-autofill{
+  -webkit-box-shadow: 0 0 0 1000px #2b2d30 inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+body[data-theme='dark'] .all-users-container
+  .search-bar-wrapper input{
+  background : transparent;
+  color      : var(--text-primary);
+  caret-color: var(--text-primary);
+
+  border     : 0;
+  outline    : none;
+}
