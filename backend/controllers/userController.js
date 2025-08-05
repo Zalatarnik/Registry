@@ -9,7 +9,7 @@
 const { User } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-require('dotenv').config({ path: './omni.env' });
+require('dotenv').config({ path: './.env' });
 
 // Регистрация студента или куратора
 const registerUser = async (req, res) => {
