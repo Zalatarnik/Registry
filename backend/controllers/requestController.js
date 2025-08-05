@@ -37,16 +37,24 @@ exports.createRequest = async (req, res) => {
 
      // Если есть прикреплённые файлы — сохраняем их
     if (req.files && req.files.length > 0) {
-      const uploadsDir = path.join(__dirname, '..', 'uploads', `request_${newRequest.id}`);
-      // Создаём папку для файлов заявки, если её нет
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      for (const file of req.files) {
-        const filePath = path.join(uploadsDir, file.originalname);
-        fs.writeFileSync(filePath, file.buffer);
-      }
+    const uploadsDir = path.join(__dirname, '..', 'uploads', `request_${newRequest.id}`);
+    
+    // Создаём папку для файлов заявки, если её нет
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
     }
+
+    const savedNames = new Set();
+
+    for (const file of req.files) {
+      // Пропускаем дубликат
+      if (savedNames.has(file.originalname)) continue; 
+      savedNames.add(file.originalname);
+
+      const filePath = path.join(uploadsDir, file.originalname);
+      fs.writeFileSync(filePath, file.buffer);
+    }
+  }
 
      // Отправляем ответ
     res.status(201).json({ detail: 'Заявка успешно создана' });
