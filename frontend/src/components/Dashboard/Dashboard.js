@@ -7,6 +7,7 @@ import Notifications from './Notifications';
 import Support from './Support';
 import Settings from './Settings';
 
+// Иконки
 import { ReactComponent as ExitIcon } from '../../icons/exit-icon.svg';
 import { ReactComponent as NotificationIcon } from '../../icons/notification-icon.svg';
 import { ReactComponent as SupportIcon } from '../../icons/support-icon.svg';
@@ -25,35 +26,42 @@ const HeaderButtons = ({ userLogin }) => {
     { id: 'settings', label: 'Настройки', icon: SettingsIcon }
   ];
 
+  // Обработчик клика по кнопке в шапке
   const handleButtonClick = (buttonId, ref) => {
     const newActiveModalId = activeModal === buttonId ? null : buttonId;
     setActiveModal(newActiveModalId);
-    setHoveredButton(newActiveModalId);
+    setHoveredButton(newActiveModalId); 
     if (newActiveModalId && ref) {
       setModalPosition(ref.getBoundingClientRect());
     }
   };
+  // Обработчик для закрытия модального окна
   const handleCloseModal = () => { setActiveModal(null); setHoveredButton(null); };
 
   return (
     <>
       <div
-        ref={buttonsContainerRef}
-        className={`header-buttons-container ${activeModal ? 'is-active' : ''}`}
+        ref={buttonsContainerRef} 
+        className={`header-buttons-container ${activeModal ? 'is-active' : ''}`} 
         onMouseLeave={() => setHoveredButton(activeModal)}
       >
         {buttons.map(button => {
           const IconComponent = button.icon;
           const isSelected = activeModal === button.id;
-          const isHoverActive = hoveredButton === button.id;
+          const isHoverActive = hoveredButton === button.id; 
           return (
-            <button key={button.id} ref={el => buttonRefs.current[button.id] = el} className={`header-button ${isSelected ? 'selected' : ''} ${isHoverActive ? 'hover-active' : ''}`} onMouseEnter={() => setHoveredButton(button.id)} onClick={() => handleButtonClick(button.id, buttonRefs.current[button.id])}>
+            <button 
+              key={button.id} 
+              ref={el => buttonRefs.current[button.id] = el} 
+              className={`header-button ${isSelected ? 'selected' : ''} ${isHoverActive ? 'hover-active' : ''}`} 
+              onMouseEnter={() => setHoveredButton(button.id)}
+              onClick={() => handleButtonClick(button.id, buttonRefs.current[button.id])}
+            >
               <IconComponent className="header-icon" /><span className="header-label">{button.label}</span>
             </button>
           );
         })}
       </div>
-      
       <Notifications isOpen={activeModal === 'notifications'} onClose={handleCloseModal} position={modalPosition} userLogin={userLogin} triggerRef={buttonsContainerRef} />
       <Support isOpen={activeModal === 'support'} onClose={handleCloseModal} position={modalPosition} triggerRef={buttonsContainerRef} />
       <Settings isOpen={activeModal === 'settings'} onClose={handleCloseModal} position={modalPosition} triggerRef={buttonsContainerRef} />
@@ -61,9 +69,22 @@ const HeaderButtons = ({ userLogin }) => {
   );
 };
 
-const allMenuItems = [ { id: 'profile', label: 'ПРОФИЛЬ', roles: ['student', 'curator'] }, { id: 'my-requests', label: 'МОИ ЗАЯВКИ', roles: ['student'] }, { id: 'new-request', label: 'ПОДАТЬ ЗАЯВКУ', roles: ['student'] }, { id: 'events', label: 'МЕРОПРИЯТИЯ', roles: ['student', 'curator'] }, { id: 'review-requests', label: 'ЗАЯВКИ', roles: ['curator'] }, { id: 'create-event', label: 'СОЗДАТЬ МЕРОПРИЯТИЕ', roles: ['curator'] }, { id: 'all-users', label: 'ПОЛЬЗОВАТЕЛИ', roles: ['curator'] }, { id: 'logout', label: 'ВЫЙТИ', icon: ExitIcon, roles: ['student', 'curator'] }, ];
-const TILE_WIDTH = 200; const TILE_HEIGHT = 80;
+// Полный список всех пунктов меню с их ролями
+const allMenuItems = [ 
+  { id: 'profile', label: 'ПРОФИЛЬ', roles: ['student', 'curator'] }, 
+  { id: 'my-requests', label: 'МОИ ЗАЯВКИ', roles: ['student'] }, 
+  { id: 'new-request', label: 'ПОДАТЬ ЗАЯВКУ', roles: ['student'] }, 
+  { id: 'events', label: 'МЕРОПРИЯТИЯ', roles: ['student', 'curator'] }, 
+  { id: 'review-requests', label: 'ЗАЯВКИ', roles: ['curator'] }, 
+  { id: 'create-event', label: 'СОЗДАТЬ МЕРОПРИЯТИЕ', roles: ['curator'] }, 
+  { id: 'all-users', label: 'ПОЛЬЗОВАТЕЛИ', roles: ['curator'] }, 
+  { id: 'logout', label: 'ВЫЙТИ', icon: ExitIcon, roles: ['student', 'curator'] }, 
+];
+// Константы для размеров плиток меню
+const TILE_WIDTH = 200; 
+const TILE_HEIGHT = 80;
 
+// Основной компонент панели управления
 function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) {
   const [hoveredTile, setHoveredTile] = useState(null);
   const [activeChat, setActiveChat] = useState({ isOpen: false, request: null });
@@ -74,17 +95,21 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
   const menuItems = useMemo(() => allMenuItems.filter(item => item.roles.includes(userRole)), [userRole]);
 
   const menuContainerStyle = useMemo(() => {
+      // Если открыта какая-либо страница, меню отображается в одну колонку
       if (activePage) return { width: `${TILE_WIDTH}px`, height: `${menuItems.length * TILE_HEIGHT}px` };
+      // Иначе, меню отображается в две колонки
       const rowCount = Math.ceil(menuItems.length / 2);
       return { width: `${TILE_WIDTH * 2}px`, height: `${rowCount * TILE_HEIGHT}px` };
   }, [activePage, menuItems.length]);
 
+  // Обработчик клика по плитке меню
   const handleTileClick = (tileId) => {
       if (tileId === 'logout') {
           if (logoutButtonRef.current) {
               const rect = logoutButtonRef.current.getBoundingClientRect();
+              // Устанавливаем позицию модального окна рядом с кнопкой
               setModalPosition({ top: rect.top, left: rect.right + rect.width});
-              setIsConfirmModalOpen(true);
+              setIsConfirmModalOpen(true); // Открываем модальное окно подтверждения
           }
           return;
       }

@@ -377,27 +377,32 @@ export default function MyRequestsPage({ userLogin }) {
     const [editingRequest, setEditingRequest] = useState(null);
 
     useEffect(() => {
+        if (!userLogin) return;
         const fetchRequests = async () => {
-            if (!userLogin) return;
             setIsLoading(true);
             try {
                 const response = await fetch(`http://localhost:8000/api/requests/student/${userLogin}`);
-                if (!response.ok) throw new Error('Не удалось загрузить заявки');
+                if (!response.ok) {
+                    throw new Error('Не удалось загрузить заявки');
+                }
+
                 const data = await response.json();
                 const processedData = data.map(req => ({
                     ...req,
                     description: req.description || "Тут будет описание, возможно, когда-нибудь",
-                    resource_link: req.resource_link || "https://example.com"
+                    resource_link: req.resource_link || ""
                 }));
+
                 setRequests(processedData);
-            } catch (error) {
-                addNotification(error.message, 'error');
-            } finally {
+
                 setIsLoading(false);
+
+            } catch (error) {
+                console.error("Ошибка при загрузке заявок студента:", error);
             }
         };
         fetchRequests();
-    }, [userLogin, addNotification]);
+    }, [userLogin]);
 
     const filteredRequests = useMemo(() => {
         return requests

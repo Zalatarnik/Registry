@@ -2,19 +2,20 @@ import React, { useState, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './Support.css';
 
-// иконки
+// Иконки
 import { ReactComponent as ExitIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as PhoneIcon } from '../../icons/phone-icon.svg';
 import { ReactComponent as EmailIcon } from '../../icons/email-icon.svg';
 
-const EASING_FACTOR = 0.15;
-const DEFAULT_RADIUS = 12;
+// АНИМАЦИЯ
+const EASING_FACTOR = 0.15; 
+const DEFAULT_RADIUS = 12; 
 
 function animateRadii(el) {
-    const state = el._animationState;
-    if (!state) return;
+    const state = el._animationState; 
+    if (!state) return; 
 
-    let isAnimationNeeded = false;
+    let isAnimationNeeded = false; 
     for (const corner in state.current) {
         const diff = state.target[corner] - state.current[corner];
         if (Math.abs(diff) > 0.01) {
@@ -24,7 +25,6 @@ function animateRadii(el) {
             state.current[corner] = state.target[corner];
         }
     }
-
     el.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
 
     if (isAnimationNeeded) {
@@ -35,12 +35,12 @@ function animateRadii(el) {
 }
 
 const handleMouseMoveForEffect = (e) => {
-    const el = e.currentTarget;
+    const el = e.currentTarget; 
     if (!el.classList.contains('interactive-container')) return;
 
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const rect = el.getBoundingClientRect(); 
+    const x = e.clientX - rect.left; 
+    const y = e.clientY - rect.top; 
 
     el.style.setProperty('--mouse-x', `${x}px`);
     el.style.setProperty('--mouse-y', `${y}px`);
@@ -55,8 +55,8 @@ const handleMouseMoveForEffect = (e) => {
 
     const state = el._animationState;
     const { width, height } = rect;
-    const maxRadius = 30;
-    const diagonal = Math.sqrt(width**2 + height**2);
+    const maxRadius = 30; 
+    const diagonal = Math.sqrt(width**2 + height**2); 
 
     const calculateRadius = (cx, cy) =>
         Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx)**2 + (y - cy)**2) / diagonal), 3));
@@ -90,14 +90,15 @@ const handleMouseLeaveForEffect = (e) => {
 };
 
 
+// Основной компонент Поддержки
 const Support = ({ isOpen, onClose, position }) => {
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClosePanel = useCallback(() => {
-    setIsClosing(true);
+    setIsClosing(true); 
     setTimeout(() => {
         onClose();
-        setIsClosing(false);
+        setIsClosing(false); 
     }, 400);
   }, [onClose]);
 
@@ -105,8 +106,8 @@ const Support = ({ isOpen, onClose, position }) => {
   if (!isOpen) return null;
 
   const wrapperStyle = {
-      top: `${(position?.bottom || 0) + 8}px`,
-      right: `${window.innerWidth - (position?.right || 0)}px`,
+      top: `${(position?.bottom || 0) + 8}px`, 
+      right: `${window.innerWidth - (position?.right || 0)}px`, 
   };
 
   return ReactDOM.createPortal(
@@ -115,7 +116,6 @@ const Support = ({ isOpen, onClose, position }) => {
         <div className={`support-modal ${isClosing ? 'is-closing' : ''}`}>
           <div className="info-modal-header">
             <h2>Поддержка</h2>
-            
           </div>
           <div className="info-modal-body">
             <div className="support-contact-list">
@@ -125,7 +125,7 @@ const Support = ({ isOpen, onClose, position }) => {
                <div 
                   className="support-contact-item interactive-container"
                   onMouseMove={handleMouseMoveForEffect}
-                  onMouseLeave={handleMouseLeaveForEffect}
+                  onMouseLeave={handleMouseLeaveForEffect} 
                 >
                   <div className="contact-icon-wrapper"><EmailIcon/></div>
                   <div className="contact-details">

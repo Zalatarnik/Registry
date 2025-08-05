@@ -332,34 +332,30 @@ export default function ProfilePage({ userRole, userLogin }) {
   const [errorShown, setErrorShown] = useState(false);
   // загрузка данных профиля
 useEffect(() => {
-  if (!userLogin) return;
-
-  setIsLoading(true);
-
-  fetch(`${API_URL}/api/profile/me`, {
-    credentials: 'include'
-  })
-    .then(res => {
-      if (!res.ok) throw new Error('Не удалось загрузить данные профиля');
-      return res.json();
-    })
-    .then(data => {
-      const normalized = {
-        ...data,
-        patronymic: data.patronymic ?? data.middleName ?? ''
-      };
-      setUserData(normalized);
-      setOriginalUserData(normalized);
-    })
-    .catch(err => {
-      console.error(err);
-      if (!errorShown) {                               // уведомляем один раз
-        addNotification(err.message, 'error');
-        setErrorShown(true);
-      }
-    })
-    .finally(() => setIsLoading(false));
-}, []);   
+    if (!userLogin) return;
+    const fetchProfile = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/api/profile/me`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Не удалось загрузить данные профиля');
+            }
+            const data = await response.json();
+            const normalized = {
+                ...data,
+                patronymic: data.patronymic ?? data.middleName ?? ''
+            };
+            setUserData(normalized);
+            setOriginalUserData(normalized);
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Ошибка при загрузке профиля:", error);
+        }
+    };
+    fetchProfile();
+}, [userLogin]);
 
   // обработчик изменения значения в любом редактируемом поле
   const handleValueChange = (field, value) => {

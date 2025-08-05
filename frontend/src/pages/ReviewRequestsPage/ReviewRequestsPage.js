@@ -242,8 +242,10 @@ export default function ReviewRequestsPage({ userLogin }) {
         const fetchRequests = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`http://localhost:8000/api/requests`);
-                if (!response.ok) throw new Error('Не удалось загрузить заявки');
+                const response = await fetch(`${API_BASE_URL}/api/requests`);
+                if (!response.ok) {
+                    throw new Error('Не удалось загрузить заявки');
+                }
                 const data = await response.json();
                 const processedData = data.map(req => ({
                     ...req,
@@ -251,14 +253,15 @@ export default function ReviewRequestsPage({ userLogin }) {
                     resource_link: req.resource_link || ""
                 }));
                 setRequests(processedData);
-            } catch (error) {
-                addNotification(error.message, 'error');
-            } finally {
                 setIsLoading(false);
+
+            } catch (error) {
+                console.error("Ошибка при загрузке заявок:", error);
             }
         };
+
         fetchRequests();
-    }, [addNotification]);
+    }, []);
 
     const handleCloseFilter = () => {
         const filterModal = topPanelRef.current?.querySelector('.filter-modal-dropdown-container');
