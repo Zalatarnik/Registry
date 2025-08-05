@@ -22,5 +22,7 @@ router.delete('/requests/:id', requestController.deleteRequest);
 router.put('/requests/:id/approve', requestController.approveRequest);
 // Отклонение заявки
 router.put('/requests/:id/reject', requestController.rejectRequest);
+// Скачать все файлы заявки одним архивом
+router.get('/requests/:id/files-zip', requestController.downloadRequestFilesAsZip);
 
 module.exports = router;

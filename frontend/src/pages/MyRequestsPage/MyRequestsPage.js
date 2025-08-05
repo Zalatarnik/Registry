@@ -90,24 +90,31 @@ const handleButtonLeave = (e) => {
     }
 };
 
-const downloadFile = (fileUrl, fileName) => {
-    const fullUrl = `http://localhost:8000${fileUrl}`;
-    const link = document.createElement('a');
-    link.href = fullUrl;
-    link.setAttribute('download', fileName);
-    link.setAttribute('target', '_blank');
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
 
-const FormField = ({ label, children }) => (
-    <div className="form-field">
-        <label>{label}</label>
-        <div className="input-wrapper">{children}</div>
-    </div>
-);
+// Открытие вложеных файлов в заметку
+const downloadAllFilesAsZip = (request) => {
+    const files = request.files || [];
+
+    if (files.length === 0) {
+        alert("Нет файлов для скачивания.");
+        return;
+    }
+
+    if (files.length === 1) {
+        // Один файл — просто открыть в новой вкладке
+        const fileUrl = `http://localhost:8000${files[0].url}`;
+        window.open(fileUrl, '_blank');
+    } else {
+        // Несколько файлов — скачать архив
+        const zipUrl = `http://localhost:8000/api/requests/${request.id}/files-zip`;
+        const link = document.createElement('a');
+        link.href = zipUrl;
+        link.setAttribute('download', `request_${request.id}_files.zip`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+};
 
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -362,6 +369,13 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
 
 const statusStyleMap = { 'Все': 'btn-style-neutral', 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
 
+const FormField = ({ label, children }) => (
+  <div className="form-field">
+    <label>{label}</label>
+    <div className="input-wrapper">{children}</div>
+  </div>
+);
+
 export default function MyRequestsPage({ userLogin }) {
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -432,16 +446,7 @@ export default function MyRequestsPage({ userLogin }) {
 
     const handleEditClick = (request) => setEditingRequest(request);
 
-    const handleDownloadAll = (request) => {
-        if (!request.files || request.files.length === 0) {
-            addNotification('У этой заявки нет приложенных файлов.', 'info');
-            return;
-        }
-        addNotification(`Начинается скачивание ${request.files.length} файлов...`, 'success');
-        request.files.forEach((file, index) => {
-            setTimeout(() => { downloadFile(file.url, file.name); }, index * 300);
-        });
-    };
+
 
     const handleCancelRequest = async (requestId) => {
         if (!window.confirm("Вы уверены, что хотите безвозвратно отменить эту заявку?")) return;
@@ -532,7 +537,7 @@ export default function MyRequestsPage({ userLogin }) {
                                                 onCardClick={() => handleCardClick(request.id)}
                                                 onMouseEnter={() => { if (!expandedCardId) setHoveredCardId(request.id); }}
                                                 onDelete={handleCancelRequest}
-                                                onDownload={handleDownloadAll}
+                                                onDownload={downloadAllFilesAsZip}
                                                 onEdit={handleEditClick}
                                                 onOpenChat={handleOpenChat}
                                             />
