@@ -508,7 +508,9 @@ export default function EventsPage({ userLogin, userRole }) {
                 setEvents(processedEvents);
                 // Если пользователь - студент, загружаем дополнительные данные
                 if (userRole === 'student' && userLogin) {
-                    const profileResponse = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`);
+                    const profileResponse = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`, {
+                    credentials: 'include'  
+                    });
                     if (!profileResponse.ok) throw new Error('Не удалось загрузить профиль.');
                     const profileData = await profileResponse.json();
                     setCurrentUser({
@@ -519,7 +521,9 @@ export default function EventsPage({ userLogin, userRole }) {
                         login: profileData.login
                     });
                     // Загружаем записи на мероприятия
-                    const registrationsResponse = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`);
+                    const registrationsResponse = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`, {
+                    credentials: 'include'  
+                    });
                     if (!registrationsResponse.ok) throw new Error('Не удалось загрузить записи.');
                     const registrationIds = await registrationsResponse.json();
                     setUserRegisteredEventIds(new Set(registrationIds));

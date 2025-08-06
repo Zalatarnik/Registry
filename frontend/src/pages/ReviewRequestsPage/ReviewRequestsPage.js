@@ -4,6 +4,8 @@ import './ReviewRequestsPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
 import ChatView from '../../components/Chat/Chat';
 import FilterModal from '../../components/FilterModal';
+import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 // иконки
 import { ReactComponent as ChatIcon } from '../../icons/chat-icon.svg';
@@ -376,14 +378,165 @@ export default function ReviewRequestsPage({ userLogin }) {
     const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
     
-    const handleExport = () => alert('Функция выгрузки всех заявок находится в разработке.');
-    
-    const handleExportSelected = () => {
-        if (selectedRequests.length === 0) {
-            addNotification("Сначала выберите заявки для выгрузки.", "info");
-            return;
+
+    // Преобразует массив заявок в лист Excel и скачивает .xlsx
+    const generateXlsx = async (requestsToExport, fileName = 'export.xlsx') => {
+    if (!requestsToExport || requestsToExport.length === 0) {
+        addNotification('Нет данных для экспорта.', 'info');
+        return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Заявки');
+
+    // Колонки
+    worksheet.columns = [
+        { header: 'Название мероприятия', key: 'eventName', width: 40 },
+        { header: 'ФИО студента', key: 'student', width: 30 },
+        { header: 'Подана (дата)', key: 'createdAt', width: 14 },
+        { header: 'Статус заявки', key: 'status', width: 14 },
+        { header: 'Тип мероприятия', key: 'eventStatus', width: 16 },
+        { header: 'Дата мероприятия', key: 'eventDate', width: 14 },
+        { header: 'Руководитель', key: 'leader', width: 22 },
+        { header: 'Организатор', key: 'organizer', width: 22 },
+        { header: 'Место', key: 'location', width: 20 },
+        { header: 'Описание', key: 'description', width: 60 },
+        { header: 'Ссылка на ресурс', key: 'resourceLink', width: 40 },
+        { header: 'Файлы', key: 'files', width: 40 }
+    ];
+
+    // Заголовки
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 22;
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }; // белый текст
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD35400' } // фон d35400
+        };
+        cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+        };
+    });
+
+    // Заполняем данные
+    requestsToExport.forEach((req) => {
+        const studentFullName = `${req.owner?.lastName || ''} ${req.owner?.firstName || ''} ${req.owner?.middleName || ''}`.trim();
+        const createdAt = req.created_at ? new Date(req.created_at).toLocaleDateString('ru-RU') : '';
+        const eventDate = req.eventDate ? new Date(req.eventDate).toLocaleDateString('ru-RU') : '';
+
+        let filesCellText = '';
+        if (req.files && req.files.length > 0) {
+            filesCellText = req.files.map(f => f.name).join('\n');
         }
-        alert(`Выбраны заявки с ID: ${selectedRequests.join(', ')}. \nФункция выгрузки в разработке.`);
+
+        const rowValues = {
+            eventName: req.eventName || '',
+            student: studentFullName,
+            createdAt,
+            status: req.status || '',
+            eventStatus: req.eventStatus || '',
+            eventDate,
+            leader: req.leader || '',
+            organizer: req.organizer || '',
+            location: req.location || '',
+            description: req.description || '',
+            resourceLink: req.resource_link || '',
+            files: filesCellText
+        };
+
+        worksheet.addRow(rowValues);
+    });
+
+    // Теперь установим гиперссылки и стиль ссылок:
+    const resourceColNum = worksheet.getColumn('resourceLink').number; // 1-based
+    const filesColNum = worksheet.getColumn('files').number;
+
+    for (let r = 2; r <= worksheet.rowCount; r++) {
+        const row = worksheet.getRow(r);
+
+        // resource link
+        const resCell = row.getCell(resourceColNum);
+        if (resCell && resCell.value && typeof resCell.value === 'string' && resCell.value.trim() !== '') {
+            const url = resCell.value;
+            resCell.value = { text: url, hyperlink: url };
+            resCell.font = { color: { argb: 'FF0000FF' }, underline: true }; // синий + подчёркнутый
+        }
+
+        // files — ставим hyperlink на первый файл если есть
+        const reqIdx = r - 2;
+        const reqObj = requestsToExport[reqIdx];
+        if (reqObj && reqObj.files && reqObj.files.length > 0) {
+            const firstFile = reqObj.files[0];
+            if (firstFile && firstFile.url) {
+                const fullUrl = `${API_BASE_URL}${firstFile.url}`;
+                const filesCell = row.getCell(filesColNum);
+                const text = (filesCell.value && typeof filesCell.value === 'string') ? filesCell.value : (firstFile.name || fullUrl);
+                filesCell.value = { text: text, hyperlink: fullUrl };
+                filesCell.font = { color: { argb: 'FF0000FF' }, underline: true };
+            }
+        }
+    }
+
+    worksheet.eachRow((row) => {
+        row.eachCell((cell) => {
+            // Центрирование по вертикали и горизонтали для всех ячеек
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            // Одна и та же тонкая граница вокруг каждой ячейки
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+        });
+    });
+
+    // Сохраняем и предлагаем скачать
+    try {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        console.error('Ошибка при создании xlsx', err);
+        addNotification('Ошибка при создании файла', 'error');
+    }
+    };
+
+  const handleExport = () => {
+    if (!filteredRequests || filteredRequests.length === 0) {
+        addNotification('Нет заявок для экспорта.', 'info');
+        return;
+    }
+    const fileName = `requests_all_${new Date().toISOString().slice(0,10)}`.xlsx;
+    generateXlsx(filteredRequests, fileName);
+    };
+
+    const handleExportSelected = () => {
+    if (selectedRequests.length === 0) {
+        addNotification("Сначала выберите заявки для выгрузки.", "info");
+        return;
+    }
+    const toExport = filteredRequests.filter(r => selectedRequests.includes(r.id));
+    const exportList = toExport.length > 0 ? toExport : requests.filter(r => selectedRequests.includes(r.id));
+    if (exportList.length === 0) {
+        addNotification('Не найдены выбранные заявки для экспорта.', 'error');
+        return;
+    }
+    const fileName = `requests_selected_${new Date().toISOString().slice(0,10)}`.xlsx;
+    generateXlsx(exportList, fileName);
     };
 
     return (
