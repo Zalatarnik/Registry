@@ -522,7 +522,7 @@ export default function EventsPage({ userLogin, userRole }) {
                     });
                     // Загружаем записи на мероприятия
                     const registrationsResponse = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`, {
-                    credentials: 'include'  // ← ОБЯЗАТЕЛЬНО
+                    credentials: 'include'  
                     });
                     if (!registrationsResponse.ok) throw new Error('Не удалось загрузить записи.');
                     const registrationIds = await registrationsResponse.json();
