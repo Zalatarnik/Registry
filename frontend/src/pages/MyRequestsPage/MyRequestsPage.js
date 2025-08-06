@@ -60,8 +60,8 @@ const handleMouseMoveForEffect = (e) => {
         const state = el._animationState;
         const { width, height } = rect;
         const maxRadius = 25;
-        const diagonal = Math.sqrt(width**2 + height**2);
-        const calculateRadius = (cx, cy) => Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx)**2 + (y - cy)**2) / diagonal), 3));
+        const diagonal = Math.sqrt(width ** 2 + height ** 2);
+        const calculateRadius = (cx, cy) => Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) / diagonal), 3));
         state.target.tl = calculateRadius(0, 0);
         state.target.tr = calculateRadius(width, 0);
         state.target.br = calculateRadius(width, height);
@@ -191,7 +191,7 @@ const FileUploadArea = ({ files, setFiles }) => {
     );
 };
 
-const EditRequestModal = ({ request, onClose, onSave }) => {
+const EditRequestModal = ({ request, onClose, onSave, position }) => {
     const { addNotification } = useNotification();
     const [isClosing, setIsClosing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -203,15 +203,21 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
         location: request.location || '',
         eventStatus: request.eventStatus || '',
         eventDate: request.eventDate ? new Date(request.eventDate).toISOString().split('T')[0] : '',
+        description: request.description || '',
+        resource_link: request.resource_link || ''
     });
+
     const handleInputChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
+
     const handleClose = () => {
         setIsClosing(true);
-        setTimeout(onClose, 300);
+        setTimeout(onClose, 400);
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        for (const key in formData) {
+        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate'];
+        for (const key of requiredFields) {
             if (!formData[key]) {
                 addNotification("Пожалуйста, заполните все обязательные поля.", "error");
                 return;
@@ -220,13 +226,14 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
         setIsSubmitting(true);
         await onSave({ id: request.id, ...formData, files });
         setIsSubmitting(false);
+        handleClose();
     };
-    return (
-        <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={e => e.stopPropagation()}>
+
+    return ReactDOM.createPortal(
+        <div className={`my-requests-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
+            <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={e => e.stopPropagation()} style={position || {}}>
                 <div className="chat-header">
                     <div className="chat-title-wrapper"><h2>Редактирование заявки</h2></div>
-                    <button onClick={handleClose} className="chat-close-btn" title="Закрыть"><CloseIcon /></button>
                 </div>
                 <div className="edit-modal-body">
                     <form onSubmit={handleSubmit} className="edit-form-inside-modal">
@@ -237,7 +244,11 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
                             <FormField label="Место проведения"><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
                             <FormField label="Статус мероприятия"><CustomSelect options={['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']} value={formData.eventStatus} onChange={(value) => handleInputChange('eventStatus', value)} placeholder="Выберите статус" /></FormField>
                             <FormField label="Дата проведения"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
-                            <FileUploadArea files={files} setFiles={setFiles} />
+                            <div className="form-field-full-width form-grid-two-col-special">
+                                <FormField label="Описание"><textarea className="form-input" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} /></FormField>
+                                <FormField label="Ссылка на ресурс"><input className="form-input" type="text" value={formData.resource_link} onChange={(e) => handleInputChange('resource_link', e.target.value)} /></FormField>
+                            </div>
+                            <div className="form-field-full-width"><FileUploadArea files={files} setFiles={setFiles} /></div>
                         </div>
                         <div className="form-actions-container">
                             <button type="button" className="form-secondary-btn" onClick={handleClose} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>Отмена</span></button>
@@ -246,7 +257,8 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
                     </form>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -254,10 +266,9 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
     const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const handleActionClick = (e, callback, ...args) => {
         e.stopPropagation();
-        if (typeof callback === 'function') callback(...args);
+        if (typeof callback === 'function') callback(e, ...args);
     };
     const statusStyleMap = { 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
-
     const [areButtonsRendered, setAreButtonsRendered] = useState(false);
     const [animationClass, setAnimationClass] = useState('');
     const prevIsExpanded = useRef(isExpanded);
@@ -265,7 +276,6 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
 
     useEffect(() => {
         clearTimeout(animationTimer.current);
-
         if (isExpanded) {
             setAreButtonsRendered(true);
             setAnimationClass('is-action-button-fly-in');
@@ -274,11 +284,11 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                 setAnimationClass('is-action-button-fade-out');
                 animationTimer.current = setTimeout(() => {
                     setAreButtonsRendered(false);
-                }, 300); 
+                }, 300);
             }
         }
         prevIsExpanded.current = isExpanded;
-        
+
         return () => clearTimeout(animationTimer.current);
     }, [isExpanded]);
 
@@ -327,12 +337,11 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                             </div>
                         ) : (
                             <div className="m-stack-download is-empty">
-                                 <DownloadIcon className="stack-download-icon" />
+                                <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">Нет файлов</div>
                             </div>
                         )}
                     </div>
-
                     <div className="card-body-column column-description">
                         <div className="detail-item">
                             <span className="detail-label">Описание:</span>
@@ -347,7 +356,6 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                             ) : 'Ссылка не указана.'}
                         </div>
                     </div>
-
                     <div className="card-body-column column-details">
                         <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
                         <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
@@ -375,6 +383,7 @@ export default function MyRequestsPage({ userLogin }) {
     const inputRef = useRef(null);
     const [activeChatRequest, setActiveChatRequest] = useState(null);
     const [editingRequest, setEditingRequest] = useState(null);
+    const [modalPosition, setModalPosition] = useState(null);
 
     useEffect(() => {
         if (!userLogin) return;
@@ -385,18 +394,14 @@ export default function MyRequestsPage({ userLogin }) {
                 if (!response.ok) {
                     throw new Error('Не удалось загрузить заявки');
                 }
-
                 const data = await response.json();
                 const processedData = data.map(req => ({
                     ...req,
                     description: req.description || "Тут будет описание, возможно, когда-нибудь",
                     resource_link: req.resource_link || ""
                 }));
-
                 setRequests(processedData);
-
                 setIsLoading(false);
-
             } catch (error) {
                 console.error("Ошибка при загрузке заявок студента:", error);
             }
@@ -430,7 +435,12 @@ export default function MyRequestsPage({ userLogin }) {
         setExpandedCardId(prevId => (prevId === clickedId ? null : clickedId));
     };
 
-    const handleEditClick = (request) => setEditingRequest(request);
+    const handleEditClick = (e, request) => {
+        const buttonRect = e.currentTarget.getBoundingClientRect();
+        const rightPosition = window.innerWidth - buttonRect.left + 10;
+        setModalPosition({ top: buttonRect.top - 200, right: `${rightPosition}px` });
+        setEditingRequest(request);
+    };
 
     const handleDownloadAll = (request) => {
         if (!request.files || request.files.length === 0) {
@@ -454,10 +464,10 @@ export default function MyRequestsPage({ userLogin }) {
             addNotification(error.message, 'error');
         }
     };
-    
+
     const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
-    
+
     const handleSaveRequest = async (updatedData) => {
         try {
             const data = new FormData();
@@ -467,27 +477,26 @@ export default function MyRequestsPage({ userLogin }) {
             data.append('location', updatedData.location);
             data.append('eventStatus', updatedData.eventStatus);
             data.append('eventDate', new Date(updatedData.eventDate).toISOString());
-    
             const newFiles = updatedData.files.filter(f => f instanceof File);
             const existingFilesToKeep = updatedData.files.filter(f => !(f instanceof File));
             newFiles.forEach(file => data.append('files', file, file.name));
             data.append('existingFiles', JSON.stringify(existingFilesToKeep.map(f => ({ name: f.name, url: f.url }))));
-    
+
             const response = await fetch(`http://localhost:8000/api/requests/${updatedData.id}`, {
                 method: 'PUT',
                 body: data,
             });
-    
+
             if (!response.ok) {
                 const errorResult = await response.json();
                 throw new Error(errorResult.detail || 'Не удалось обновить заявку.');
             }
-    
+
             const savedRequest = await response.json();
             setRequests(prev => prev.map(r => r.id === savedRequest.id ? { ...savedRequest, description: r.description, resource_link: r.resource_link } : r));
             addNotification('Заявка успешно обновлена!', 'success');
             setEditingRequest(null);
-    
+
         } catch (error) {
             addNotification(error.message, 'error');
         }
@@ -496,8 +505,7 @@ export default function MyRequestsPage({ userLogin }) {
     return (
         <div className="my-requests-scope">
             {activeChatRequest && (<ChatView userLogin={userLogin} request={activeChatRequest} onClose={handleCloseChat} />)}
-            {editingRequest && ReactDOM.createPortal(<EditRequestModal request={editingRequest} onClose={() => setEditingRequest(null)} onSave={handleSaveRequest} />, document.body )}
-
+            {editingRequest && <EditRequestModal request={editingRequest} onClose={() => { setEditingRequest(null); setModalPosition(null); }} onSave={handleSaveRequest} position={modalPosition} />}
             <div className="requests-container">
                 <h1>Мои заявки</h1>
                 {isLoading ? (
