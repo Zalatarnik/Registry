@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import './ConfirmationModal.css';
+import './ConfirmationModal.css'; // Убедитесь, что CSS файл находится рядом
+import { useTranslation } from '../components/common/useTranslation';
 
 // анимация
 const EASING_FACTOR = 0.15;
@@ -70,27 +71,29 @@ const handleButtonLeave = (e) => {
   }
 };
 
-
 const ConfirmationModal = ({
   isOpen,
   onClose,
   onConfirm,
   position,
-  title = "Подтверждение",
-  message = "Вы уверены?",
-  confirmText = "Подтвердить",
-  cancelText = "Отмена"
+  title,
+  message,
+  confirmText,
+  cancelText,
 }) => {
+  const { t } = useTranslation();
   const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef(null);
 
-  const handleClose = () => {
+  const timerRef = useRef();
+  const handleClose = useCallback(() => {
     setIsClosing(true);
-    setTimeout(() => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       onClose();
-      setIsClosing(false); 
-    }, 200); 
-  };
+      setIsClosing(false);
+    }, 200);
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -99,9 +102,18 @@ const ConfirmationModal = ({
         handleClose();
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+    const handleKey = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [isOpen, handleClose]);
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   const handleConfirmAction = () => {
     onConfirm();
@@ -125,7 +137,7 @@ const ConfirmationModal = ({
         <h2>{title}</h2>
       </div>
       <div className="confirmation-modal-body">
-        <p>{message}</p>
+        <p>{message ?? t('confirm.message')}</p>
       </div>
       <div className="confirmation-modal-footer">
         <button 
@@ -134,7 +146,7 @@ const ConfirmationModal = ({
           onMouseMove={handleMouseMoveForEffect} 
           onMouseLeave={handleButtonLeave}
         >
-          <span>{cancelText}</span>
+          <span>{cancelText ?? t('common.cancel')}</span>
         </button>
         <button 
           className="confirmation-modal-button reject" 

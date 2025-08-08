@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import './Settings.css';
 import { ThemeContext } from '../../context/ThemeContext';
+import { useTranslation } from '../common/useTranslation';
 
 
 const GliderToggle = ({ options, selectedOption, onOptionSelect }) => {
@@ -27,25 +28,22 @@ const GliderToggle = ({ options, selectedOption, onOptionSelect }) => {
 
 // Компонент, содержащий содержимое настроек
 const SettingsContent = () => {
-    // Состояния для хранения выбранного языка и темы
-    const [language, setLanguage] = useState('ru');
+    const { t, locale, setLocale } = useTranslation();
     const { theme, toggleTheme } = useContext(ThemeContext);
       const handleThemeChange = (selectedId) => {
     if (selectedId !== theme) toggleTheme();
   };
-    const langOptions = [ { id: 'ru', label: 'Русский' }, { id: 'en', label: 'English' } ];
-    // Опции для выбора темы
-    const themeOptions = [ { id: 'light', label: 'Светлая' }, { id: 'dark', label: 'Темная' } ];
-
+    const langOptions = [ { id: 'ru', label: t('language.ru') }, { id: 'en', label: t('language.en') } ];
+    const themeOptions = [ { id: 'light', label: t('theme.light') }, { id: 'dark', label: t('theme.dark') } ];
     return (
         <div className="settings-content-container">
             <div className="settings-section">
-                <p className="settings-label">Язык</p>
-                <GliderToggle options={langOptions} selectedOption={language} onOptionSelect={setLanguage} />
+                <p className="settings-label">{t('settings.language')}</p>
+                <GliderToggle options={langOptions} selectedOption={locale} onOptionSelect={setLocale} />
             </div>
             <div className="settings-divider" /> 
             <div className="settings-section">
-                <p className="settings-label">Тема</p>
+                <p className="settings-label">{t('settings.theme')}</p>
                 <GliderToggle options={themeOptions} selectedOption={theme} onOptionSelect={handleThemeChange}  />
             </div>
         </div>
@@ -54,6 +52,7 @@ const SettingsContent = () => {
 
 // Основной компонент панели настроек
 const Settings = ({ isOpen, onClose, position }) => {
+  const { t } = useTranslation();
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClosePanel = useCallback(() => {
@@ -76,7 +75,7 @@ const Settings = ({ isOpen, onClose, position }) => {
       <div className="settings-view-wrapper" style={wrapperStyle}>
         <div className={`settings-modal ${isClosing ? 'is-closing' : ''}`}>
           <div className="info-modal-header">
-            <h2>Настройки</h2>
+            <h2>{t('settings.title')}</h2>
           </div>
           <div className="info-modal-body">
             <SettingsContent />

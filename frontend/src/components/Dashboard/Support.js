@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './Support.css';
+import { useTranslation } from '../common/useTranslation';
 
 // Иконки
 import { ReactComponent as ExitIcon } from '../../icons/remove-icon.svg';
@@ -92,6 +93,7 @@ const handleMouseLeaveForEffect = (e) => {
 
 // Основной компонент Поддержки
 const Support = ({ isOpen, onClose, position }) => {
+  const { t } = useTranslation();
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClosePanel = useCallback(() => {
@@ -115,12 +117,13 @@ const Support = ({ isOpen, onClose, position }) => {
       <div className="support-view-wrapper" style={wrapperStyle}>
         <div className={`support-modal ${isClosing ? 'is-closing' : ''}`}>
           <div className="info-modal-header">
-            <h2>Поддержка</h2>
+            <h2>{t('support.title')}</h2>
+            
           </div>
           <div className="info-modal-body">
             <div className="support-contact-list">
                <p className="support-intro-text">
-                  Если у вас возникли вопросы или проблемы, свяжитесь с нами одним из следующих способов:
+                  {t('support.intro')}
                </p>
                <div 
                   className="support-contact-item interactive-container"
@@ -129,8 +132,8 @@ const Support = ({ isOpen, onClose, position }) => {
                 >
                   <div className="contact-icon-wrapper"><EmailIcon/></div>
                   <div className="contact-details">
-                     <span className="contact-label">Электронная почта</span>
-                     <a href="mailto:support@example.com" className="contact-value">support@example.com</a>
+                     <span className="contact-label">{t('support.emailLabel')} </span>
+                     <a href={`mailto:${t('support.emailValue')}`} className="contact-value">{t('support.emailValue')}</a>
                   </div>
                </div>
                <div className="support-divider" />
@@ -141,8 +144,8 @@ const Support = ({ isOpen, onClose, position }) => {
                 >
                   <div className="contact-icon-wrapper"><PhoneIcon/></div>
                   <div className="contact-details">
-                      <span className="contact-label">Номер телефона</span>
-                      <a href="tel:+78005553535" className="contact-value">+7 (800) 111-11-11</a>
+                      <span className="contact-label">{t('support.phoneLabel')}</span>
+                      <a href={`tel:${t('support.phoneValue').replace(/[^+\d]/g, '')}`} className="contact-value">{t('support.phoneValue')}</a>
                   </div>
                </div>
             </div>

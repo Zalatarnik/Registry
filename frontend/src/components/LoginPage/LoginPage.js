@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './LoginPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import { validateRegistration } from '../../validation/ValidationContext';
+import { useTranslation } from '../common/useTranslation';
 
 
 // иконки
@@ -85,6 +86,7 @@ const handleButtonLeave = (e) => {
 
 
 function LoginPage({ onLoginSuccess }) {
+  const { t } = useTranslation();
   // состояние для переключения между формами "вход" и регистрация"
   const [selectedTab, setSelectedTab] = useState('login');
   const [hoveredTab, setHoveredTab] = useState('login');
@@ -140,7 +142,7 @@ const handleRegisterSubmit = async (e) => {
     studentId,
     group,
     curatorLogin
-  });
+  }, t);
 
   if (!validationResult.valid) {
     addNotification(validationResult.message, 'error');
@@ -176,11 +178,11 @@ const handleRegisterSubmit = async (e) => {
         // если сервер вернул ошибку
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || 'Произошла ошибка при регистрации');
+            throw new Error(errorData.detail || t('register.error.generic'));
         }
 
         // при успешной регистрации показываем сообщение и переключаем на вкладку входа
-        alert('Регистрация прошла успешно! Теперь вы можете войти.');
+        addNotification(t('register.success'), 'success');
         setSelectedTab('login');
         
         // полностью очищаем все поля формы регистрации
@@ -207,10 +209,10 @@ const handleRegisterSubmit = async (e) => {
       {/* переключатель вкладок "вход" / "регистрация" */}
       <div className="form-toggle" onMouseLeave={() => setHoveredTab(selectedTab)}>
         <button onClick={() => setSelectedTab('login')} onMouseEnter={() => setHoveredTab('login')} className={`toggle-button ${selectedTab === 'login' ? 'selected' : ''} ${hoveredTab === 'login' ? 'hover-active' : ''}`}>
-          ВХОД
+          {t('login.title.login')}
         </button>
         <button onClick={() => setSelectedTab('register')} onMouseEnter={() => setHoveredTab('register')} className={`toggle-button ${selectedTab === 'register' ? 'selected' : ''} ${hoveredTab === 'register' ? 'hover-active' : ''}`}>
-          РЕГИСТРАЦИЯ
+          {t('login.title.register')}
         </button>
         <div className="glider" style={{ transform: `translateX(${hoveredTab === 'register' ? '100%' : '0'})` }} />
       </div>
@@ -220,21 +222,21 @@ const handleRegisterSubmit = async (e) => {
         {selectedTab === 'login' && (
           <form onSubmit={handleLoginSubmit}>
             <div className="form-group">
-              <label htmlFor="login-email">Логин</label>
+              <label htmlFor="login-email">{t('login.login.label')}</label>
               <div className="input-wrapper">
                 <UserIcon className="input-icon" />
                 <input type="text" id="login-email" value={login} onChange={(e) => setLogin(e.target.value)} required />
               </div>
             </div>
             <div className="form-group">
-              <label htmlFor="login-password">Пароль</label>
+              <label htmlFor="login-password">{t('login.password.label')}</label>
               <div className="input-wrapper">
                  <PasswordIcon className="input-icon" />
                  <input type="password" id="login-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
             </div>
             <button type="submit" className="submit-btn" onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave}>
-              <span>Войти</span>
+              <span>{t('login.button.login')}</span>
             </button>
           </form>
         )}
@@ -242,19 +244,19 @@ const handleRegisterSubmit = async (e) => {
         {selectedTab === 'register' && (
           <form onSubmit={handleRegisterSubmit}>
             {/* общие поля для всех ролей */}
-            <div className="form-group"><label htmlFor="reg-lastname">Фамилия</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-lastname" value={lastName} onChange={(e) => setLastName(e.target.value)} required /></div></div>
-            <div className="form-group"><label htmlFor="reg-firstname">Имя</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-firstname" value={firstName} onChange={(e) => setFirstName(e.target.value)} required /></div></div>
-            <div className="form-group"><label htmlFor="reg-middlename">Отчество</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-middlename" value={middleName} onChange={(e) => setMiddleName(e.target.value)} /></div></div>
-            <div className="form-group"><label htmlFor="reg-email">Почта</label><div className="input-wrapper"><EmailIcon className="input-icon" /><input type="email" id="reg-email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div></div>
-            <div className="form-group"><label htmlFor="reg-password">Пароль</label><div className="input-wrapper"><PasswordIcon className="input-icon" /><input type="password" id="reg-password" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} required /></div></div>
-            <div className="form-group"><label htmlFor="reg-confirm-password">Подтвердите пароль</label><div className="input-wrapper"><PasswordIcon className="input-icon" /><input type="password" id="reg-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></div></div>
+            <div className="form-group"><label htmlFor="reg-lastname">{t('register.lastname.label')}</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-lastname" value={lastName} onChange={(e) => setLastName(e.target.value)} required /></div></div>
+            <div className="form-group"><label htmlFor="reg-firstname">{t('register.firstname.label')}</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-firstname" value={firstName} onChange={(e) => setFirstName(e.target.value)} required /></div></div>
+            <div className="form-group"><label htmlFor="reg-middlename">{t('register.middlename.label')}</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-middlename" value={middleName} onChange={(e) => setMiddleName(e.target.value)} /></div></div>
+            <div className="form-group"><label htmlFor="reg-email">{t('register.email.label')}</label><div className="input-wrapper"><EmailIcon className="input-icon" /><input type="email" id="reg-email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div></div>
+            <div className="form-group"><label htmlFor="reg-password">{t('register.password.label')}</label><div className="input-wrapper"><PasswordIcon className="input-icon" /><input type="password" id="reg-password" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} required /></div></div>
+            <div className="form-group"><label htmlFor="reg-confirm-password">{t('register.confirmPassword.label')}</label><div className="input-wrapper"><PasswordIcon className="input-icon" /><input type="password" id="reg-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></div></div>
             
             {passwordError && <p className="form-error">{passwordError}</p>}
             
             {/* переключатель ролей */}
             <div className="role-toggle" onMouseLeave={() => setHoveredRole(selectedRole)}>
-              <button type="button" onClick={() => setSelectedRole('student')} onMouseEnter={() => setHoveredRole('student')} className={`toggle-button ${selectedRole === 'student' ? 'selected' : ''} ${hoveredRole === 'student' ? 'hover-active' : ''}`}>Студент</button>
-              <button type="button" onClick={() => setSelectedRole('curator')} onMouseEnter={() => setHoveredRole('curator')} className={`toggle-button ${selectedRole === 'curator' ? 'selected' : ''} ${hoveredRole === 'curator' ? 'hover-active' : ''}`}>Куратор</button>
+              <button type="button" onClick={() => setSelectedRole('student')} onMouseEnter={() => setHoveredRole('student')} className={`toggle-button ${selectedRole === 'student' ? 'selected' : ''} ${hoveredRole === 'student' ? 'hover-active' : ''}`}>{t('register.role.student')}</button>
+              <button type="button" onClick={() => setSelectedRole('curator')} onMouseEnter={() => setHoveredRole('curator')} className={`toggle-button ${selectedRole === 'curator' ? 'selected' : ''} ${hoveredRole === 'curator' ? 'hover-active' : ''}`}>{t('register.role.curator')}</button>
               <div className="glider" style={{ transform: `translateX(${hoveredRole === 'curator' ? '100%' : '0'})` }}/>
             </div>
 
@@ -263,18 +265,18 @@ const handleRegisterSubmit = async (e) => {
               {/* поля для студента */}
               {selectedRole === 'student' && (
                 <>
-                  <div className="form-group"><label htmlFor="reg-studentid">Номер студенческого билета</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-studentid" value={studentId} onChange={(e) => setStudentId(e.target.value)} required /></div></div>
-                  <div className="form-group"><label htmlFor="reg-group">Группа</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-group" value={group} onChange={(e) => setGroup(e.target.value)} required /></div></div>
+                  <div className="form-group"><label htmlFor="reg-studentid">{t('register.studentId.label')}</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-studentid" value={studentId} onChange={(e) => setStudentId(e.target.value)} required /></div></div>
+                  <div className="form-group"><label htmlFor="reg-group">{t('register.group.label')}</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-group" value={group} onChange={(e) => setGroup(e.target.value)} required /></div></div>
                 </>
               )}
               {/* поля для куратора */}
               {selectedRole === 'curator' && (
-                <div className="form-group"><label htmlFor="reg-curator-login">Логин</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-curator-login" value={curatorLogin} onChange={(e) => setCuratorLogin(e.target.value)} required /></div></div>
+                <div className="form-group"><label htmlFor="reg-curator-login">{t('register.curatorLogin.label')}</label><div className="input-wrapper"><UserIcon className="input-icon" /><input type="text" id="reg-curator-login" value={curatorLogin} onChange={(e) => setCuratorLogin(e.target.value)} required /></div></div>
               )}
             </div>
 
             <button type="submit" className="submit-btn" onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave}>
-              <span>Зарегистрироваться</span>
+              <span>{t('register.button.submit')}</span>
             </button>
           </form>
         )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from './common/useTranslation';
 
 // Компонент
 const FilterModal = ({
@@ -9,6 +10,7 @@ const FilterModal = ({
   handleMouseMoveForEffect,  // Обработчик движения мыши (для эффекта кнопок)
   handleButtonLeave   // Обработчик ухода мыши с кнопки
 }) => {
+  const { t } = useTranslation();
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ const FilterModal = ({
         <div className="modal-body">
             <div className="filter-grid">
                 <div className="form-field">
-                <h4>Сортировка</h4>
+                <h4>{t('filterModal.sort.title')}</h4>
                 <label className="input-label">
                     <input
                     type="radio"
@@ -61,7 +63,7 @@ const FilterModal = ({
                     checked={filters.sort === 'recent'}
                     onChange={() => setFilters(prev => ({ ...prev, sort: 'recent' }))}
                     />
-                    <span>Недавно прошедшие</span>
+                    <span>{t('filterModal.sort.recent')}</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -70,7 +72,7 @@ const FilterModal = ({
                     checked={filters.sort === 'alphabetical'}
                     onChange={() => setFilters(prev => ({ ...prev, sort: 'alphabetical' }))}
                     />
-                    <span>По алфавиту ФИО</span>
+                    <span>{t('filterModal.sort.alphabetical')}</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -79,19 +81,19 @@ const FilterModal = ({
                     checked={filters.sort === 'reverseAlphabetical'}
                     onChange={() => setFilters(prev => ({ ...prev, sort: 'reverseAlphabetical' }))}
                     />
-                    <span>Против алфавита ФИО</span>
+                    <span>{t('filterModal.sort.reverseAlphabetical')}</span>
                 </label>
                 </div>
 
                 <div className="form-field">
-                <h4>Статус мероприятия</h4>
+                <h4>{t('filterModal.status.title')}</h4>
                 <label className="input-label">
                   <input
                     type="checkbox"
                     checked={filters.international}
                     onChange={() => setFilters(prev => ({ ...prev, international: !prev.international }))}
                     />
-                    <span>Международные</span>
+                    <span>{t('filterModal.status.international')}</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -99,7 +101,7 @@ const FilterModal = ({
                     checked={filters.allRussian}
                     onChange={() => setFilters(prev => ({ ...prev, allRussian: !prev.allRussian }))}
                     />
-                    <span>Всероссийские</span>
+                    <span>{t('filterModal.status.allRussian')}</span>
                 </label>
                 <label className="input-label">
                   <input
@@ -107,7 +109,7 @@ const FilterModal = ({
                     checked={filters.city}
                     onChange={() => setFilters(prev => ({ ...prev, city: !prev.city }))}
                     />
-                    <span>Городские</span>
+                    <span>{t('filterModal.status.city')}</span>
                 </label>
                 <label className="input-label">
                     <input
@@ -115,7 +117,7 @@ const FilterModal = ({
                     checked={filters.regional}
                     onChange={() => setFilters(prev => ({ ...prev, regional: !prev.regional }))}
                     />
-                    <span>Региональные</span>
+                    <span>{t('filterModal.status.regional')}</span>
                 </label>
                 </div>
             </div>
@@ -128,7 +130,7 @@ const FilterModal = ({
             onMouseMove={handleMouseMoveForEffect}
             onMouseLeave={handleButtonLeave}
           >
-            <span>Очистить</span>
+            <span>{t('filterModal.button.clear')}</span>
           </button>
           <button
             className="interactive-button btn-style-export"
@@ -136,7 +138,7 @@ const FilterModal = ({
             onMouseMove={handleMouseMoveForEffect}
             onMouseLeave={handleButtonLeave}
           >
-            <span>Применить</span>
+            <span>{t('filterModal.button.apply')}</span>
           </button>
         </div>
       </div>

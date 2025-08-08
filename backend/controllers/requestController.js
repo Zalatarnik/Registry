@@ -115,6 +115,7 @@ exports.getRequestsByStudent = async (req, res) => {
 
 // Обновление информации заявки и файлов
 exports.updateRequest = async (req, res) => {
+  const { t } = useTranslation();
   try {
     const { id } = req.params;
     const {
@@ -164,7 +165,7 @@ exports.updateRequest = async (req, res) => {
       eventDate: request.eventDate,
       description: request.description,
       link: request.link,
-      status: 'На рассмотрении',
+      status: 'Pending',
       files: fs.existsSync(uploadsDir)
         ? fs.readdirSync(uploadsDir).map(name => ({ name, url: `/uploads/request_${id}/${name}` }))
         : []

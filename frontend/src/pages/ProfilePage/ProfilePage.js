@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useNotification } from '../../notification/NotificationContext';
 import { validateProfileUpdate, validateSecurity } from '../../validation/ValidationContext';
+import { useTranslation } from '../../components/common/useTranslation';
 
 import './ProfilePage.css';
 
@@ -201,27 +202,26 @@ const SecurityModal = ({ isOpen, onClose, userLogin, position }) => {
             setIsClosing(false);
         }
     }, [isOpen]);
+const SecurityModal = ({ isOpen, onClose, userLogin }) => {
+  const { t } = useTranslation();
+  // хук для отображения уведомлений
+  const { addNotification } = useNotification();
+  // состояние для полей ввода
+  const [email, setEmail] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  // состояние для индикации процесса сохранения
+  const [isSaving, setIsSaving] = useState(false);
 
-    // если всплывающее окно не открыто, ничего не рендерим
-    if (!isOpen) return null;
+  // если всплывающее окно не открыто, ничего не рендерим
+  if (!isOpen) return null;
 
-    const handleClose = () => {
-        setIsClosing(true);
-        setTimeout(() => {
-            onClose();
-            // очищаем поля при закрытии
-            setEmail('');
-            setOldPassword('');
-            setNewPassword('');
-        }, 400);
-    };
-
-    // обработчик сохранения данных безопасности
-    const handleSave = async () => {
-        setIsSaving(true);
-        try {
-            // валидируем перед отправкой
-            const validationErrors = await validateSecurity({ email, oldPassword, newPassword });
+  // обработчик сохранения данных безопасности
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // валидируем перед отправкой
+      const validationErrors = await validateSecurity({ email, oldPassword, newPassword }, t);
 
             // если есть ошибки - показать первую и остановить
             const errorKeys = Object.keys(validationErrors);
@@ -250,68 +250,56 @@ const SecurityModal = ({ isOpen, onClose, userLogin, position }) => {
                 body: JSON.stringify(payload)
             });
 
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.detail || 'Ошибка обновления');
-            }
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || t('security.update.error'));
+      }
 
-            addNotification('Данные безопасности обновлены!');
-            handleClose();
-        } catch (e) {
-            addNotification(e.message, 'error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
+      addNotification(t('profile.notification.securityUpdated'), 'success');
+      
+      // очищаем поля после успеха
+      setEmail('');
+      setOldPassword('');
+      setNewPassword('');
+      onClose();
+    } catch (e) {
+      addNotification(e.message, 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // обработчик клика для закрытия окна
+  const handleOverlayClick = (e) => {
+    if (e.target.id === 'modal-overlay') onClose();
+  };
 
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        handleSave();
-    };
-    
-    // используем портал для рендеринга всплывающего окна в body
-    return ReactDOM.createPortal(
-        <div className={`profile-page-modal-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={e => e.stopPropagation()} style={position || {}}>
-                <div className="chat-header">
-                    <div className="chat-title-wrapper">
-                        <h2>Настройки безопасности</h2>
-                    </div>
-                </div>
-                <div className="edit-modal-body">
-                    <form className="edit-form-inside-modal" onSubmit={handleFormSubmit}>
-                        <div className="form-grid-two-col">
-                            <div className="email-column">
-                                <FormField label="Новый адрес электронной почты">
-                                    <input className="form-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Оставьте пустым, если не меняете" />
-                                </FormField>
-                            </div>
-                            <div className="password-column">
-                                <FormField label="Старый пароль">
-                                    <input className="form-input" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Обязательно для смены пароля" />
-                                </FormField>
-                                <FormField label="Новый пароль">
-                                    <input className="form-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Оставьте пустым, если не меняете" />
-                                </FormField>
-                            </div>
-                        </div>
-                        <div className="form-actions-container">
-                            <button type="button" className="form-secondary-btn" onClick={handleClose} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
-                                <span>Отмена</span>
-                            </button>
-                            <button type="submit" className="form-submit-btn" onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
-                                {isSaving ? <ClockwiseLoader size={20} /> : <span>Сохранить</span>}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+  // используем портал для рендеринга всплывающего окна в body
+  return ReactDOM.createPortal(
+    <div className="profile-page-modal-scope">
+        <div className="modal-overlay" id="modal-overlay" onClick={handleOverlayClick}>
+          <div className="modal-content">
+            <div className="modal-header"><h2>{t('profile.security.title')}</h2></div>
+            <div className="modal-body">
+              <div className="form-group"><label htmlFor="email">{t('profile.security.email')}</label><input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('profile.security.email.placeholder')}/></div>
+              <div className="form-group"><label htmlFor="old-password">{t('profile.security.oldPassword')}</label><input type="password" id="old-password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder={t('profile.security.oldPassword.placeholder')} /></div>
+              <div className="form-group"><label htmlFor="password">{t('profile.security.newPassword')}</label><input type="password" id="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t('profile.security.newPassword.placeholder')} /></div>
             </div>
-        </div>, document.body
-    );
+            <div className="modal-footer">
+              <button className="profile-secondary-btn" onClick={onClose} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}><span>{t('logout.cancel')}</span></button>
+              <button className="profile-submit-btn" onClick={handleSave} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
+                {isSaving ? <ClockwiseLoader size={20} /> : <span>{t('profile.saveSecurity')}</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+    </div>, document.body
+  );
 };
 
 // компонент редактируемого поля
 const EditableField = ({ label, value, onValueChange, fieldId, activeField, setActiveField, isLocked = false }) => {
+  const { t } = useTranslation();
   // определяем, находится ли поле в режиме редактирования
   const isEditing = fieldId === activeField && !isLocked;
   // ссылка для управления фокусом на поле ввода
@@ -348,7 +336,7 @@ const EditableField = ({ label, value, onValueChange, fieldId, activeField, setA
           <input ref={inputRef} type="text" value={value || ''} onChange={(e) => onValueChange(e.target.value)} onBlur={() => setActiveField(null)} onKeyDown={handleKeyDown} className="editable-input" />
         ) : (
           // иначе, показываем span с текстом
-          <span className="editable-field-value">{value || 'Не указано'}</span>
+          <span className="editable-field-value">{value || t('profile.notSpecified')}</span>
         )}
       </div>
     </div>
@@ -357,6 +345,7 @@ const EditableField = ({ label, value, onValueChange, fieldId, activeField, setA
 
 // главный компонент страницы профиля
 export default function ProfilePage({ userRole, userLogin }) {
+  const { t } = useTranslation();
   // хук для уведомлений
   const { addNotification } = useNotification();
   // состояние для данных пользователя, которые можно изменять
@@ -378,30 +367,34 @@ export default function ProfilePage({ userRole, userLogin }) {
   const [errorShown, setErrorShown] = useState(false);
   // загрузка данных профиля
 useEffect(() => {
-    if (!userLogin) return;
-    const fetchProfile = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${API_URL}/api/profile/me`, {
-                credentials: 'include'
-            });
-            if (!response.ok) {
-                throw new Error('Не удалось загрузить данные профиля');
-            }
-            const data = await response.json();
-            const normalized = {
-                ...data,
-                patronymic: data.patronymic ?? data.middleName ?? ''
-            };
-            setUserData(normalized);
-            setOriginalUserData(normalized);
-            setIsLoading(false);
-        } catch (error) {
-            console.error("Ошибка при загрузке профиля:", error);
-        }
-    };
-    fetchProfile();
-}, [userLogin]);
+  if (!userLogin) return;
+
+  setIsLoading(true);
+
+  fetch(`${API_URL}/api/profile/me`, {
+    credentials: 'include'
+  })
+    .then(res => {
+      if (!res.ok) throw new Error(t('profile.loadingError'));
+      return res.json();
+    })
+    .then(data => {
+      const normalized = {
+        ...data,
+        patronymic: data.patronymic ?? data.middleName ?? ''
+      };
+      setUserData(normalized);
+      setOriginalUserData(normalized);
+    })
+    .catch(err => {
+      console.error(err);
+      if (!errorShown) {                               // уведомляем один раз
+        addNotification(err.message, 'error');
+        setErrorShown(true);
+      }
+    })
+    .finally(() => setIsLoading(false));
+}, [addNotification, errorShown, t, userLogin]);   
 
   // обработчик изменения значения в любом редактируемом поле
   const handleValueChange = (field, value) => {
@@ -427,7 +420,7 @@ useEffect(() => {
         });
         if (!response.ok) {
           // пробуем распарсить json; если это HTML — получим исключение
-          let message = 'Ошибка загрузки аватара';
+          let message = 'Unable to upload avatar';
           try {
             const errData = await response.json();
             message = errData.detail ?? message;
@@ -440,7 +433,7 @@ useEffect(() => {
         const updatedProfile = await response.json();
         setUserData(updatedProfile);
         setOriginalUserData(updatedProfile);
-        addNotification('Аватар успешно обновлен!');
+        addNotification(t('profile.notification.avatar'));
     } catch (error) {
         addNotification(error.message, 'error');
     } finally {
@@ -465,7 +458,7 @@ const handleSubmit = async (e) => {
 
   try {
     // проверим данные через функцию валидации
-    const validation = validateProfileUpdate(userData);
+    const validation = validateProfileUpdate(userData, t);
     if (!validation.valid) {
       throw new Error(validation.message);
     }
@@ -487,7 +480,7 @@ const handleSubmit = async (e) => {
     // если сервер ответил ошибкой 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || 'Ошибка сохранения профиля');
+      throw new Error(errorData.detail);
     }
 
     // если всё ок, обновляем данные в состоянии
@@ -498,7 +491,7 @@ const handleSubmit = async (e) => {
     setIsEditingMode(false);  // выключаем режим редактирования
     setEditingField(null);    // убираем фокус с поля
 
-    addNotification('Профиль успешно обновлен!'); 
+    addNotification(t('profile.notification.updated')); 
   } catch (error) {
     addNotification(error.message, 'error');
   } finally {
@@ -528,7 +521,7 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="profile-container">
-      <h1>Профиль пользователя</h1>
+      <h1>{t('profile.title')}</h1>
       {isLoading ? (
         // показываем загрузчик, пока данные загружаются
         <div className="page-loader-container"><ClockwiseLoader /></div>
@@ -543,39 +536,39 @@ const handleSubmit = async (e) => {
                 onMouseMove={isEditingMode ? handleAvatarMove : null} // применяем анимацию только в режиме редактирования
               >
                 {/* формируем полный url для аватара */}
-                <img src={`${API_URL}${userData.avatar}`} alt="Аватар" className="profile-avatar-preview" />
+                <img src={`${API_URL}${userData.avatar}`} alt="avatar" className="profile-avatar-preview" />
                 {isEditingMode && (
                     <div className="avatar-upload-label">
-                        <CameraIcon /> Сменить фото
+                        <CameraIcon /> {t('profile.avatar.change')}
                     </div>
                 )}
                 <input type="file" id="avatarUpload" className="avatar-upload-input" accept="image/*" onChange={handleAvatarChange} disabled={!isEditingMode || isSaving} />
               </label>
               
               <div className="profile-form">
-                <EditableField label="Фамилия" value={userData.lastName} onValueChange={(val) => handleValueChange('lastName', val)} fieldId="lastName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('lastName')} />
+                <EditableField label={t('profile.fields.lastName')} value={userData.lastName} onValueChange={(val) => handleValueChange('lastName', val)} fieldId="lastName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('lastName')} />
                 
                 {userRole === 'student' ? (
-                  <EditableField label="№ студенческого билета" value={userData.studentIdNumber} fieldId="studentId" isLocked={true} />
+                  <EditableField label={t('profile.fields.studentId')} value={userData.studentIdNumber} fieldId="studentId" isLocked={true} />
                 ) : (
-                  <EditableField label="Логин" value={userData.login} fieldId="login" isLocked={true} />
+                  <EditableField label={t('profile.fields.login')} value={userData.login} fieldId="login" isLocked={true} />
                 )}
 
-                <EditableField label="Имя" value={userData.firstName} onValueChange={(val) => handleValueChange('firstName', val)} fieldId="firstName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('firstName')} />
+                <EditableField label={t('profile.fields.firstName')} value={userData.firstName} onValueChange={(val) => handleValueChange('firstName', val)} fieldId="firstName" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('firstName')} />
 
                 {userRole === 'student' ? (
-                  <EditableField label="Группа" value={userData.group} onValueChange={(val) => handleValueChange('group', val)} fieldId="group" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('group')}/>
+                  <EditableField label={t('profile.fields.group')} value={userData.group} onValueChange={(val) => handleValueChange('group', val)} fieldId="group" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('group')}/>
                 ) : (
-                  <EditableField label="Должность" value={userData.position} onValueChange={(val) => handleValueChange('position', val)} fieldId="position" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('position')}/>
+                  <EditableField label={t('profile.fields.position')} value={userData.position} onValueChange={(val) => handleValueChange('position', val)} fieldId="position" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('position')}/>
                 )}
                 
-                <EditableField label="Отчество" value={userData.patronymic} onValueChange={(val) => handleValueChange('patronymic', val)} fieldId="patronymic" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('patronymic')} />
+                <EditableField label={t('profile.fields.patronymic')} value={userData.patronymic} onValueChange={(val) => handleValueChange('patronymic', val)} fieldId="patronymic" activeField={editingField} setActiveField={setEditingField} isLocked={isFieldLocked('patronymic')} />
                 
                 {/* контейнер для кнопки "безопасность", выровненный с другими полями */}
                 <div className="editable-field-container" style={{ cursor: 'default' }}>
                   <label> </label>
                   <button type="button" className="profile-secondary-btn" onClick={handleSecurityClick} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave}>
-                    <span>Безопасность</span>
+                    <span>{t('profile.security')}</span>
                   </button>
                 </div>
               </div>
@@ -585,17 +578,17 @@ const handleSubmit = async (e) => {
               {/* контейнер с кнопкой "редактировать", видимый по умолчанию */}
               <div className={`action-buttons-wrapper ${!isEditingMode ? 'is-visible' : ''}`}>
                 <button type="button" className="profile-submit-btn profile-submit-btn-large" onClick={handleEditClick} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave}>
-                  <span>Редактировать</span>
+                  <span>{t('profile.edit')}</span>
                 </button>
               </div>
 
               {/* контейнер с кнопками "отмена" и "сохранить", видимый в режиме редактирования */}
               <div className={`action-buttons-wrapper ${isEditingMode ? 'is-visible' : ''}`}>
                 <button type="button" className="profile-secondary-btn" onClick={handleCancelClick} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
-                  <span>Отмена</span>
+                  <span>{t('profile.cancel')}</span>
                 </button>
                 <button type="submit" className="profile-submit-btn profile-submit-btn-large" onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
-                  {isSaving ? <ClockwiseLoader size={20} /> : <span>Сохранить изменения</span>}
+                  {isSaving ? <ClockwiseLoader size={20} /> : <span>{t('profile.saveChanges')}</span>}
                 </button>
               </div>
             </div>
@@ -603,7 +596,7 @@ const handleSubmit = async (e) => {
         </div>
       ) : (
         // если данные не загрузились, показываем сообщение об ошибке
-        <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>Не удалось загрузить данные профиля.</div>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>{t('profile.loadingError')}</div>
       )}
       
       {/* рендерим всплывающее окно */}

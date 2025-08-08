@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import './EventsPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
+import { useTranslation } from '../../components/common/useTranslation';
 
 // импорт изображения по умолчанию
 import defaultEventImage from '../../images/event-default.jpg';
@@ -23,6 +24,57 @@ const API_BASE_URL = 'http://localhost:8000';
 // АНИМАЦИЯ КНОПОК
 const EASING_FACTOR = 0.15;
 const DEFAULT_RADIUS = 0;
+
+const toEventStatusKey = (s = '') => {
+  const raw = String(s).trim();
+  const map = {
+    // ru
+    'Международный': 'international',
+    'Всероссийский': 'allRussian',
+    'Городской':     'city',
+    'Региональный':  'regional',
+    'Внутривузовский': 'university',
+    // en
+    'International': 'international',
+    'All-Russian':   'allRussian',
+    'All Russian':   'allRussian',
+    'City':          'city',
+    'Regional':      'regional',
+    'University':    'university',
+  };
+  // если уже пришёл код — вернём как есть
+  return map[raw] ?? raw;
+};
+
+const EVENT_STATUS_I18N_KEYS = {
+  international: 'createEvent.status.international',
+  allRussian:    'createEvent.status.allRussian',
+  city:          'createEvent.status.city',
+  regional:      'createEvent.status.regional',
+  university:    'createEvent.status.university',
+};
+
+// лейбл статуса мероприятия
+const getEventStatusLabel = (raw, t) => {
+  const norm = toEventStatusKey(raw);
+  const key = EVENT_STATUS_I18N_KEYS[norm];
+  return key ? t(key) : raw; // если ключа нет — показываем как есть
+};
+
+// лейблы кнопок фильтра (All / Registered / Unregistered)
+const getFilterLabel = (key, t) => t(`events.filter.${String(key).toLowerCase()}`);
+
+export const FILTER_KEYS = Object.freeze({
+  ALL: 'All',
+  REGISTERED: 'Registered',
+  UNREGISTERED: 'Unregistered',
+});
+
+export const filterStyleMap = {
+  [FILTER_KEYS.ALL]: 'btn-style-neutral',
+  [FILTER_KEYS.REGISTERED]: 'btn-style-registered-filter',
+  [FILTER_KEYS.UNREGISTERED]: 'btn-style-unregistered-filter',
+};
 
 function animateRadii(btn) {
     const state = btn._animationState;
@@ -186,7 +238,8 @@ const FormField = ({ label, children }) => (
 
 
 // всплывающее окно для записи на мероприятие
-const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
+const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
+    const { t } = useTranslation();
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
     const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.middleName || user.patronymic].filter(Boolean).join(' ') : '';
@@ -225,7 +278,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
         if (participants.length < maxGroupSize) {
             setParticipants([...participants, { fullName: '', group: '' }]);
         } else {
-            addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
+            addNotification(t('notification.maxGroupReached',{maxGroupSize}), 'info');
         }
     };
 
@@ -245,7 +298,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
         e.preventDefault();
         for (const p of participants) {
             if (!p.fullName.trim() || !p.group.trim()) {
-                addNotification('Пожалуйста, заполните все поля.', 'error');
+                addNotification(t('notification.fillAllFields'), 'error');
                 return;
             }
         }
@@ -267,234 +320,48 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     };
 
     return ReactDOM.createPortal(
-        <div className={`events-page-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
-                <div className="chat-header">
-                    <div className="chat-title-wrapper">
-                        <h2>Запись на мероприятие</h2>
-                        <p>{event.eventName}</p>
+        <div className="events-page-scope">
+            <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
+                <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="chat-header">
+                        <div className="chat-title-wrapper">
+                            <h2>{t('notification.signUpTitle')}</h2>
+                            <p>{event.eventName}</p>
+                        </div>
+                        <button onClick={handleClose} className="chat-close-btn" title={t('notification.close')}><CloseIcon /></button>
                     </div>
-                </div>
-                <form onSubmit={handleSubmit} className="edit-form-inside-modal">
                     <div className="edit-modal-body">
-                        <div className="participants-list">
-                            {participants.map((p, index) => (
-                                <div className="participant-entry" key={index}>
-                                    {index > 0 && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon /></button>}
-                                    <div className="form-grid signup-form-grid">
-                                        <FormField label={index === 0 ? "Ваше ФИО" : "ФИО участника"}>
-                                            <input type="text" className="form-input" value={p.fullName} onChange={(e) => handleParticipantChange(index, 'fullName', e.target.value)} required disabled={index === 0} />
-                                        </FormField>
-                                        <FormField label={index === 0 ? "Ваша группа" : "Группа"}>
-                                            <input type="text" className="form-input" value={p.group} onChange={(e) => handleParticipantChange(index, 'group', e.target.value)} required disabled={index === 0} />
-                                        </FormField>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="form-actions-container participant-actions">
-                        <button type="button" className="form-secondary-btn btn-add-plus" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={isSubmitting || participants.length >= (event.max_group_size || 5)}>
-                            <span>+</span>
-                        </button>
-                        <div className="form-actions-right">
-                            <button type="button" className="form-secondary-btn" onClick={handleClose} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
-                                <span>Отмена</span>
-                            </button>
-                            <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                <span>{isSubmitting ? 'Запись...' : 'Записаться'}</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>,
-        document.body
-    );
-
-};
-
-// модальное окно для приглашения пользователей
-const AllUsersModal = memo(forwardRef((
-  { eventId, eventName, curatorLogin, onClose, position, registeredParticipants = [] }, ref ) => {
-    const { addNotification } = useNotification();
-    const [users, setUsers] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isClosing, setIsClosing] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const inputRef = useRef(null);
-    const [hoveredCardId, setHoveredCardId] = useState(null);
-    const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
-    const cardElements = useRef(new Map());
-    const modalRef = useRef(null);
-    const [dynamicPosition, setDynamicPosition] = useState(position);
-    const [invitedLogins, setInvitedLogins] = useState(new Set());
-
-    const handleClose = useCallback(() => {
-        if (isClosing) return;
-        setIsClosing(true);
-        setTimeout(onClose, 400);
-    }, [isClosing, onClose]);
-
-    useImperativeHandle(ref, () => ({
-        close: () => {
-            handleClose();
-        }
-    }));
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            setIsLoading(true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/users/all`, { credentials: 'include' });
-                if (!response.ok) throw new Error('Не удалось загрузить список пользователей');
-                const data = await response.json();
-                setUsers(data);
-            } catch (error) {
-                console.error("Ошибка при загрузке пользователей:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchUsers();
-    }, []);
-
-    useEffect(() => {
-        if (modalRef.current) {
-            const rect = modalRef.current.getBoundingClientRect();
-            if (rect.height > 0) {
-                const windowHeight = window.innerHeight;
-                const gap = 15;
-                let newTop = rect.top;
-
-                if (rect.bottom > windowHeight - gap) {
-                    newTop = windowHeight - rect.height - gap;
-                }
-                if (newTop < gap) {
-                    newTop = gap;
-                }
-                if (newTop !== rect.top) {
-                    setDynamicPosition(pos => ({ ...pos, top: `${newTop}px` }));
-                }
-            }
-        }
-    }, [isLoading, users]);
-
-    const filteredUsers = useMemo(() => {
-        return users
-            .filter(user => user.role === 'student')
-            .filter(user => {
-                const fullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`.toLowerCase();
-                const search = searchTerm.toLowerCase();
-                return fullName.includes(search) || user.login.toLowerCase().includes(search) || (user.group && user.group.toLowerCase().includes(search));
-            });
-    }, [users, searchTerm]);
-
-    // Множество логинов уже участвующих 
-    const registeredLogins = useMemo(
-    () => new Set((registeredParticipants || []).map(r => r.userLogin)),
-    [registeredParticipants]
-    );
-
-    useEffect(() => {
-        const targetElement = hoveredCardId ? cardElements.current.get(hoveredCardId) : null;
-        if (targetElement) {
-            setGliderStyle({
-                transform: `translateY(${targetElement.offsetTop}px)`,
-                height: `${targetElement.offsetHeight}px`,
-                opacity: 1,
-            });
-        } else {
-            setGliderStyle(prev => ({ ...prev, opacity: 0 }));
-        }
-    }, [hoveredCardId, filteredUsers]);
-
-    return ReactDOM.createPortal(
-        <div className={`events-page-scope modal-overlay invite-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.target === e.currentTarget && handleClose()}>
-            <div ref={modalRef} className={`edit-modal-content signup-modal invite-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
-                <div className="edit-modal-body">
-                    <div className="filter-container">
-                        <div className="search-bar-wrapper">
-                            <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="invite-users-list-container" onMouseLeave={() => setHoveredCardId(null)}>
-                        <div className="list-glider" style={gliderStyle}></div>
-                        {isLoading ? <div className="page-loader-container"><ClockwiseLoader /></div> :
-                            filteredUsers.length > 0 ? (
-                                filteredUsers.map((user, index) => {
-                                    const isActive = hoveredCardId === user.id;
-                                    const isRegistered = registeredLogins.has(user.login);
-                                    const isInvited = invitedLogins.has(user.login);
-                                    return (
-                                        <React.Fragment key={user.id}>
-                                            <div
-                                                ref={node => node ? cardElements.current.set(user.id, node) : cardElements.current.delete(user.id)}
-                                                className={`invite-user-card ${isActive ? 'is-active' : ''}`}
-                                                onMouseEnter={() => setHoveredCardId(user.id)}
-                                            >
-                                                <div className="invite-user-card-main-info">
-                                                    <img src={`${API_BASE_URL}${user.avatar}`} alt="avatar" className="user-avatar" />
-                                                    <div className="header-content">
-                                                        <h3>{`${user.lastName} ${user.firstName}`}</h3>
-                                                        <div className="card-subtitle">{user.group}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="invite-user-card-actions">
-                                                    <button
-                                                        className="interactive-button btn-style-register"
-                                                        disabled={isRegistered || isInvited}
-                                                        onMouseEnter={() => setHoveredCardId(user.id)}
-                                                        onMouseMove={handleMouseMoveForEffect}
-                                                        onMouseLeave={handleButtonLeave}
-                                                        onClick={async (e) => {
-                                                            e.stopPropagation();
-                                                            if (isRegistered || isInvited) return;
-
-                                                            if (!eventId || !curatorLogin) {
-                                                            addNotification('Не удалось определить мероприятие или куратора.', 'error');
-                                                            return;
-                                                            }
-
-                                                            try {
-                                                            const resp = await fetch(`${API_BASE_URL}/api/notifications`, {
-                                                                method: "POST",
-                                                                headers: { "Content-Type": "application/json" },
-                                                                credentials: "include",
-                                                                body: JSON.stringify({
-                                                                recipientLogin: user.login,
-                                                                inviter: curatorLogin,
-                                                                eventId: eventId
-                                                                })
-                                                            });
-                                                            const data = await resp.json();
-                                                            if (!resp.ok) throw new Error(data.detail || 'Не удалось отправить приглашение');
-
-                                                            setInvitedLogins(prev => new Set(prev).add(user.login));
-                                                            addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
-                                                            } catch (err) {
-                                                            addNotification(err.message, 'error');
-                                                            }
-                                                        }}
-                                                        >
-                                                        <span>
-                                                            {isRegistered
-                                                            ? 'Участвует'
-                                                            : (isInvited ? 'Приглашён' : <><AddIcon /> Пригласить</>)
-                                                            }
-                                                        </span>
-                                                    </button>
+                        <form onSubmit={handleSubmit} className="edit-form-inside-modal">
+                            <div className="participants-list">
+                                {participants.map((p, index) => (
+                                    <div className="participant-entry" key={index}>
+                                        <div className="form-grid">
+                                            <div className="form-field">
+                                                <label>{index === 0 ? t('notification.yourFullName') : t('notification.fullName')}</label>
+                                                <div className="input-wrapper">
+                                                    <input type="text" className="form-input" value={p.fullName} onChange={(e) => handleParticipantChange(index, 'fullName', e.target.value)} required disabled={index === 0} />
                                                 </div>
                                             </div>
-                                            {index < filteredUsers.length - 1 && <div className="invite-user-divider" />}
-                                        </React.Fragment>
-                                    )
-                                })
-                            ) : (
-                                <div className="no-results-message">Студенты с такими данными не найдены.</div>
-                            )}
+                                            <div className="form-field">
+                                                <label>{index === 0 ? t('notification.yourGroup'):t('notification.group')}</label>
+                                                <div className="input-wrapper">
+                                                    <input type="text" className="form-input" value={p.group} onChange={(e) => handleParticipantChange(index, 'group', e.target.value)} required disabled={index === 0} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {index > 0 && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon/></button>}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="form-actions-container participant-actions">
+                                <button type="button" className="form-secondary-btn" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={participants.length >= (event.max_group_size || 5)}>
+                                    <span>{t('notification.addParticipant')}</span>
+                                </button>
+                                <button type="submit" className="form-submit-btn" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                                    <span>{t('notification.submit')}</span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -506,6 +373,7 @@ const AllUsersModal = memo(forwardRef((
 
 // всплывающее окно для просмотра списка записавшихся
 const RegistrationsModal = ({ onClose, eventName, registrations = [], position, onInvite, onCloseInvite, isInviteModalOpen }) => {
+    const { t } = useTranslation();
     const [isClosing, setIsClosing] = useState(false);
     const modalRef = useRef(null);
     const [dynamicPosition, setDynamicPosition] = useState(position);
@@ -547,36 +415,29 @@ const RegistrationsModal = ({ onClose, eventName, registrations = [], position, 
     };
 
     return ReactDOM.createPortal(
-        <div className={`events-page-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
-                <div className="chat-header">
-                    <div className="chat-title-wrapper">
-                        <h2>Записавшиеся на "{eventName}"</h2>
-                        <p>Всего: {registrations.length} чел.</p>
+        <div className="events-page-scope">
+            <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
+                <div className={`registrations-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="chat-header">
+                        <div className="chat-title-wrapper">
+                            <h2>{t('events.regListTitle',{event:eventName})}</h2>
+                            <p>{t('events.total',{count:registrations.length})}</p>
+                        </div>
+                        <button onClick={handleClose} className="chat-close-btn" title={t('notification.close')}><CloseIcon /></button>
                     </div>
-                </div>
-                <div className="registrations-modal-body">
-                    {registrations.length > 0 ? (
-                        Object.values(groupedSubmissions).map((submissionGroup, index) => (
-                            <div key={submissionGroup[0].submission_group_id} className="submission-group">
-                                <h5>Группа записи №{index + 1} ({submissionGroup.length} чел.)</h5>
-                                <ul>
-                                    {submissionGroup.map(member => <li key={member.id}>{member.full_name} <span>({member.group})</span></li>)}
-                                </ul>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="no-registrations">На это мероприятие еще никто не записался.</p>
-                    )}
-                </div>
-                <div className="form-actions-container">
-                    <div className="form-actions-right registration-modal-actions">
-                        <button type="button" className="form-secondary-btn" onClick={handleClose} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                            <span>Закрыть</span>
-                        </button>
-                        <button type="button" className={`form-submit-btn ${isInviteModalOpen ? 'btn-style-delete' : ''}`} onClick={isInviteModalOpen ? onCloseInvite : onInvite} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                            <span>{isInviteModalOpen ? 'Отмена' : 'Пригласить'}</span>
-                        </button>
+                    <div className="registrations-modal-body">
+                        {registrations.length > 0 ? (
+                            Object.values(groupedSubmissions).map((submissionGroup, index) => (
+                                <div key={submissionGroup[0].submission_group_id} className="submission-group">
+                                    <h5>{t('events.groupN',{n:index+1,count:submissionGroup.length})}</h5>
+                                    <ul>
+                                        {submissionGroup.map(member => <li key={member.id}>{member.full_name} <span>({member.group})</span></li>)}
+                                    </ul>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="no-registrations">{t('events.noRegistrations')}</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -588,6 +449,7 @@ const RegistrationsModal = ({ onClose, eventName, registrations = [], position, 
 // карточка мероприятия для вида куратора
 const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDelete, onShowList, onDownload, onMouseEnter, currentUser, innerRef }) => {
     const cardClassName = ['event-card', 'curator-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
+    const { t } = useTranslation();
     const handleAction = (e, callback, ...args) => {
         e.stopPropagation();
         callback(...args);
@@ -638,7 +500,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                             </button>
                         )}
                         <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                            <span><ListIcon /> Список</span>
+                            <span><ListIcon />{t('events.list')}</span>
                         </button>
                         {currentUser?.id === event.userId && (
                             <button
@@ -647,7 +509,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                                 onMouseMove={handleMouseMoveForEffect}
                                 onMouseLeave={handleButtonLeave}
                             >
-                               <span><DeleteIcon/> Удалить</span>
+                               <span><DeleteIcon/>{t('events.delete')}</span>
                             </button>
                         )}
                     </div>
@@ -664,15 +526,15 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                     </div>
                     <div className="card-body-column column-description">
                         <div className="detail-item">
-                            <span className="detail-label">Описание:</span>
-                            {event.description || 'Тут будет описание, возможно, когда-нибудь'}
+                            <span className="detail-label">{t('events.description')}:</span>
+                            {event.description || t('events.noDescription')}
                         </div>
                     </div>
                     <div className="card-body-column column-details">
-                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
-                        <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
-                        <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.eventStatus}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.leader')}:</span> {event.leader}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.organizer')}:</span> {event.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.location')}:</span> {event.location}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.status')}:</span> {getEventStatusLabel(event.eventStatus, t)}</div>
                     </div>
                 </div>
             </div>
@@ -683,6 +545,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
 
 // карточка мероприятия для вида студента
 const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDetailed, onDownload }) => {
+    const { t } = useTranslation();
     const cardClassName = [
         'event-card-student',
         isCentral && 'is-central',
@@ -701,11 +564,11 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                     style={{ backgroundImage: `url(${event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage})` }}
                 />
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
-                    {isRegistered ? 'Вы записаны' : 'Нет записи'}
+                    {isRegistered ? t('notification.alreadyRegistered') : t('notification.notRegistered')}
                 </div>
 
-                <div className={`recruitment-status-badge status-${event.recruitment_status === 'Активен' ? 'active' : 'completed'}`}>
-                    {event.recruitment_status}
+                <div className={`recruitment-status-badge status-${event.recruitment_status === 'active' ? 'active' : 'completed'}`}>
+                    {t(`events.recruitment.${event.recruitment_status}`)}
                 </div>
 
                 <div className="details-container">
@@ -715,11 +578,11 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                             <div className="card-date">{new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                         </div>
                         <div className="details-icons">
-                            <div className="icon-item" title="Макс. участников">
+                            <div className="icon-item" title={t('notification.maxParticipants')}>
                                 <UsersIcon />
                                 <span>{event.max_participants || '∞'}</span>
                             </div>
-                            <div className="icon-item" title="Макс. чел. в группе">
+                            <div className="icon-item" title={t('notification.maxGroupSize')}>
                                 <GroupIcon />
                                 <span>{event.max_group_size || 1}</span>
                             </div>
@@ -729,11 +592,11 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                     <div className="details-body">
                         <div className="detail-description">{event.description}</div>
 
-                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
-                        <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
-                        <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.eventStatus}</div>
-                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.leader')}:</span> {event.leader}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.organizer')}:</span> {event.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.location')}:</span> {event.location}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.status')}:</span> {getEventStatusLabel(event.eventStatus, t)}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.date')}:</span> {new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
 
                     <div className="details-actions">
@@ -753,7 +616,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                             onMouseLeave={handleButtonLeave}
                             disabled={isRegistered}
                         >
-                            <span><AddIcon /> {isRegistered ? 'Вы уже записаны' : 'Записаться'}</span>
+                            <span><AddIcon /> {isRegistered ? t('notification.alreadySignedUp') : t('notification.signUp')}</span>
                         </button>
                     </div>
                 </div>
@@ -765,6 +628,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
 
 // отображение карусели для студента
 const StudentEventsView = ({ events, userRegisteredEventIds, onSignUp, onCardClick, detailedCardId, onDownload }) => {
+    const { t } = useTranslation();
     const [currentIndex, setCurrentIndex] = useState(0);
     const carouselRef = useRef(null);
     const isScrolling = useRef(false);
@@ -798,7 +662,7 @@ const StudentEventsView = ({ events, userRegisteredEventIds, onSignUp, onCardCli
     };
 
     if (!events.length) {
-        return <p className="no-events-found">Мероприятия с выбранными фильтрами не найдены.</p>;
+        return <p className="no-events-found">{t('events.noEventsFiltered')}</p>;
     }
 
     const cardWidth = 340;
@@ -835,6 +699,7 @@ const StudentEventsView = ({ events, userRegisteredEventIds, onSignUp, onCardCli
 
 // отображение списка для куратора
 const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownload, expandedCardId, hoveredCardId, setHoveredCardId, gliderStyle, cardElements, currentUser }) => {
+    const { t } = useTranslation();
     return (
         <div className="page-content">
             <div className="events-list-container" onMouseLeave={() => setHoveredCardId(null)}>
@@ -858,7 +723,7 @@ const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownlo
                         </React.Fragment>
                     ))
                 ) : (
-                    <p className="no-events-found">Мероприятия не найдены.</p>
+                    <p className="no-events-found">{t('events.noEvents')}</p>
                 )}
             </div>
         </div>
@@ -868,6 +733,7 @@ const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownlo
 
 // главный компонент страницы
 export default function EventsPage({ userLogin, userRole }) {
+    const { t } = useTranslation();
     const { addNotification } = useNotification();
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -889,7 +755,7 @@ export default function EventsPage({ userLogin, userRole }) {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [modalPosition, setModalPosition] = useState(null);
     const [inviteModalPosition, setInviteModalPosition] = useState(null);
-    const [activeFilter, setActiveFilter] = useState('Все');
+    const [activeFilter, setActiveFilter] = useState(FILTER_KEYS.ALL);
     const inviteModalRef = useRef(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [eventToDelete, setEventToDelete] = useState(null);
@@ -909,8 +775,8 @@ export default function EventsPage({ userLogin, userRole }) {
                     imageUrl: event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage,
                     max_participants: event.maxParticipants,  
                     max_group_size: event.teamSize,           
-                    recruitment_status: 'Активен',
-                    description: event.description || 'Тут будет описание, возможно, когда-нибудь'
+                    recruitment_status: 'active',
+                    description: event.description || t('events.noDescription'),
                 }));
 
                 setEvents(processedEvents);
@@ -953,15 +819,15 @@ export default function EventsPage({ userLogin, userRole }) {
             }
         };
         fetchInitialData();
-    }, [userLogin, userRole]);
+    }, [userLogin, userRole, addNotification, t]);
 
     const filteredEvents = useMemo(() => {
         return events
             .filter(event => {
-                if (userRole === 'student' && activeFilter !== 'Все') {
+                if (userRole === 'student' && activeFilter !== FILTER_KEYS.ALL) {
                     const isRegistered = userRegisteredEventIds.has(event.id);
-                    if (activeFilter === 'Записан') return isRegistered;
-                    if (activeFilter === 'Не записан') return !isRegistered;
+                    if (activeFilter === FILTER_KEYS.REGISTERED) return isRegistered;
+                    if (activeFilter === FILTER_KEYS.UNREGISTERED) return !isRegistered;
                 }
                 return true;
             })
@@ -1087,7 +953,7 @@ export default function EventsPage({ userLogin, userRole }) {
         if (!registrations[event.id]) {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/events/${event.id}/registrations`);
-                if (!response.ok) throw new Error('Ошибка загрузки списка');
+                if (!response.ok) throw new Error('list.error');
                 const data = await response.json();
                 setRegistrations(prev => ({ ...prev, [event.id]: data }));
             } catch (e) {
@@ -1158,7 +1024,7 @@ export default function EventsPage({ userLogin, userRole }) {
             />
             )}
             <div className="events-container">
-                <h1>Мероприятия</h1>
+                <h1>{t('page.title.events')}</h1>
 
                 {isLoading ? (
                     <div className="page-loader-container"><ClockwiseLoader /></div>
@@ -1167,17 +1033,23 @@ export default function EventsPage({ userLogin, userRole }) {
                         <div className={`filter-container ${userRole === 'curator' ? 'is-curator-view' : ''}`}>
                             <div className="search-bar-wrapper">
                                 <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder={t('review.search.placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
                                 </div>
                             </div>
                             {userRole === 'student' && (
-                                <div className="filter-buttons">
-                                    {Object.keys(filterStyleMap).map(status => (
-                                        <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${filterStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                            <span>{status}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                            <div className="filter-buttons">
+                                {Object.keys(filterStyleMap).map((status) => (
+                                <button
+                                    key={status}
+                                    className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${filterStyleMap[status]}`}
+                                    onClick={() => setActiveFilter(status)}
+                                    onMouseMove={handleMouseMoveForEffect}
+                                    onMouseLeave={handleButtonLeave}
+                                >
+                                    <span>{getFilterLabel(status, t)}</span>
+                                </button>
+                                ))}
+                            </div>
                             )}
                         </div>
 

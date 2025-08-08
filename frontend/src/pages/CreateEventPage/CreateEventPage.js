@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './CreateEventPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
+import { useTranslation } from '../../components/common/useTranslation';
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
@@ -149,9 +150,9 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
                 <DownIcon />
             </div>
             <div className="custom-select-options">
-                {options.map(option => (
-                    <div key={option} className={`custom-select-option ${value === option ? 'is-selected' : ''}`} onClick={() => handleSelect(option)}>
-                        {option}
+                {options.map(opt => (
+                    <div key={opt.id} className={`custom-select-option ${value === opt.id ? 'is-selected' : ''}`} onClick={() => handleSelect(opt)}>
+                        {opt.label}
                     </div>
                 ))}
             </div>
@@ -239,6 +240,7 @@ const ImageUploadArea = ({ file, setFile }) => {
 
 // компонент для загрузки файлов
 const FileUploadArea = ({ files, setFiles }) => {
+    const { t } = useTranslation();
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef(null);
 
@@ -276,7 +278,7 @@ const FileUploadArea = ({ files, setFiles }) => {
                     <>
                         <UploadIcon className="file-upload-icon" />
                         <p className="file-upload-text">
-                            Перетащите доп. файлы сюда или <span>выберите их</span>
+                            {t('createEvent.file.dropText')} <span>{t('createEvent.file.chooseText')}</span>
                         </p>
                     </>
                 ) : (
@@ -304,6 +306,7 @@ const FileUploadArea = ({ files, setFiles }) => {
 }
 
 export default function CreateEventPage({ userLogin }) {
+    const { t } = useTranslation(); 
     const [formData, setFormData] = useState({
         eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', description: '', maxParticipants: '', teamSize: ''
     });
@@ -311,7 +314,13 @@ export default function CreateEventPage({ userLogin }) {
     const [documentFiles, setDocumentFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { addNotification } = useNotification();
-    const [statusOptions] = useState(['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']);
+    const STATUS_OPTIONS = [
+    { id: 'international', label: t('createEvent.status.international') },
+    { id: 'allRussian',    label: t('createEvent.status.allRussian') },
+    { id: 'city',          label: t('createEvent.status.city') },
+    { id: 'regional',      label: t('createEvent.status.regional') },
+    { id: 'university',    label: t('createEvent.status.university') }
+    ];
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({...prev, [field]: value}));
@@ -328,14 +337,14 @@ export default function CreateEventPage({ userLogin }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!userLogin) {
-            addNotification("Ошибка: Не удалось определить пользователя. Пожалуйста, войдите в систему снова.", "error");
+            addNotification(t('createEvent.notify.missingUser'), "error");
             return;
         }
 
         const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate', 'maxParticipants', 'teamSize'];
         for (const key of requiredFields) {
             if (!formData[key]) {
-                addNotification("Пожалуйста, заполните все обязательные поля.", "error");
+                addNotification(t('createEvent.notify.fieldsRequired'), "error");
                 return;
             }
         }
@@ -372,11 +381,11 @@ export default function CreateEventPage({ userLogin }) {
             });
 
             if (!response.ok) {
-                const errorResult = await response.json().catch(() => ({ detail: 'Произошла неизвестная ошибка на сервере.' }));
-                throw new Error(errorResult.detail || `Ошибка ${response.status}: ${response.statusText}`);
+                const errorResult = await response.json().catch(() => ({ detail: t('createEvent.notify.error') }));
+                throw new Error(errorResult.detail);
             }
 
-            addNotification('Мероприятие успешно создано!', 'success');
+            addNotification(t('createEvent.notify.success'), 'success');
             clearForm();
 
         } catch (error) {
@@ -388,25 +397,25 @@ export default function CreateEventPage({ userLogin }) {
 
     return (
         <div className="create-event-container">
-            <h1>Создать мероприятие</h1>
+            <h1>{t('createEvent.title')}</h1>
             <div className="page-content">
                 <form onSubmit={handleSubmit}>
                     <div className="form-grid">
-                        <FormField label="Название мероприятия*"><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
-                        <FormField label="Руководитель*"><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
-                        <FormField label="Организатор*"><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
-                        <FormField label="Место проведения*"><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
-                        <FormField label="Статус мероприятия*">
-                           <CustomSelect
-                                options={statusOptions}
-                                value={formData.eventStatus}
-                                onChange={(value) => handleInputChange('eventStatus', value)}
-                                placeholder="Выберите статус"
-                           />
+                        <FormField label={t('createEvent.field.eventName')}><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.leader')}><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.organizer')}><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.location')}><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.location')}>
+                            <CustomSelect
+                            options={STATUS_OPTIONS}
+                            value={formData.eventStatus}
+                            onChange={(opt) => handleInputChange('eventStatus', opt.id)}
+                            placeholder={t('createEvent.field.status.placeholder')}
+                            />
                         </FormField>
-                        <FormField label="Дата проведения*"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
-                        <FormField label="Макс. число участников*"><input className="form-input" type="number" value={formData.maxParticipants} onChange={(e) => handleInputChange('maxParticipants', e.target.value)} required /></FormField>
-                        <FormField label="Участников в команде*"><input className="form-input" type="number" value={formData.teamSize} onChange={(e) => handleInputChange('teamSize', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.date')}><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.maxParticipants')}><input className="form-input" type="number" value={formData.maxParticipants} onChange={(e) => handleInputChange('maxParticipants', e.target.value)} required /></FormField>
+                        <FormField label={t('createEvent.field.teamSize')}><input className="form-input" type="number" value={formData.teamSize} onChange={(e) => handleInputChange('teamSize', e.target.value)} required /></FormField>
 
                         <div className="form-field">
                           <label>Обложка мероприятия*</label>
@@ -418,12 +427,12 @@ export default function CreateEventPage({ userLogin }) {
                           <FileUploadArea files={documentFiles} setFiles={setDocumentFiles} />
                         </div>
                         
-                        <FormField label="Описание" isTextarea={true}><textarea className="form-input" name="description" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}></textarea></FormField>
+                        <FormField label={t('createEvent.field.description')} isTextarea={true}><textarea className="form-input" name="description" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}></textarea></FormField>
                     </div>
                      <div className="form-actions-container">
-                        <button type="button" className="form-secondary-btn" onClick={clearForm} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>Очистить форму</span></button>
+                        <button type="button" className="form-secondary-btn" onClick={clearForm} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{t('createEvent.button.clear')}</span></button>
                         <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                            {isSubmitting ? <ClockwiseLoader size={20} /> : <span>Создать мероприятие</span>}
+                            {isSubmitting ? <ClockwiseLoader size={20} /> : <span>{t('createEvent.button.submit')}</span>}
                         </button>
                     </div>
                 </form>

@@ -4,6 +4,7 @@ import './ReviewRequestsPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
 import ChatView from '../../components/Chat/Chat';
 import FilterModal from '../../components/FilterModal';
+import { useTranslation } from '../../components/common/useTranslation';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 
@@ -17,6 +18,7 @@ import { ReactComponent as ExportIcon } from '../../icons/upload-icon.svg';
 import { ReactComponent as FilterIcon } from '../../icons/filter-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
+const locale = (navigator.language || 'ru-RU');
 
 // АНИМАЦИЯ КНОПКИ
 const EASING_FACTOR = 0.15;
@@ -103,20 +105,52 @@ const downloadFile = (fileUrl, fileName) => {
     document.body.removeChild(link);
 };
 
+const STATUS_KEYS = { ALL:'all', APPROVED:'approved', REJECTED:'rejected', PENDING:'pending' };
+
 const statusStyleMap = {
-    'Все': 'btn-style-neutral',
-    'Одобрено': 'btn-style-approved',
-    'Отклонено': 'btn-style-rejected',
-    'На рассмотрении': 'btn-style-pending'
+  [STATUS_KEYS.ALL]: 'btn-style-neutral',
+  [STATUS_KEYS.APPROVED]: 'btn-style-approved',
+  [STATUS_KEYS.REJECTED]: 'btn-style-rejected',
+  [STATUS_KEYS.PENDING]: 'btn-style-pending'
+};
+
+const toStatusKey = (s) => {
+  const map = {
+    'Одобрено': STATUS_KEYS.APPROVED,
+    'Отклонено': STATUS_KEYS.REJECTED,
+    'На рассмотрении': STATUS_KEYS.PENDING,
+    'Approved': STATUS_KEYS.APPROVED,
+    'Rejected': STATUS_KEYS.REJECTED,
+    'Pending': STATUS_KEYS.PENDING,
+  };
+  return map[s] ?? STATUS_KEYS.PENDING;
+};
+
+const toEventStatusKey = (s) => {
+  const map = {
+    'Международный':'international',
+    'Всероссийский':'allRussian',
+    'Городской':'city',
+    'Региональный':'regional',
+    'Внутривузовский':'university',
+    'International':'international',
+    'All-Russian':'allRussian',
+    'City':'city',
+    'Regional':'regional',
+    'University':'university',
+  };
+  return map[s] ?? s;
 };
 
 const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseEnter, onApprove, onReject, onDownload, onOpenChat, innerRef, onSelect, isSelected }) => {
     const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded', isSelected && 'is-selected-card'].filter(Boolean).join(' ');
-    
+    const { t } = useTranslation();
     const [areButtonsRendered, setAreButtonsRendered] = useState(false);
     const [animationClass, setAnimationClass] = useState('');
     const prevIsExpanded = useRef(isExpanded);
     const animationTimer = useRef();
+    new Date(request.created_at).toLocaleDateString(locale)
+    new Date(request.eventDate).toLocaleDateString(locale)
 
     useEffect(() => {
         clearTimeout(animationTimer.current);
@@ -143,13 +177,18 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
         if (typeof onSelect === 'function') onSelect();
     };
 
+    
+
     // фио студента
     const studentFullName = `${request.owner.lastName} ${request.owner.firstName} ${request.owner.middleName || ''}`.trim();
     
     const formatFileText = (count) => {
-        if (count % 10 === 1 && count % 100 !== 11) return `${count} файл`;
-        if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return `${count} файла`;
-        return `${count} файлов`;
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+    let form = 'many';
+    if (mod10 === 1 && mod100 !== 11) form = 'one';
+    else if ([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) form = 'few';
+    return t(`review.card.file.${form}`, { n: count });
     };
 
     return (
@@ -161,17 +200,17 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
                     </div>
                     <div className="header-content">
                         <h3>{request.eventName}</h3>
-                        <div className="card-date">От: {studentFullName} | Подана: {new Date(request.created_at).toLocaleDateString('ru-RU')}</div>
+                        <div className="card-date">  {t('notification.inviteFrom')} {studentFullName} | {t('review.card.submitted')} {new Date(request.created_at).toLocaleDateString(locale)}</div>
                     </div>
                     <div className="card-header-right">
-                        {areButtonsRendered && request.status === 'На рассмотрении' && (
+                        {areButtonsRendered && request.statusKey === STATUS_KEYS.PENDING && (
                             <>
-                                <button className={`interactive-button is-icon btn-style-approved ${animationClass}`} title="Одобрить" onClick={(e) => handleActionClick(e, onApprove, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ApproveIcon /></span></button>
-                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title="Отклонить" onClick={(e) => handleActionClick(e, onReject, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RejectIcon /></span></button>
+                                <button className={`interactive-button is-icon btn-style-approved ${animationClass}`} title={t('review.status.approved')} onClick={(e) => handleActionClick(e, onApprove, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ApproveIcon /></span></button>
+                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title={t('review.status.rejected')} onClick={(e) => handleActionClick(e, onReject, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RejectIcon /></span></button>
                             </>
                         )}
-                        <button className="interactive-button is-icon btn-style-chat" title="Открыть чат" onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
-                        <button className={`interactive-button is-status-button ${statusStyleMap[request.status]}`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{request.status}</span></button>
+                        <button className="interactive-button is-icon btn-style-chat" title={t('review.chat.open')} onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
+                        <button className={`interactive-button is-status-button ${statusStyleMap[request.statusKey]}`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{t(`request.status.${request.statusKey}`)}</span></button>
                     </div>
                 </div>
             </div>
@@ -179,35 +218,35 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
                 <div className="request-card-body-grid">
                     <div className="card-body-column column-files">
                         {(request.files && request.files.length > 0) ? (
-                            <div className="mac-stack-download" onClick={(e) => handleActionClick(e, onDownload, request)} title="Скачать прикрепленные файлы">
+                            <div className="mac-stack-download" onClick={(e) => handleActionClick(e, onDownload, request)} title={t('review.download.title')}>
                                 <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">{formatFileText(request.files.length)}</div>
                             </div>
                         ) : (
                             <div className="mac-stack-download is-empty">
                                 <DownloadIcon className="stack-download-icon" />
-                                <div className="stack-label">Нет файлов</div>
+                                <div className="stack-label">{t('review.card.noFiles')}</div>
                             </div>
                         )}
                     </div>
                     <div className="card-body-column column-description">
                         <div className="detail-item">
-                            <span className="detail-label">Описание:</span>
-                            {request.description || 'Описание для этой заявки еще не добавлено.'}
+                            <span className="detail-label">{t('events.description')}:</span>
+                            {request.description || t('review.card.noDescription')}
                         </div>
                         <div className="detail-item detail-item-link">
-                            <span className="detail-label">Ссылка на ресурс:</span>
-                            {request.link ? (
-                                <a href={request.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{request.link}</a>
-                            ) : 'Ссылка не указана.'}
+                            <span className="detail-label">{t('newRequest.link')}:</span>
+                            {request.resource_link ? (
+                                <a href={request.resource_link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{request.resource_link}</a>
+                            ) : t('review.card.noLink')}
                         </div>
                     </div>
                     <div className="card-body-column column-details">
-                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
-                        <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
-                        <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.eventStatus}</div>
-                        <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(request.eventDate).toLocaleDateString('ru-RU')}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.leader')}:</span> {request.leader}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.organizer')}:</span> {request.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.location')}:</span> {request.location}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.status')}:</span> {t(`createEvent.status.${request.eventStatusKey}`)}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.date')}:</span> {new Date(request.eventDate).toLocaleDateString(locale)}</div>
                     </div>
                 </div>
             </div>
@@ -216,6 +255,7 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
 });
 
 export default function ReviewRequestsPage({ userLogin }) {
+    const { t } = useTranslation();
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const { addNotification } = useNotification();
@@ -224,7 +264,7 @@ export default function ReviewRequestsPage({ userLogin }) {
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState('Все');
+    const [activeFilter, setActiveFilter] = useState(STATUS_KEYS.ALL);
     const inputRef = useRef(null);
     const [activeChatRequest, setActiveChatRequest] = useState(null);
     const [selectedRequests, setSelectedRequests] = useState([]);
@@ -244,16 +284,10 @@ export default function ReviewRequestsPage({ userLogin }) {
         const fetchRequests = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/requests`);
-                if (!response.ok) {
-                    throw new Error('Не удалось загрузить заявки');
-                }
+                const response = await fetch(`http://localhost:8000/api/requests`);
+                if (!response.ok) throw new Error(t('review.error.load'));
                 const data = await response.json();
-                const processedData = data.map(req => ({
-                    ...req,
-                    description: req.description || "Описание для этой заявки еще не добавлено.",
-                    link: req.link || ""
-                }));
+                const processedData = data.map(req => ({...req, statusKey: toStatusKey(req.status), eventStatusKey: toEventStatusKey(req.eventStatus),}));
                 setRequests(processedData);
                 setIsLoading(false);
 
@@ -263,7 +297,7 @@ export default function ReviewRequestsPage({ userLogin }) {
         };
 
         fetchRequests();
-    }, []);
+    }, [addNotification, t]);
 
     const handleCloseFilter = () => {
         const filterModal = topPanelRef.current?.querySelector('.filter-modal-dropdown-container');
@@ -291,10 +325,10 @@ export default function ReviewRequestsPage({ userLogin }) {
 
     const filteredRequests = useMemo(() => {
     let result = requests
-        .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
-        .filter(request =>
-        request.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${request.owner.lastName} ${request.owner.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
+        .filter(r => (activeFilter === STATUS_KEYS.ALL ? true : r.statusKey === activeFilter))
+        .filter(r =>
+        r.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${r.owner.lastName} ${r.owner.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
     // сортировка
@@ -310,16 +344,12 @@ export default function ReviewRequestsPage({ userLogin }) {
 
     // фильтры по типу
     const typeFilters = [];
+    if (advancedFilters.regional)     typeFilters.push('regional');
+    if (advancedFilters.allRussian)   typeFilters.push('allRussian');
+    if (advancedFilters.international)typeFilters.push('international');
+    if (advancedFilters.city)         typeFilters.push('city');
 
-    if (advancedFilters.regional) typeFilters.push('Региональный');
-    if (advancedFilters.allRussian) typeFilters.push('Всероссийский');
-    if (advancedFilters.international) typeFilters.push('Международный');
-    if (advancedFilters.city) typeFilters.push('Городской');
-
-    if (typeFilters.length > 0) {
-        result = result.filter(r => typeFilters.includes(r.eventStatus));
-    }
-
+    if (typeFilters.length > 0) result = result.filter(r => typeFilters.includes(r.eventStatusKey));
     return result;
     }, [requests, searchTerm, activeFilter, advancedFilters]);
 
@@ -348,10 +378,10 @@ export default function ReviewRequestsPage({ userLogin }) {
 
     const handleDownloadAll = (request) => {
         if (!request.files || request.files.length === 0) {
-            addNotification('У этой заявки нет приложенных файлов.', 'info');
+            addNotification(t('review.download.noFiles'), 'info');
             return;
         }
-        addNotification(`Начинается скачивание ${request.files.length} файлов...`, 'success');
+        addNotification(t('review.download.start', { n: request.files.length }), 'success');
         request.files.forEach((file, index) => {
             setTimeout(() => { downloadFile(file.url, file.name); }, index * 300);
         });
@@ -362,11 +392,11 @@ export default function ReviewRequestsPage({ userLogin }) {
             const response = await fetch(`${API_BASE_URL}/api/requests/${id}/${action}`, { method: 'PUT' });
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.detail || 'Действие не удалось');
+                throw new Error(error.detail || t('review.action.error'));
             }
             const result = await response.json();
-            setRequests(prev => prev.map(r => r.id === id ? { ...r, status: result.status } : r));
-            addNotification(`Заявка успешно ${action === 'approve' ? 'одобрена' : 'отклонена'}.`, 'success');
+            setRequests(prev => prev.map(r => r.id === id ? { ...r, status: result.status, statusKey: toStatusKey(result.status) } : r));
+            addNotification(action === 'approve' ? t('review.action.success.approve') : t('review.action.success.reject'), 'success');
         } catch (error) {
             addNotification(error.message, 'error');
         }
@@ -544,7 +574,7 @@ export default function ReviewRequestsPage({ userLogin }) {
             {activeChatRequest && (<ChatView userLogin={userLogin} request={activeChatRequest} onClose={handleCloseChat} />)}
             
             <div className="review-requests-container">
-                <h1>Все заявки</h1>
+                <h1>{t('review.title')}</h1>
                 
                 {isLoading ? (
                     <div className="page-loader-container"><ClockwiseLoader /></div>
@@ -553,7 +583,7 @@ export default function ReviewRequestsPage({ userLogin }) {
                         <div className="filter-container">
                             <div className="search-bar-wrapper">
                                 <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder={t('review.search.placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
                                 </div>
                             </div>
                             <div className="filter-buttons-panel" ref={topPanelRef}>
@@ -562,16 +592,22 @@ export default function ReviewRequestsPage({ userLogin }) {
                                     onClick={() => isFilterModalOpen ? handleCloseFilter() : setIsFilterModalOpen(true)}
                                     onMouseMove={handleMouseMoveForEffect}
                                     onMouseLeave={handleButtonLeave}
-                                    title="Фильтр"
+                                    title={t('review.filter.title')}
                                     >
                                     <span>
                                         <FilterIcon />
                                     </span>
                                 </button>
-                                {Object.keys(statusStyleMap).map(status => (
-                                    <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${statusStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                        <span>{status}</span>
-                                    </button>
+                                {Object.values(STATUS_KEYS).map(key => (
+                                <button
+                                    key={key}
+                                    className={`interactive-button ${activeFilter === key ? 'is-active-filter' : ''} ${statusStyleMap[key]}`}
+                                    onClick={() => setActiveFilter(key)}
+                                    onMouseMove={handleMouseMoveForEffect}
+                                    onMouseLeave={handleButtonLeave}
+                                >
+                                    <span>{t(`review.status.${key}`)}</span>
+                                </button>
                                 ))}
                                 
                                 {isFilterModalOpen && <FilterModal
@@ -609,16 +645,16 @@ export default function ReviewRequestsPage({ userLogin }) {
                                     </React.Fragment>
                                 ))
                             ) : (
-                                <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>Заявки с выбранными фильтрами не найдены.</div>
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>{t('review.noRequests')}</div>
                             )}
                         </div>
                         
                         <div className="export-button-container">
                             <button className="interactive-button btn-style-neutral" onClick={handleExportSelected} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={selectedRequests.length === 0}>
-                                <span>Выгрузить выбранные ({selectedRequests.length})</span>
+                                <span>{t('review.export.button.selected', { n: selectedRequests.length })}</span>
                             </button>
                             <button className="interactive-button btn-style-export" onClick={handleExport} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                <span><ExportIcon/> Выгрузить все</span>
+                                <span><ExportIcon/> {t('review.export.button.all')}</span>
                             </button>
                         </div>
                     </>

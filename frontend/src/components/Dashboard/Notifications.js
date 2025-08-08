@@ -1,12 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  memo,
+} from 'react';
 import ReactDOM from 'react-dom';
 
 import ClockwiseLoader from '../../components/common/Loader';
 import './Notifications.css';
+import { useTranslation } from '../common/useTranslation';
 
 import defaultEventImage from '../../images/event-default.jpg';
 
-// иконки
+
 import { ReactComponent as AddIcon } from '../../icons/add-icon.svg';
 import { ReactComponent as RemoveIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as ExitIcon } from '../../icons/remove-icon.svg';
@@ -16,72 +23,79 @@ import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
 
+// Заглушка для системы уведомлений
 const useNotification = () => ({
-    addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
+  addNotification: (msg, type = 'info') =>
+    console.log(`Notification (${type}): ${msg}`),
 });
 
+// Хелперы для «микро-анимации» кнопок
 const EASING_FACTOR = 0.15;
 const DEFAULT_RADIUS = 0;
 
 function animateRadii(btn) {
-    const state = btn._animationState;
-    if (!state) return;
+  const state = btn._animationState;
+  if (!state) return;
 
-    let isAnimationNeeded = false;
-    for (const corner in state.current) {
-        const diff = state.target[corner] - state.current[corner];
-        if (Math.abs(diff) > 0.01) {
-            isAnimationNeeded = true;
-            state.current[corner] += diff * EASING_FACTOR;
-        } else {
-            state.current[corner] = state.target[corner];
-        }
-    }
-
-    btn.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
-
-    if (isAnimationNeeded) {
-        requestAnimationFrame(() => animateRadii(btn));
+  let needNextFrame = false;
+  ['tl', 'tr', 'br', 'bl'].forEach((c) => {
+    const diff = state.target[c] - state.current[c];
+    if (Math.abs(diff) > 0.01) {
+      needNextFrame = true;
+      state.current[c] += diff * EASING_FACTOR;
     } else {
-        state.isAnimating = false;
+      state.current[c] = state.target[c];
     }
+  });
+
+  btn.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
+
+  if (needNextFrame) {
+    requestAnimationFrame(() => animateRadii(btn));
+  } else {
+    state.isAnimating = false;
+  }
 }
 
 const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
     if (!el.classList.contains('interactive-button') && !el.classList.contains('form-submit-btn') && !el.classList.contains('form-secondary-btn')) return;
 
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  const rect = el.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
 
-    el.style.setProperty('--mouse-x', `${x}px`);
-    el.style.setProperty('--mouse-y', `${y}px`);
+  el.style.setProperty('--mouse-x', `${x}px`);
+  el.style.setProperty('--mouse-y', `${y}px`);
 
-    if (!el._animationState) {
-        el._animationState = {
-            isAnimating: false,
-            current: { tl: DEFAULT_RADIUS, tr: DEFAULT_RADIUS, br: DEFAULT_RADIUS, bl: DEFAULT_RADIUS },
-            target: { tl: DEFAULT_RADIUS, tr: DEFAULT_RADIUS, br: DEFAULT_RADIUS, bl: DEFAULT_RADIUS }
-        };
-    }
+  if (!el._animationState) {
+    el._animationState = {
+      isAnimating: false,
+      current: { tl: 0, tr: 0, br: 0, bl: 0 },
+      target: { tl: 0, tr: 0, br: 0, bl: 0 },
+    };
+  }
 
-    const state = el._animationState;
-    const { width, height } = rect;
-    const maxRadius = 25;
-    const diagonal = Math.sqrt(width ** 2 + height ** 2);
+  const state = el._animationState;
+  const { width, height } = rect;
+  const maxR = 25;
+  const diag = Math.hypot(width, height);
 
-    const calculateRadius = (cx, cy) => Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) / diagonal), 3));
+  const calcR = (cx, cy) =>
+    Math.max(
+      0,
+      maxR * (1 - Math.hypot(x - cx, y - cy) / diag) ** 3,
+    );
 
-    state.target.tl = calculateRadius(0, 0);
-    state.target.tr = calculateRadius(width, 0);
-    state.target.br = calculateRadius(width, height);
-    state.target.bl = calculateRadius(0, height);
+  state.target.tl = calcR(0, 0);
+  state.target.tr = calcR(width, 0);
+  state.target.br = calcR(width, height);
+  state.target.bl = calcR(0, height);
 
-    if (!state.isAnimating) {
-        state.isAnimating = true;
-        requestAnimationFrame(() => animateRadii(el));
-    }
+  if (!state.isAnimating) {
+    state.isAnimating = true;
+    requestAnimationFrame(() => animateRadii(el));
+  }
 };
 
 const handleButtonLeave = (e) => {
@@ -102,18 +116,40 @@ const handleButtonLeave = (e) => {
     }
 };
 
-const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRequest, onDownload }) => {
-    const cardClassName = [
-        'event-card-student',
-        isDetailed && 'is-detailed-view'
-    ].filter(Boolean).join(' ');
-
-    const handleHeaderClick = (e) => {
-        if (isDetailed) {
-            e.stopPropagation();
-            onCloseRequest();
-        }
+// Карточка мероприятия
+const StudentEventCard = ({
+    
+  event,
+  onSignUp,
+  isRegistered,
+  isDetailed,
+  onCloseRequest, onDownload,
+}) => {
+  const { t } = useTranslation();
+    const STATUS_MAP = {
+    Активен: { key: 'active', i18n: 'notification.recruitmentStatus.active' },
+    Завершён: {
+        key: 'completed',
+        i18n: 'notification.recruitmentStatus.completed',
+    },
     };
+
+    const { key: statusKey, i18n: statusLabel } =
+    STATUS_MAP[event.recruitment_status] || STATUS_MAP.Завершён;
+
+  const cardCls = [
+    'event-card-student',
+    isDetailed && 'is-detailed-view',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const handleHeaderClick = (e) => {
+    if (isDetailed) {
+      e.stopPropagation();
+      onCloseRequest();
+    }
+  };
 
     const handleActionClick = (e, action) => {
         e.stopPropagation();
@@ -181,20 +217,31 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
     );
 };
 
-const DetailedEventContainer = ({ event, onSignUp, onDownload, isRegistered, isClosing, isExpanded, onExpand, onCloseRequest }) => (
-    <div
-        className={`detailed-event-container ${isClosing ? 'is-closing' : ''}`}
-        onClick={!isExpanded ? onExpand : undefined}
-    >
-        <StudentEventCard
-            event={event}
-            onSignUp={onSignUp}
+// Контейнер детали мероприятия
+const DetailedEventContainer = ({
+  event,
+  onSignUp,
+  onDownload, isRegistered,
+  isClosing,
+  isExpanded,
+  onExpand,
+  onCloseRequest,
+}) => (
+  <div
+    className={`detailed-event-container ${
+      isClosing ? 'is-closing' : ''
+    }`}
+    onClick={!isExpanded ? onExpand : undefined}
+  >
+    <StudentEventCard
+      event={event}
+      onSignUp={onSignUp}
             onDownload={onDownload}
-            isRegistered={isRegistered}
-            isDetailed={isExpanded}
-            onCloseRequest={onCloseRequest}
-        />
-    </div>
+      isRegistered={isRegistered}
+      isDetailed={isExpanded}
+      onCloseRequest={onCloseRequest}
+    />
+  </div>
 );
 
 const FormField = ({ label, children }) => (
@@ -253,14 +300,17 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
         setTimeout(onClose, 400);
     };
 
-    const addParticipant = () => {
-        const maxGroupSize = event.max_group_size || 5;
-        if (participants.length < maxGroupSize) {
-            setParticipants([...participants, { id: nextId.current++, fullName: '', group: '' }]);
-        } else {
-            addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
-        }
-    };
+  const addParticipant = () => {
+    const max = event.max_group_size || 5;
+    if (participants.length < max) {
+      setParticipants([...participants, { id: nextId.current++, fullName: '', group: '' }]);
+    } else {
+      addNotification(
+        t('notification.maxGroupReached', { max }),
+        'info',
+      );
+    }
+  };
 
     const removeParticipant = (index) => {
         if (index === 0) return;
@@ -324,85 +374,170 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     
     if (!event) return null;
 
-    return ReactDOM.createPortal(
-        <div className={`notifications-component-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
-                <div className="chat-header">
-                    <div className="chat-title-wrapper">
-                        <h2>Запись на мероприятие</h2>
-                        <p>{event.eventName}</p>
+  return (
+    <div
+      className={`modal-overlay ${isClosing ? 'is-closing' : ''}`}
+      onMouseDown={handleClose}
+    >
+      <div
+        className={`signup-modal-content ${isClosing ? 'is-closing' : ''}`}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="chat-header">
+          <div className="chat-title-wrapper">
+            <h2>{t('notification.signUpTitle')}</h2>
+            <p>{event.eventName}</p>
+          </div>
+          <button
+            onClick={handleClose}
+            className="chat-close-btn"
+            title={t('notification.close')}
+          >
+            <ExitIcon />
+          </button>
+        </div>
+
+        <div className="edit-modal-body">
+          <form
+            onSubmit={handleSubmit}
+            className="edit-form-inside-modal"
+          >
+            {participants.map((p, idx) => (
+              <div className="participant-entry" key={idx}>
+                <div className="form-grid">
+                  <div className="form-field">
+                    <label>
+                      {idx === 0
+                        ? t('notification.yourFullName')
+                        : t('notification.fullName')}
+                    </label>
+                    <div className="input-wrapper">
+                      <input
+                        className="form-input"
+                        type="text"
+                        value={p.fullName}
+                        onChange={(e) =>
+                          changeParticipant(
+                            idx,
+                            'fullName',
+                            e.target.value,
+                          )
+                        }
+                        required
+                        disabled={idx === 0}
+                      />
                     </div>
+                  </div>
+
+                  <div className="form-field">
+                    <label>
+                      {idx === 0
+                        ? t('notification.yourGroup')
+                        : t('notification.group')}
+                    </label>
+                    <div className="input-wrapper">
+                      <input
+                        className="form-input"
+                        type="text"
+                        value={p.group}
+                        onChange={(e) =>
+                          changeParticipant(idx, 'group', e.target.value)
+                        }
+                        required
+                        disabled={idx === 0}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <form onSubmit={handleSubmit} className="edit-form-inside-modal">
-                    <div className="edit-modal-body">
-                        <div className="participants-list">
-                            {participants.map((p, index) => (
-                                <div className={`participant-entry ${p.isDeleting ? 'is-deleting' : ''}`} key={p.id}>
-                                    {index > 0 && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon/></button>}
-                                    <div className="form-grid signup-form-grid">
-                                        <FormField label={index === 0 ? "Ваше ФИО" : "ФИО участника"}>
-                                            <input type="text" className="form-input" value={p.fullName} onChange={(e) => handleParticipantChange(index, 'fullName', e.target.value)} required disabled={index === 0} />
-                                        </FormField>
-                                        <FormField label={index === 0 ? "Ваша группа" : "Группа"}>
-                                            <input type="text" className="form-input" value={p.group} onChange={(e) => handleParticipantChange(index, 'group', e.target.value)} required disabled={index === 0} />
-                                        </FormField>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="form-actions-container participant-actions">
-                        <button type="button" className="form-secondary-btn btn-add-plus" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={isSubmitting || participants.length >= (event.max_group_size || 5)}>
-                            <span>+</span>
-                        </button>
-                        <div className="form-actions-right">
-                            <button type="button" className="form-secondary-btn" onClick={handleClose} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
-                                <span>Отмена</span>
-                            </button>
-                            <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                <span>{isSubmitting ? 'Запись...' : 'Записаться'}</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
+
+                {idx > 0 && (
+                  <button
+                    type="button"
+                    className="remove-participant-btn"
+                    title={t('notification.removeParticipant')}
+                    onClick={() => removeParticipant(idx)}
+                  >
+                    <RemoveIcon />
+                  </button>
+                )}
+              </div>
+            ))}
+
+            <div className="form-actions-container participant-actions">
+              <button
+                type="button"
+                className="form-secondary-btn interactive-button"
+                onMouseMove={handleMouseMoveForEffect}
+                onMouseLeave={handleButtonLeave}
+                onClick={addParticipant}
+                disabled={
+                  participants.length >= (event.max_group_size || 5)
+                }
+              >
+                <span>{t('notification.addParticipant')}</span>
+              </button>
+
+              <button
+                type="submit"
+                className="form-submit-btn interactive-button"
+                onMouseMove={handleMouseMoveForEffect}
+                onMouseLeave={handleButtonLeave}
+              >
+                <span>{t('notification.submit')}</span>
+              </button>
             </div>
-        </div>,
-        document.body
-    );
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 
-const NotificationCard = memo(({ invite, isActive, onCardClick, onMouseEnter, innerRef }) => {
-    const cardClassName = ['notification-card', isActive && 'is-active'].filter(Boolean).join(' ');
 
-    const handleAction = (e, callback, ...args) => {
-        e.stopPropagation();
-        callback(...args);
-    };
+//Карточка приглашения 
+const NotificationCard = memo(
+  ({ invite, isActive, onCardClick, onMouseEnter, innerRef }) => {
+    const { t } = useTranslation();
+
+    const cls = ['notification-card', isActive && 'is-active']
+      .filter(Boolean)
+      .join(' ');
 
     return (
-        <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter} onClick={(e) => handleAction(e, onCardClick, invite.event)}>
-            <div className="card-content-wrapper">
-                <div className="notification-card-header">
-                    <div className="notification-item-info">
-                        <h5>{invite.event.eventName}</h5>
-                        <p>От: <strong>{invite.inviter}</strong></p>
-                    </div>
-                    <div className="notification-card-actions">
-                        <button
-                            className="interactive-button btn-style-accept"
-                            onMouseMove={handleMouseMoveForEffect}
-                            onMouseLeave={handleButtonLeave}
-                        >
-                            <span>Посмотреть</span>
-                        </button>
-                    </div>
-                </div>
+      <div
+        ref={innerRef}
+        className={cls}
+        onMouseEnter={onMouseEnter}
+        onClick={() => onCardClick(invite.event)}
+      >
+        <div className="card-content-wrapper">
+          <div className="notification-card-header">
+            <div className="notification-item-info">
+              <h5>{invite.event.eventName}</h5>
+              <p>
+                {t('notification.inviteFrom')}
+                <strong>{invite.inviter}</strong>
+              </p>
             </div>
-        </div>
-    );
-});
 
+            <div className="notification-card-actions">
+              <button
+                className="interactive-button btn-style-accept"
+                onMouseMove={handleMouseMoveForEffect}
+                onMouseLeave={handleButtonLeave}
+              >
+                <span>{t('notification.view')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  },
+);
+
+// ─── Главное окно уведомлений ─────────────────────────────────────────────────
 const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
@@ -467,18 +602,16 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         }, 400);
     }, []);
 
-    const handleClosePanel = useCallback(() => {
-        setIsClosing(true);
-        if (detailedEvent) {
-            handleCloseDetails();
-        }
-        setTimeout(() => {
-            onClose();
-            setIsClosing(false);
-            setDetailedEvent(null);
-            setIsDetailCardExpanded(false);
-        }, 400);
-    }, [onClose, detailedEvent, handleCloseDetails]);
+  const closePanel = useCallback(() => {
+    setIsClosing(true);
+    if (detailedEvent) closeDetails();
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+      setDetailedEvent(null);
+      setIsDetailCardExpanded(false);
+    }, 400);
+  }, [detailedEvent, closeDetails, onClose]);
 
        const handleDeleteAll = async () => {
         try {
@@ -525,21 +658,24 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     load();
     }, [isOpen, userLogin]);
 
-    const gliderTargetId = detailedEvent ? detailedEvent.id : hoveredInviteId;
+  // ── «Липучий» маркер списка ────────────────────────────────────────────────
+  const gliderTargetId = detailedEvent ? detailedEvent.id : hoveredInviteId;
 
-    useEffect(() => {
-        const targetElement = gliderTargetId ? cardElements.current.get(gliderTargetId) : null;
+  useEffect(() => {
+    const target = gliderTargetId
+      ? cardRefs.current.get(gliderTargetId)
+      : null;
 
-        if (targetElement) {
-            setGliderStyle({
-                transform: `translateY(${targetElement.offsetTop}px)`,
-                height: `${targetElement.offsetHeight}px`,
-                opacity: 1,
-            });
-        } else {
-            setGliderStyle(prev => ({ ...prev, opacity: 0 }));
-        }
-    }, [gliderTargetId, invitations]);
+    if (target) {
+      setGliderStyle({
+        transform: `translateY(${target.offsetTop}px)`,
+        height: `${target.offsetHeight}px`,
+        opacity: 1,
+      });
+    } else {
+      setGliderStyle((prev) => ({ ...prev, opacity: 0 }));
+    }
+  }, [gliderTargetId, invitations]);
 
     const handleViewDetails = (event) => {
         if (detailedEvent && detailedEvent.id === event.id) {
@@ -592,17 +728,13 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         handleCloseSignUpModal();
     };
 
-    if (!isOpen) return null;
+  // ── Рендер ------------------------------------------------------------------
+  if (!isOpen) return null;
 
-    const wrapperStyle = {
-        top: `${(position?.bottom || 0) + 8}px`,
-        right: `${window.innerWidth - (position?.right || 0)}px`,
-    };
-
-    const gliderClassName = [
-        'list-glider',
-        detailedEvent ? 'is-fixed' : ''
-    ].filter(Boolean).join(' ');
+  const wrapperStyle = {
+    top: `${(position?.bottom || 0) + 8}px`,
+    right: `${window.innerWidth - (position?.right || 0)}px`,
+  };
 
     return ReactDOM.createPortal(
         <div className="notifications-component-scope">
