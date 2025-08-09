@@ -9,6 +9,8 @@ const cookieParser = require('cookie-parser');
 const { sequelize } = require('./models');
 const path = require('path');
 
+require('dotenv').config();
+
 const app = express();
 const PORT = 8000;
 
