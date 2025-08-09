@@ -211,7 +211,7 @@ const EditRequestModal = ({ request, onClose, onSave, position }) => {
         eventStatus: request.eventStatus || '',
         eventDate: request.eventDate ? new Date(request.eventDate).toISOString().split('T')[0] : '',
         description: request.description || '',
-        resource_link: request.resource_link || ''
+        link: request.link || ''
     });
 
     const handleInputChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -253,7 +253,7 @@ const EditRequestModal = ({ request, onClose, onSave, position }) => {
                             <FormField label="Дата проведения"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
                             <div className="form-field-full-width form-grid-two-col-special">
                                 <FormField label="Описание"><textarea className="form-input" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} /></FormField>
-                                <FormField label="Ссылка на ресурс"><input className="form-input" type="text" value={formData.resource_link} onChange={(e) => handleInputChange('resource_link', e.target.value)} /></FormField>
+                                <FormField label="Ссылка на ресурс"><input className="form-input" type="text" value={formData.link} onChange={(e) => handleInputChange('link', e.target.value)} /></FormField>
                             </div>
                             <div className="form-field-full-width"><FileUploadArea files={files} setFiles={setFiles} /></div>
                         </div>
@@ -356,9 +356,9 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                         </div>
                         <div className="detail-item detail-item-link">
                             <span className="detail-label">Ссылка на ресурс:</span>
-                            {request.resource_link ? (
-                                <a href={request.resource_link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                    {request.resource_link}
+                            {request.link ? (
+                                <a href={request.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                    {request.link}
                                 </a>
                             ) : 'Ссылка не указана.'}
                         </div>
@@ -412,7 +412,7 @@ export default function MyRequestsPage({ userLogin }) {
                 const processedData = data.map(req => ({
                     ...req,
                     description: req.description || "Тут будет описание, возможно, когда-нибудь",
-                    resource_link: req.resource_link || ""
+                    link: req.link || ""
                 }));
                 setRequests(processedData);
                 setIsLoading(false);
@@ -498,7 +498,7 @@ export default function MyRequestsPage({ userLogin }) {
             }
 
             const savedRequest = await response.json();
-            setRequests(prev => prev.map(r => r.id === savedRequest.id ? { ...savedRequest, description: r.description, resource_link: r.resource_link } : r));
+            setRequests(prev => prev.map(r => r.id === savedRequest.id ? { ...savedRequest, description: r.description, link: r.link } : r));
             addNotification('Заявка успешно обновлена!', 'success');
             setEditingRequest(null);
 
