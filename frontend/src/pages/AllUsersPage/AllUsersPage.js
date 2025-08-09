@@ -146,7 +146,26 @@ export default function AllUsersPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+    const [currentUser, setCurrentUser] = useState(null);
 
+    // Для загрузки текущего пользователя
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile/me`, {
+                    credentials: 'include'
+                });
+                if (!res.ok) throw new Error('Не удалось получить профиль');
+                const data = await res.json();
+                setCurrentUser(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchCurrentUser();
+    }, []);
+
+    // Для загрузки всех пользователей
     useEffect(() => {
         const fetchUsers = async () => {
             setIsLoading(true);
@@ -187,11 +206,22 @@ export default function AllUsersPage() {
         if (!userToDelete) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/users/${userToDelete.id}`, { method: 'DELETE' });
+            const response = await fetch(`${API_BASE_URL}/api/users/${userToDelete.id}`, { 
+                method: 'DELETE',
+                credentials: 'include'
+            });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ detail: 'Не удалось удалить пользователя' }));
                 throw new Error(errorData.detail);
             }
+
+            // Если пользователь удаляет сам себя то редирект на страницу входа
+            if (currentUser && userToDelete.login === currentUser.login) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Иначе просто обновляем список пользователей
             setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
             addNotification('Пользователь успешно удален', 'success');
         } catch (error) {

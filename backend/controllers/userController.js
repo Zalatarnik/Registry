@@ -5,6 +5,7 @@
 // - Вход по логину и паролю
 // - Получение списка всех пользователей
 // - Получение основной информации для профиля о пользователе
+// - Удаление пользователя по id
 
 const { User } = require('../models');
 const jwt = require('jsonwebtoken');
@@ -336,6 +337,35 @@ const logoutUser = (req, res) => {
   return res.json({ success: true });
 };
 
+// Удаление пользователя по id
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ detail: 'Пользователь не найден' });
+    }
+
+    // Удаляем пользователя
+    await user.destroy();
+
+    // Если пользователь удаляет сам себя то очищаем токен
+    if (req.user && req.user.id === user.id) {
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+      });
+    }
+
+    return res.json({ detail: 'Пользователь успешно удален' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ detail: 'Ошибка при удалении пользователя' });
+  }
+};
+
 // Экспорт
 module.exports = {
   registerUser,
@@ -348,6 +378,6 @@ module.exports = {
   updateSecurity,
   checkStudentIdExists,
   checkEmailExists,
-  logoutUser
+  logoutUser,
+  deleteUser
 };
-
