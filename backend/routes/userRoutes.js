@@ -27,5 +27,7 @@ router.put('/profile/:login', authMiddleware, userController.updateProfile);
 router.get('/users/all', authMiddleware, userController.getAllUsers);
 // Выход из аккаунта
 router.post('/logout', authMiddleware, userController.logoutUser);
+// Удаление пользователя по id
+router.delete('/users/:id', authMiddleware, userController.deleteUser);
 
 module.exports = router;
