@@ -6,6 +6,7 @@ import { validateProfileUpdate, validateSecurity } from '../../validation/Valida
 import './ProfilePage.css';
 
 import { ReactComponent as CameraIcon } from '../../icons/photo-icon.svg';
+import { ReactComponent as CloseIcon } from '../../icons/exit-icon.svg';
 import ClockwiseLoader from '../../components/common/Loader';
 
 // АНИМАЦИЯ КНОПКИ
@@ -176,93 +177,137 @@ const handleAvatarMove = (e) => {
 
 const API_URL = 'http://localhost:8000';
 
+const FormField = ({ label, children }) => (
+    <div className="form-field">
+        <label>{label}</label>
+        <div className="input-wrapper">{children}</div>
+    </div>
+);
+
 // компонент всплывающего окна для настроек безопасности
-const SecurityModal = ({ isOpen, onClose, userLogin }) => {
-  // хук для отображения уведомлений
-  const { addNotification } = useNotification();
-  // состояние для полей ввода
-  const [email, setEmail] = useState('');
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  // состояние для индикации процесса сохранения
-  const [isSaving, setIsSaving] = useState(false);
+const SecurityModal = ({ isOpen, onClose, userLogin, position }) => {
+    // хук для отображения уведомлений
+    const { addNotification } = useNotification();
+    // состояние для полей ввода
+    const [email, setEmail] = useState('');
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    // состояние для индикации процесса сохранения
+    const [isSaving, setIsSaving] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
 
-  // если всплывающее окно не открыто, ничего не рендерим
-  if (!isOpen) return null;
+    useEffect(() => {
+        if (isOpen) {
+            setIsClosing(false);
+        }
+    }, [isOpen]);
 
-  // обработчик сохранения данных безопасности
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // валидируем перед отправкой
-      const validationErrors = await validateSecurity({ email, oldPassword, newPassword });
+    // если всплывающее окно не открыто, ничего не рендерим
+    if (!isOpen) return null;
 
-      // если есть ошибки — показать первую и остановить
-      const errorKeys = Object.keys(validationErrors);
-      if (errorKeys.length > 0) {
-        addNotification(validationErrors[errorKeys[0]], 'error');
-        setIsSaving(false);
-        return;
-      }
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+            // очищаем поля при закрытии
+            setEmail('');
+            setOldPassword('');
+            setNewPassword('');
+        }, 400);
+    };
 
-      // собираем тело запроса
-      const payload = {};
-      if (email.trim()) payload.email = email.trim();
-      if (oldPassword.trim()) payload.old_password = oldPassword.trim();
-      if (newPassword.trim()) payload.new_password = newPassword.trim();
+    // обработчик сохранения данных безопасности
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // валидируем перед отправкой
+            const validationErrors = await validateSecurity({ email, oldPassword, newPassword });
 
-      const res = await fetch(`${API_URL}/api/profile/security`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      });
+            // если есть ошибки - показать первую и остановить
+            const errorKeys = Object.keys(validationErrors);
+            if (errorKeys.length > 0) {
+                addNotification(validationErrors[errorKeys[0]], 'error');
+                setIsSaving(false);
+                return;
+            }
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || 'Ошибка обновления');
-      }
+            // собираем тело запроса
+            const payload = {};
+            if (email.trim()) payload.email = email.trim();
+            if (oldPassword.trim()) payload.old_password = oldPassword.trim();
+            if (newPassword.trim()) payload.new_password = newPassword.trim();
+            
+            if (Object.keys(payload).length === 0) {
+                 addNotification('Нет данных для обновления.', 'error');
+                 setIsSaving(false);
+                 return;
+            }
 
-      addNotification('Данные безопасности обновлены!');
-      
-      // очищаем поля после успеха
-      setEmail('');
-      setOldPassword('');
-      setNewPassword('');
-      onClose();
-    } catch (e) {
-      addNotification(e.message, 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-  
-  // обработчик клика для закрытия окна
-  const handleOverlayClick = (e) => {
-    if (e.target.id === 'modal-overlay') onClose();
-  };
+            const res = await fetch(`${API_URL}/api/profile/security`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
 
-  // используем портал для рендеринга всплывающего окна в body
-  return ReactDOM.createPortal(
-    <div className="profile-page-modal-scope">
-        <div className="modal-overlay" id="modal-overlay" onClick={handleOverlayClick}>
-          <div className="modal-content">
-            <div className="modal-header"><h2>Настройки безопасности</h2></div>
-            <div className="modal-body">
-              <div className="form-group"><label htmlFor="email">Новый адрес электронной почты</label><input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Оставьте пустым, если не меняете"/></div>
-              <div className="form-group"><label htmlFor="old-password">Старый пароль</label><input type="password" id="old-password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Обязательно для смены пароля" /></div>
-              <div className="form-group"><label htmlFor="password">Новый пароль</label><input type="password" id="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Оставьте пустым, если не меняете" /></div>
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || 'Ошибка обновления');
+            }
+
+            addNotification('Данные безопасности обновлены!');
+            handleClose();
+        } catch (e) {
+            addNotification(e.message, 'error');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        handleSave();
+    };
+    
+    // используем портал для рендеринга всплывающего окна в body
+    return ReactDOM.createPortal(
+        <div className={`profile-page-modal-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
+            <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={e => e.stopPropagation()} style={position || {}}>
+                <div className="chat-header">
+                    <div className="chat-title-wrapper">
+                        <h2>Настройки безопасности</h2>
+                    </div>
+                </div>
+                <div className="edit-modal-body">
+                    <form className="edit-form-inside-modal" onSubmit={handleFormSubmit}>
+                        <div className="form-grid-two-col">
+                            <div className="email-column">
+                                <FormField label="Новый адрес электронной почты">
+                                    <input className="form-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Оставьте пустым, если не меняете" />
+                                </FormField>
+                            </div>
+                            <div className="password-column">
+                                <FormField label="Старый пароль">
+                                    <input className="form-input" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Обязательно для смены пароля" />
+                                </FormField>
+                                <FormField label="Новый пароль">
+                                    <input className="form-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Оставьте пустым, если не меняете" />
+                                </FormField>
+                            </div>
+                        </div>
+                        <div className="form-actions-container">
+                            <button type="button" className="form-secondary-btn" onClick={handleClose} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
+                                <span>Отмена</span>
+                            </button>
+                            <button type="submit" className="form-submit-btn" onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
+                                {isSaving ? <ClockwiseLoader size={20} /> : <span>Сохранить</span>}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div className="modal-footer">
-              <button className="profile-secondary-btn" onClick={onClose} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}><span>Отмена</span></button>
-              <button className="profile-submit-btn" onClick={handleSave} onMouseMove={handleButtonMove} onMouseLeave={handleButtonLeave} disabled={isSaving}>
-                {isSaving ? <ClockwiseLoader size={20} /> : <span>Сохранить</span>}
-              </button>
-            </div>
-          </div>
-        </div>
-    </div>, document.body
-  );
+        </div>, document.body
+    );
 };
 
 // компонент редактируемого поля
@@ -328,6 +373,7 @@ export default function ProfilePage({ userRole, userLogin }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   // состояние режима редактирования всей формы
   const [isEditingMode, setIsEditingMode] = useState(false);
+  const [modalPosition, setModalPosition] = useState(null);
 
   const [errorShown, setErrorShown] = useState(false);
   // загрузка данных профиля
@@ -461,7 +507,14 @@ const handleSubmit = async (e) => {
 };
   
   // открывает модальное окно безопасности
-  const handleSecurityClick = () => setIsModalOpen(true);
+  const handleSecurityClick = (e) => {
+    const buttonRect = e.currentTarget.getBoundingClientRect();
+    const rightPosition = window.innerWidth - buttonRect.left + 20;
+    const topPosition = buttonRect.top - 100;
+
+    setModalPosition({ top: `${topPosition}px`, right: `${rightPosition}px` });
+    setIsModalOpen(true);
+  };
 
   // функция для определения, заблокировано ли поле для редактирования
   const isFieldLocked = (fieldName) => {
@@ -554,7 +607,12 @@ const handleSubmit = async (e) => {
       )}
       
       {/* рендерим всплывающее окно */}
-      <SecurityModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} userLogin={userLogin} />
+      <SecurityModal 
+        isOpen={isModalOpen} 
+        onClose={() => { setIsModalOpen(false); setModalPosition(null); }} 
+        userLogin={userLogin}
+        position={modalPosition}
+      />
     </div>
   );
 }

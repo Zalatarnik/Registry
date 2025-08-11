@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import './ConfirmationModal.css'; // Убедитесь, что CSS файл находится рядом
+import './ConfirmationModal.css';
 
-// АНИМАЦИОННАЯ ЛОГИКА
+// анимация
 const EASING_FACTOR = 0.15;
 const DEFAULT_RADIUS = 0;
 

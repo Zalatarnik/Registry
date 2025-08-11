@@ -2,7 +2,7 @@ body {
   background-color: #f0f2f5; 
   margin: 0; 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
-  overflow: hidden; 
+  overflow: hidden !important; 
   height: auto;
   height: 100%;
 }
