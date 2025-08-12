@@ -1,4 +1,4 @@
-/* Анимация появления/исчезновения */
+/* анимация */
 @keyframes confirmation-pop-in {
   from {
     opacity: 0;
@@ -21,9 +21,8 @@
   }
 }
 
-/* Убираем overlay, стилизуем сам контейнер */
 .confirmation-modal-content {
-  position: fixed; /* Позиционирование относительно окна браузера */
+  position: fixed;
   width: 380px;
   z-index: 2000;
   background-color: rgba(248, 249, 250, 0.8);
@@ -34,7 +33,7 @@
   border-radius: 16px;
   padding: 20px;
   box-sizing: border-box;
-  transform-origin: top left; /* Меняем точку трансформации для анимации */
+  transform-origin: top left;
   animation: confirmation-pop-in 0.2s ease-out forwards;
 }
 
@@ -42,7 +41,6 @@
   animation: confirmation-pop-out 0.2s ease-in forwards;
 }
 
-/* Остальные стили остаются такими же */
 .confirmation-modal-header h2 {
   font-size: 18px;
   font-weight: 600;

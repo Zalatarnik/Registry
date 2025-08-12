@@ -4,6 +4,7 @@ import { useNotification } from '../../notification/NotificationContext';
 import './MyRequestsPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
 import ChatView from '../../components/Chat/Chat';
+import ConfirmationModal from '../../pages/ConfirmationModal';
 
 // иконки
 import { ReactComponent as ChatIcon } from '../../icons/chat-icon.svg';
@@ -273,7 +274,7 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
     const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const handleActionClick = (e, callback, ...args) => {
         e.stopPropagation();
-        if (typeof callback === 'function') callback(e, ...args);
+        if (typeof callback === 'function') callback(...args);
     };
     const statusStyleMap = { 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
     const [areButtonsRendered, setAreButtonsRendered] = useState(false);
@@ -320,9 +321,9 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                         {areButtonsRendered && (
                             <>
                                 {request.status === 'На рассмотрении' &&
-                                    <button className={`interactive-button is-icon btn-style-neutral ${animationClass}`} title="Редактировать" onClick={(e) => handleActionClick(e, onEdit, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
+                                    <button className={`interactive-button is-icon btn-style-neutral ${animationClass}`} title="Редактировать" onClick={(e) => handleActionClick(e, onEdit, e, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
                                 }
-                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title="Отменить заявку" onClick={(e) => handleActionClick(e, onDelete, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
+                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title="Отменить заявку" onClick={(e) => handleActionClick(e, onDelete, request, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
                             </>
                         )}
                         <button className="interactive-button is-icon btn-style-chat" title="Открыть чат" onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
@@ -398,6 +399,9 @@ export default function MyRequestsPage({ userLogin }) {
     const [activeChatRequest, setActiveChatRequest] = useState(null);
     const [editingRequest, setEditingRequest] = useState(null);
     const [modalPosition, setModalPosition] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [requestToDelete, setRequestToDelete] = useState(null);
+    const [deleteModalPosition, setDeleteModalPosition] = useState({ top: 0, left: 0 });
 
     useEffect(() => {
         if (!userLogin) return;
@@ -456,17 +460,34 @@ export default function MyRequestsPage({ userLogin }) {
         setEditingRequest(request);
     };
 
+    const promptCancelRequest = (request, e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const modalWidth = 380;
+        const gap = 15;
+        const top = rect.top;
+        let left = rect.left - modalWidth - gap;
 
+        if (left < gap) {
+            left = rect.right + gap;
+        }
 
-    const handleCancelRequest = async (requestId) => {
-        if (!window.confirm("Вы уверены, что хотите безвозвратно отменить эту заявку?")) return;
+        setDeleteModalPosition({ top, left });
+        setRequestToDelete(request);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmCancel = async () => {
+        if (!requestToDelete) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/requests/${requestId}`, { method: 'DELETE' });
+            const response = await fetch(`http://localhost:8000/api/requests/${requestToDelete.id}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Не удалось отменить заявку.');
-            setRequests(current => current.filter(r => r.id !== requestId));
+            setRequests(current => current.filter(r => r.id !== requestToDelete.id));
             addNotification('Заявка успешно отменена!', 'success');
         } catch (error) {
             addNotification(error.message, 'error');
+        } finally {
+            setIsDeleteModalOpen(false);
+            setRequestToDelete(null);
         }
     };
 
@@ -509,6 +530,16 @@ export default function MyRequestsPage({ userLogin }) {
 
     return (
         <div className="my-requests-scope">
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmCancel}
+                position={deleteModalPosition}
+                title="Подтверждение отмены"
+                message={`Вы уверены, что хотите удалить заявку "${requestToDelete?.eventName || ''}"? Это действие необратимо.`}
+                confirmText="Удалить заявку"
+                cancelText="Назад"
+            />
             {activeChatRequest && (<ChatView userLogin={userLogin} request={activeChatRequest} onClose={handleCloseChat} />)}
             {editingRequest && <EditRequestModal request={editingRequest} onClose={() => { setEditingRequest(null); setModalPosition(null); }} onSave={handleSaveRequest} position={modalPosition} />}
             <div className="requests-container">
@@ -544,7 +575,7 @@ export default function MyRequestsPage({ userLogin }) {
                                                 isExpanded={expandedCardId === request.id}
                                                 onCardClick={() => handleCardClick(request.id)}
                                                 onMouseEnter={() => { if (!expandedCardId) setHoveredCardId(request.id); }}
-                                                onDelete={handleCancelRequest}
+                                                onDelete={promptCancelRequest}
                                                 onDownload={downloadAllFilesAsZip}
                                                 onEdit={handleEditClick}
                                                 onOpenChat={handleOpenChat}

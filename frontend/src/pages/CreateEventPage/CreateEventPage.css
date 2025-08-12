@@ -56,12 +56,12 @@
 }
 
 /* Поля, занимающие всю ширину */
-.create-event-container .file-upload-container,
 .create-event-container .form-field:has(textarea[name="description"]) {
     grid-column: span 2;
 }
 
-.create-event-container .form-field label {
+.create-event-container .form-field label,
+.create-event-container .form-field-span-2 label {
   display: block;
   margin-bottom: 5px;
   color: #6c757d;
@@ -198,8 +198,10 @@
 }
 
 /* стили для контейнера загрузки файлов */
-.create-event-container .file-upload-container {
+.create-event-container .file-upload-container,
+.create-event-container .image-upload-container {
     position: relative;
+    margin-top: 5px;
     padding: 2px;
     overflow: hidden;
     border: 2px solid #e9ecef;
@@ -208,7 +210,8 @@
 }
 
 /* анимированная рамка при наведении */
-.create-event-container .file-upload-container::before {
+.create-event-container .file-upload-container::before,
+.create-event-container .image-upload-container::before {
     content: '';
     position: absolute;
     z-index: 0;
@@ -225,11 +228,13 @@
     transition: opacity 0.3s ease;
 }
 
-.create-event-container .file-upload-container:hover {
+.create-event-container .file-upload-container:hover,
+.create-event-container .image-upload-container:hover {
     border-color: transparent;
 }
 
-.create-event-container .file-upload-container:hover::before {
+.create-event-container .file-upload-container:hover::before,
+.create-event-container .image-upload-container:hover::before {
     opacity: 1;
 }
 
@@ -238,8 +243,6 @@
     position: relative;
     z-index: 1;
     display: flex;
-    padding: 5px;
-    min-height: 120px;
     color: #6c757d;
     background-color: #fff;
     border-radius: 12px;
@@ -249,9 +252,22 @@
     justify-content: center;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    height: 300px;
+     box-sizing: border-box;
 }
 
-.create-event-container .file-upload-container:hover .file-upload-area {
+.create-event-container .file-upload-area.has-file {
+    padding: 0;
+    cursor: default;
+}
+
+.create-event-container .file-upload-area:not(.has-file) {
+    padding: 5px;
+}
+
+
+.create-event-container .file-upload-container:hover .file-upload-area,
+.create-event-container .image-upload-container:hover .file-upload-area {
     background-color: #f8f9fa;
 }
 
@@ -279,13 +295,15 @@
     transition: opacity 0.4s ease;
 }
 
-.create-event-container .file-upload-container:hover .file-upload-area::after {
+.create-event-container .file-upload-container:hover .file-upload-area::after,
+.create-event-container .image-upload-container:hover .file-upload-area::after {
     opacity: 1;
 }
 
 .create-event-container .file-upload-icon,
 .create-event-container .file-upload-text,
-.create-event-container .file-list-inside {
+.create-event-container .file-list-inside,
+.create-event-container .image-preview {
     position: relative;
     z-index: 2;
 }
@@ -305,11 +323,91 @@
     color: #d35400;
 }
 
+.create-event-container .image-preview {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.create-event-container .image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.create-event-container .image-preview:hover img {
+    transform: scale(1.05);
+    filter: brightness(0.7);
+}
+
+.create-event-container .image-change-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.create-event-container .image-preview:hover .image-change-overlay {
+    opacity: 1;
+}
+
+.create-event-container .image-change-overlay svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+}
+
+.create-event-container .image-change-overlay span {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.create-event-container .image-preview .file-item-remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    padding: 4px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    line-height: 0;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.create-event-container .image-preview .file-item-remove-btn:hover {
+    background: #d35400;
+    transform: scale(1.1);
+}
+
 /* контейнер списка загруженных файлов */
 .create-event-container .file-list-inside {
     width: 100%;
-    max-height: 120px;
-    padding: 0 10px;
+    max-height: 200px;
+    padding: 10px;
     overflow-y: auto;
 }
 
@@ -337,12 +435,16 @@
     position: relative;
     z-index: 2;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .create-event-container .file-item-remove-btn {
     position: relative;
     z-index: 2;
     padding: 4px;
+    margin-left: 12px;
     border: none;
     background: transparent;
     color: #9b1c1c;

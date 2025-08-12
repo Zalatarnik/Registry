@@ -1,4 +1,5 @@
 .notifications-component-scope {
+    /* Этот класс теперь является корневым для всех стилей ниже */
 }
 
 .notifications-component-scope .notifications-view-wrapper {
@@ -9,7 +10,7 @@
     gap: 16px;
 }
 
-@keyframes nc-slide-in-from-right {
+@keyframes notifications-scope-slide-in-from-right {
     from {
         transform: translateX(30px);
         opacity: 0;
@@ -20,7 +21,7 @@
     }
 }
 
-@keyframes nc-slide-out-to-right {
+@keyframes notifications-scope-slide-out-to-right {
     from {
         transform: translateX(0);
         opacity: 1;
@@ -31,7 +32,7 @@
     }
 }
 
-@keyframes nc-page-turn-in {
+@keyframes notifications-scope-page-turn-in {
     from {
         transform: perspective(1200px) rotateY(-90deg);
         opacity: 0;
@@ -42,7 +43,7 @@
     }
 }
 
-@keyframes nc-page-turn-out {
+@keyframes notifications-scope-page-turn-out {
     from {
         transform: perspective(1200px) rotateY(0deg);
         opacity: 1;
@@ -53,23 +54,59 @@
     }
 }
 
-@keyframes nc-fade-in {
+@keyframes notifications-scope-modal-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes notifications-scope-modal-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes notifications-scope-modal-slide-in {
+    from { transform: translateX(50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes notifications-scope-modal-slide-out {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(50px); opacity: 0; }
+}
+
+@keyframes notifications-scope-participant-in {
     from {
         opacity: 0;
+        transform: translateY(-15px);
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
     }
     to {
         opacity: 1;
+        transform: translateY(0);
+        max-height: 150px;
     }
 }
 
-@keyframes nc-fade-out {
+@keyframes notifications-scope-participant-out {
     from {
         opacity: 1;
+        transform: translateY(0);
+        max-height: 150px;
     }
     to {
         opacity: 0;
+        transform: translateY(-15px);
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border: 0;
     }
 }
+
 
 .notifications-component-scope .notifications-modal {
     display: flex;
@@ -82,11 +119,11 @@
     border-radius: 12px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    animation: nc-slide-in-from-right 0.4s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+    animation: notifications-scope-slide-in-from-right 0.4s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
 }
 
 .notifications-component-scope .notifications-modal.is-closing {
-    animation: nc-slide-out-to-right 0.3s ease-in forwards;
+    animation: notifications-scope-slide-out-to-right 0.3s ease-in forwards;
 }
 
 .notifications-component-scope .info-modal-header {
@@ -234,11 +271,11 @@
 
 .notifications-component-scope .detailed-event-container {
     transform-origin: right center;
-    animation: nc-page-turn-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: notifications-scope-page-turn-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .notifications-component-scope .detailed-event-container.is-closing {
-    animation: nc-page-turn-out 0.4s ease-in forwards;
+    animation: notifications-scope-page-turn-out 0.4s ease-in forwards;
 }
 
 .notifications-component-scope .detailed-event-container .event-card-student:not(.is-detailed-view) {
@@ -461,14 +498,14 @@
 .notifications-component-scope .details-actions {
     padding: 24px;
     padding-top: 16px;
-    background: #fff;
+    background: rgba(248, 249, 250, 0.8);
     border-top: 1px solid #e0e0e0;
     flex-shrink: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
 }
 
-.notifications-component-scope .details-actions .interactive-button {
-    width: 100%;
-}
 
 .notifications-component-scope .modal-overlay {
     position: fixed;
@@ -476,34 +513,36 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 5000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    z-index: 2000;
+    display: block; 
     background-color: rgba(33, 37, 41, 0.6);
     backdrop-filter: blur(5px);
-    animation: nc-fade-in 0.3s ease-out forwards;
+    animation: notifications-scope-modal-fade-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .notifications-component-scope .modal-overlay.is-closing {
-    animation: nc-fade-out 0.3s ease-in forwards;
+    animation: notifications-scope-modal-fade-out 0.4s ease-in forwards;
 }
 
-.notifications-component-scope .signup-modal-content {
+.notifications-component-scope .edit-modal-content.signup-modal {
+    position: absolute;
     display: flex;
-    flex-direction: column;
-    width: 90%;
-    max-width: 800px;
+    width: 600px;
     max-height: 90vh;
-    background-color: #fff;
-    border-radius: 16px;
+    z-index: 2001;
+    background-color: rgba(248, 249, 250, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    flex-direction: column;
     overflow: hidden;
-    animation: nc-slide-in-from-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: notifications-scope-modal-slide-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.notifications-component-scope .signup-modal-content.is-closing {
-    animation: nc-slide-out-to-right 0.3s ease-in forwards;
+.notifications-component-scope .edit-modal-content.signup-modal.is-closing {
+    animation: notifications-scope-modal-slide-out 0.4s ease-in forwards;
 }
 
 .notifications-component-scope .chat-header {
@@ -515,23 +554,256 @@
     align-items: center;
 }
 
-.notifications-component-scope .chat-close-btn {
+.notifications-component-scope .chat-title-wrapper h2 {
+    margin: 0;
+    color: #212529;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.notifications-component-scope .chat-title-wrapper p {
+    margin: 4px 0 0 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.notifications-component-scope .edit-modal-body {
+    flex-grow: 1;
+    padding: 24px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.notifications-component-scope .edit-form-inside-modal {
     display: flex;
-    width: 32px;
-    height: 32px;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.notifications-component-scope .form-grid {
+    display: grid;
+    gap: 0 24px;
+    align-items: start;
+}
+.notifications-component-scope .signup-form-grid {
+    grid-template-columns: 2.5fr 1fr;
+}
+
+.notifications-component-scope .form-field {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.notifications-component-scope .form-field label {
+    display: block;
+    margin-bottom: 5px;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.notifications-component-scope .input-wrapper {
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.notifications-component-scope .input-wrapper::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+}
+
+.notifications-component-scope .input-wrapper::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #d35400;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.notifications-component-scope .form-field:hover .input-wrapper::after,
+.notifications-component-scope .form-field:focus-within .input-wrapper::after {
+    transform: scaleX(1);
+}
+
+.notifications-component-scope .form-input {
+    width: 100%;
+    padding: 4px 2px;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+    color: #212529;
+    background-color: transparent;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.notifications-component-scope .form-input:disabled {
+    color: #495057;
+    background-color: rgba(248, 249, 250, 0);
+    cursor: not-allowed;
+}
+
+.notifications-component-scope .participants-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.notifications-component-scope .participants-list .participant-entry {
+    position: relative;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: rgba(248, 249, 250, 0.7);
+    animation: notifications-scope-participant-in 0.3s ease-out forwards;
+    overflow: hidden;
+}
+
+.notifications-component-scope .participants-list .participant-entry.is-deleting {
+    animation: notifications-scope-participant-out 0.3s ease-out forwards;
+}
+
+.notifications-component-scope .remove-participant-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    width: 28px;
+    height: 28px;
     padding: 4px;
     border: none;
     background: transparent;
-    color: #6c757d;
+    color: #dc3545;
     align-items: center;
     justify-content: center;
+    opacity: 0.6;
     cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.2s, transform 0.2s;
 }
 
-.notifications-component-scope .chat-close-btn:hover {
-    color: #d35400;
+.notifications-component-scope .remove-participant-btn:hover {
+    opacity: 1;
     transform: scale(1.1);
+}
+
+.notifications-component-scope .form-actions-container {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+  padding: 8px 24px 24px;
+  border-top: none;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  background-color: transparent;
+}
+
+.notifications-component-scope .participant-actions {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notifications-component-scope .form-actions-right {
+  display: flex;
+  gap: 12px;
+}
+
+.notifications-component-scope .form-submit-btn,
+.notifications-component-scope .form-secondary-btn {
+  position: relative;
+  padding: 12px 32px;
+  border: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: 0px;
+}
+
+.notifications-component-scope .form-secondary-btn.btn-add-plus {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  font-size: 28px;
+  line-height: 48px;
+}
+
+.notifications-component-scope .form-submit-btn {
+  color: #fff;
+  background-color: #d35400;
+}
+
+.notifications-component-scope .form-secondary-btn {
+  color: #495057;
+  background-color: #f0f2f5;
+}
+
+.notifications-component-scope .form-submit-btn:disabled,
+.notifications-component-scope .form-secondary-btn:disabled {
+  color: #6c757d;
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.notifications-component-scope .form-submit-btn:disabled::before,
+.notifications-component-scope .form-secondary-btn:disabled::before {
+  transform: scale(0) !important;
+}
+
+.notifications-component-scope .form-submit-btn::before,
+.notifications-component-scope .form-secondary-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
+}
+
+.notifications-component-scope .form-submit-btn::before {
+  background-color: #b84a00;
+}
+
+.notifications-component-scope .form-secondary-btn::before {
+  background-color: #6c757d;
+}
+
+.notifications-component-scope .form-submit-btn:hover:not(:disabled)::before,
+.notifications-component-scope .form-secondary-btn:hover:not(:disabled)::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.notifications-component-scope .form-submit-btn span,
+.notifications-component-scope .form-secondary-btn span {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.notifications-component-scope .form-secondary-btn:hover:not(:disabled) span {
+  color: #fff;
 }
 
 .notifications-component-scope .interactive-button {
@@ -547,6 +819,12 @@
     cursor: pointer;
     transition: all 0.3s ease;
     border-radius: 0px;
+}
+
+.notifications-component-scope .interactive-button.is-icon {
+    width: 44px;
+    height: 44px;
+    padding: 0;
 }
 
 .notifications-component-scope .interactive-button:disabled {
@@ -570,8 +848,13 @@
 .notifications-component-scope .interactive-button:hover:not(:disabled) span {
     color: #fff;
 }
+.notifications-component-scope .form-submit-btn:hover:not(:disabled) span {
+    color: #fff !important;
+}
 
-.notifications-component-scope .interactive-button svg {
+
+.notifications-component-scope .interactive-button svg,
+.notifications-component-scope .remove-participant-btn svg {
     width: 18px;
     height: 18px;
     fill: currentColor;
@@ -586,4 +869,38 @@
 
 .notifications-component-scope .btn-style-register::before {
     background-color: #28a745;
+}
+
+.notifications-component-scope .btn-style-neutral {
+    color: #495057;
+    background-color: #f0f2f5;
+}
+
+.notifications-component-scope .btn-style-neutral::before {
+    background-color: #6c757d;
+}
+
+.notifications-component-scope .chat-close-btn {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.notifications-component-scope .chat-close-btn:hover {
+    color: #d35400;
+    transform: scale(1.1);
+}
+
+.notifications-component-scope .chat-close-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
 }

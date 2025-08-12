@@ -6,6 +6,7 @@ import ClockwiseLoader from '../../components/common/Loader';
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
 import { ReactComponent as DownIcon } from '../../icons/down-icon.svg';
+import defaultEventImage from '../../images/event-default.jpg';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -158,14 +159,91 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     );
 };
 
+const ImageUploadArea = ({ file, setFile }) => {
+    const [isDragging, setIsDragging] = useState(false);
+    const inputRef = useRef(null);
+    const [previewUrl, setPreviewUrl] = useState(defaultEventImage);
+
+    useEffect(() => {
+        if (!file) {
+            setPreviewUrl(defaultEventImage);
+            return;
+        }
+        const objectUrl = URL.createObjectURL(file);
+        setPreviewUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [file]);
+
+    const handleFileChange = (selectedFiles) => {
+        const imageFile = Array.from(selectedFiles).find(f => f.type.startsWith('image/'));
+        if (imageFile) {
+            setFile(imageFile);
+        }
+    };
+
+    const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+    const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files);
+            e.dataTransfer.clearData();
+        }
+    };
+
+    const removeFile = (e) => {
+        e.stopPropagation();
+        setFile(null);
+    };
+
+    const triggerFileSelect = (e) => {
+        e.stopPropagation();
+        inputRef.current.click();
+    };
+
+    return (
+        <div className="image-upload-container">
+            <div
+                className={`file-upload-area ${isDragging ? 'is-dragging' : ''} has-file`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onMouseMove={handleMouseMoveForEffect}
+            >
+                <div className="image-preview" onClick={triggerFileSelect}>
+                    <img src={previewUrl} alt="Обложка мероприятия" />
+                    <div className="image-change-overlay">
+                        <UploadIcon />
+                        <span>Изменить обложку</span>
+                    </div>
+                    {file && (
+                        <button className="file-item-remove-btn" onClick={removeFile}>
+                            ✕
+                        </button>
+                    )}
+                </div>
+                 <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleFileChange(e.target.files)}
+                />
+            </div>
+        </div>
+    );
+};
+
+
 // компонент для загрузки файлов
 const FileUploadArea = ({ files, setFiles }) => {
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef(null);
 
     const handleFileChange = (selectedFiles) => {
-        const imageFiles = Array.from(selectedFiles).filter(file => file.type.startsWith('image/'));
-        const newFiles = imageFiles.filter(file => !files.some(f => f.name === file.name));
+        const newFiles = Array.from(selectedFiles).filter(file => !files.some(f => f.name === file.name));
         setFiles(prev => [...prev, ...newFiles]);
     };
 
@@ -198,13 +276,13 @@ const FileUploadArea = ({ files, setFiles }) => {
                     <>
                         <UploadIcon className="file-upload-icon" />
                         <p className="file-upload-text">
-                            Перетащите изображение сюда или <span>выберите его</span>
+                            Перетащите доп. файлы сюда или <span>выберите их</span>
                         </p>
                     </>
                 ) : (
                     <div className="file-list-inside">
                         {files.map(file => (
-                            <div key={file.name} className="file-item">
+                            <div key={file.name} className="file-item" onMouseMove={handleMouseMoveForEffect}>
                                 <span className="file-item-name">{file.name}</span>
                                 <button className="file-item-remove-btn" onClick={(e) => {e.stopPropagation(); removeFile(file.name);}}>
                                     ✕
@@ -217,7 +295,6 @@ const FileUploadArea = ({ files, setFiles }) => {
                     ref={inputRef}
                     type="file"
                     multiple
-                    accept="image/*" // принимаем только изображения
                     style={{ display: 'none' }}
                     onChange={(e) => handleFileChange(e.target.files)}
                 />
@@ -230,7 +307,8 @@ export default function CreateEventPage({ userLogin }) {
     const [formData, setFormData] = useState({
         eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', description: '', maxParticipants: '', teamSize: ''
     });
-    const [files, setFiles] = useState([]);
+    const [imageFile, setImageFile] = useState(null);
+    const [documentFiles, setDocumentFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { addNotification } = useNotification();
     const [statusOptions] = useState(['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']);
@@ -243,7 +321,8 @@ export default function CreateEventPage({ userLogin }) {
         setFormData({
             eventName: '', leader: '', organizer: '', location: '', eventStatus: '', eventDate: '', description: '', maxParticipants: '', teamSize: ''
         });
-        setFiles([]);
+        setImageFile(null);
+        setDocumentFiles([]);
     };
 
     const handleSubmit = async (e) => {
@@ -260,6 +339,11 @@ export default function CreateEventPage({ userLogin }) {
                 return;
             }
         }
+        
+        if (!imageFile) {
+            addNotification("Пожалуйста, загрузите изображение для обложки мероприятия.", "error");
+            return;
+        }
 
         setIsSubmitting(true);
         const data = new FormData();
@@ -273,8 +357,12 @@ export default function CreateEventPage({ userLogin }) {
         }
         data.append('user_login', userLogin);
 
-        files.forEach(file => {
-            data.append('files', file, file.name);
+        if (imageFile) {
+            data.append('image', imageFile, imageFile.name);
+        }
+
+        documentFiles.forEach(file => {
+            data.append('documents', file, file.name);
         });
 
         try {
@@ -320,7 +408,15 @@ export default function CreateEventPage({ userLogin }) {
                         <FormField label="Макс. число участников*"><input className="form-input" type="number" value={formData.maxParticipants} onChange={(e) => handleInputChange('maxParticipants', e.target.value)} required /></FormField>
                         <FormField label="Участников в команде*"><input className="form-input" type="number" value={formData.teamSize} onChange={(e) => handleInputChange('teamSize', e.target.value)} required /></FormField>
 
-                        <FileUploadArea files={files} setFiles={setFiles} />
+                        <div className="form-field">
+                          <label>Обложка мероприятия*</label>
+                          <ImageUploadArea file={imageFile} setFile={setImageFile} />
+                        </div>
+
+                        <div className="form-field">
+                          <label>Дополнительные файлы</label>
+                          <FileUploadArea files={documentFiles} setFiles={setDocumentFiles} />
+                        </div>
                         
                         <FormField label="Описание" isTextarea={true}><textarea className="form-input" name="description" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}></textarea></FormField>
                     </div>

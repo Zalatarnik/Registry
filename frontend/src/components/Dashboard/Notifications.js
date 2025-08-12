@@ -12,6 +12,7 @@ import { ReactComponent as RemoveIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as ExitIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as UsersIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
 import { ReactComponent as GroupIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
 const useNotification = () => ({
     addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
@@ -46,7 +47,7 @@ function animateRadii(btn) {
 
 const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
-    if (!el.classList.contains('interactive-button')) return;
+    if (!el.classList.contains('interactive-button') && !el.classList.contains('form-submit-btn') && !el.classList.contains('form-secondary-btn')) return;
 
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -83,7 +84,7 @@ const handleMouseMoveForEffect = (e) => {
 
 const handleButtonLeave = (e) => {
     const btn = e.currentTarget;
-    if (!btn.classList.contains('interactive-button')) return;
+     if (!btn.classList.contains('interactive-button') && !btn.classList.contains('form-submit-btn') && !btn.classList.contains('form-secondary-btn')) return;
 
     const state = btn._animationState;
     if (!state) return;
@@ -99,7 +100,7 @@ const handleButtonLeave = (e) => {
     }
 };
 
-const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRequest }) => {
+const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRequest, onDownload }) => {
     const cardClassName = [
         'event-card-student',
         isDetailed && 'is-detailed-view'
@@ -110,6 +111,11 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
             e.stopPropagation();
             onCloseRequest();
         }
+    };
+
+    const handleActionClick = (e, action) => {
+        e.stopPropagation();
+        action(event, e);
     };
 
     return (
@@ -149,8 +155,17 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
                     </div>
                     <div className="details-actions">
                         <button
+                            className="interactive-button btn-style-neutral is-icon"
+                            onClick={(e) => handleActionClick(e, onDownload)}
+                            onMouseMove={handleMouseMoveForEffect}
+                            onMouseLeave={handleButtonLeave}
+                            title="Скачать материалы"
+                        >
+                            <span><DownloadIcon /></span>
+                        </button>
+                        <button
                             className="interactive-button btn-style-register"
-                            onClick={(e) => { e.stopPropagation(); onSignUp(event); }}
+                            onClick={(e) => handleActionClick(e, onSignUp)}
                             onMouseMove={handleMouseMoveForEffect}
                             onMouseLeave={handleButtonLeave}
                             disabled={isRegistered}
@@ -164,7 +179,7 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
     );
 };
 
-const DetailedEventContainer = ({ event, onSignUp, isRegistered, isClosing, isExpanded, onExpand, onCloseRequest }) => (
+const DetailedEventContainer = ({ event, onSignUp, onDownload, isRegistered, isClosing, isExpanded, onExpand, onCloseRequest }) => (
     <div
         className={`detailed-event-container ${isClosing ? 'is-closing' : ''}`}
         onClick={!isExpanded ? onExpand : undefined}
@@ -172,6 +187,7 @@ const DetailedEventContainer = ({ event, onSignUp, isRegistered, isClosing, isEx
         <StudentEventCard
             event={event}
             onSignUp={onSignUp}
+            onDownload={onDownload}
             isRegistered={isRegistered}
             isDetailed={isExpanded}
             onCloseRequest={onCloseRequest}
@@ -179,43 +195,86 @@ const DetailedEventContainer = ({ event, onSignUp, isRegistered, isClosing, isEx
     </div>
 );
 
-const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
+const FormField = ({ label, children }) => (
+    <div className="form-field">
+        <label>{label}</label>
+        <div className="input-wrapper">{children}</div>
+    </div>
+);
+
+// всплывающее окно для записи на мероприятие
+const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
-
     const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic].filter(Boolean).join(' ') : '';
-    
     const [participants, setParticipants] = useState(() => [
-        { fullName: getUserFullName(currentUser), group: currentUser?.group || '' }
+        { id: 1, fullName: getUserFullName(currentUser), group: currentUser.group || '' }
     ]);
+    const nextId = useRef(2);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const modalRef = useRef(null);
+    const prevHeight = useRef(null);
+    const [dynamicPosition, setDynamicPosition] = useState(position);
+
+    useEffect(() => {
+        if (modalRef.current) {
+            const currentHeight = modalRef.current.offsetHeight;
+            const oldHeight = prevHeight.current;
+            if (oldHeight !== null && currentHeight !== oldHeight) {
+                const heightDifference = currentHeight - oldHeight;
+                setDynamicPosition(pos => {
+                    if (!pos || typeof pos.top !== 'string') return pos;
+                    return {
+                        ...pos,
+                        top: `${parseFloat(pos.top) - heightDifference}px`
+                    };
+                });
+            }
+            prevHeight.current = currentHeight;
+        }
+    }, [participants.length]);
 
     const handleClose = () => {
         setIsClosing(true);
-        setTimeout(onClose, 300);
+        setTimeout(onClose, 400);
     };
 
     const addParticipant = () => {
         const maxGroupSize = event.max_group_size || 5;
         if (participants.length < maxGroupSize) {
-            setParticipants([...participants, { fullName: '', group: '' }]);
+            setParticipants([...participants, { id: nextId.current++, fullName: '', group: '' }]);
         } else {
             addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
         }
     };
 
     const removeParticipant = (index) => {
-        if (index > 0) {
-            setParticipants(participants.filter((_, i) => i !== index));
-        }
+        if (index === 0) return;
+        const participantToRemove = participants[index];
+        if (!participantToRemove) return;
+
+        setParticipants(currentParticipants =>
+            currentParticipants.map(p =>
+                p.id === participantToRemove.id ? { ...p, isDeleting: true } : p
+            )
+        );
+
+        setTimeout(() => {
+            setParticipants(currentParticipants =>
+                currentParticipants.filter(p => p.id !== participantToRemove.id)
+            );
+        }, 300);
     };
 
     const handleParticipantChange = (index, field, value) => {
         const newParticipants = [...participants];
-        newParticipants[index][field] = value;
-        setParticipants(newParticipants);
+        if (newParticipants[index]) {
+            newParticipants[index][field] = value;
+            setParticipants(newParticipants);
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         for (const p of participants) {
             if (!p.fullName.trim() || !p.group.trim()) {
@@ -223,62 +282,69 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser }) => {
                 return;
             }
         }
-        onConfirm({ eventId: event.id, user_login: currentUser.login, participants });
+        setIsSubmitting(true);
+        setTimeout(() => {
+            try {
+                const result = { message: `Вы успешно записались на "${event.eventName}"` };
+                addNotification(result.message, 'success');
+                onConfirm({ eventId: event.id, user_login: currentUser.login, participants });
+            } catch (error) {
+                addNotification(error.message, 'error');
+            } finally {
+                setIsSubmitting(false);
+            }
+        }, 500);
     };
-
+    
     if (!event) return null;
 
-    return (
-        <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div className={`signup-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()}>
+    return ReactDOM.createPortal(
+        <div className={`notifications-component-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
+            <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
                 <div className="chat-header">
                     <div className="chat-title-wrapper">
                         <h2>Запись на мероприятие</h2>
                         <p>{event.eventName}</p>
                     </div>
-                    <button onClick={handleClose} className="chat-close-btn" title="Закрыть">
-                        <ExitIcon />
-                    </button>
                 </div>
-                <div className="edit-modal-body">
-                    <form onSubmit={handleSubmit} className="edit-form-inside-modal">
-                        {participants.map((p, index) => (
-                            <div className="participant-entry" key={index}>
-                                <div className="form-grid">
-                                    <div className="form-field">
-                                        <label>{index === 0 ? "Ваше ФИО" : "ФИО участника"}</label>
-                                        <div className="input-wrapper">
+                <form onSubmit={handleSubmit} className="edit-form-inside-modal">
+                    <div className="edit-modal-body">
+                        <div className="participants-list">
+                            {participants.map((p, index) => (
+                                <div className={`participant-entry ${p.isDeleting ? 'is-deleting' : ''}`} key={p.id}>
+                                    {index > 0 && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon/></button>}
+                                    <div className="form-grid signup-form-grid">
+                                        <FormField label={index === 0 ? "Ваше ФИО" : "ФИО участника"}>
                                             <input type="text" className="form-input" value={p.fullName} onChange={(e) => handleParticipantChange(index, 'fullName', e.target.value)} required disabled={index === 0} />
-                                        </div>
-                                    </div>
-                                    <div className="form-field">
-                                        <label>{index === 0 ? "Ваша группа" : "Группа"}</label>
-                                        <div className="input-wrapper">
+                                        </FormField>
+                                        <FormField label={index === 0 ? "Ваша группа" : "Группа"}>
                                             <input type="text" className="form-input" value={p.group} onChange={(e) => handleParticipantChange(index, 'group', e.target.value)} required disabled={index === 0} />
-                                        </div>
+                                        </FormField>
                                     </div>
                                 </div>
-                                {index > 0 && (
-                                    <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}>
-                                        <RemoveIcon />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                        <div className="form-actions-container participant-actions">
-                            <button type="button" className="form-secondary-btn interactive-button" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={participants.length >= (event.max_group_size || 5)}>
-                                <span>Добавить участника</span>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="form-actions-container participant-actions">
+                        <button type="button" className="form-secondary-btn btn-add-plus" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={isSubmitting || participants.length >= (event.max_group_size || 5)}>
+                            <span>+</span>
+                        </button>
+                        <div className="form-actions-right">
+                            <button type="button" className="form-secondary-btn" onClick={handleClose} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} disabled={isSubmitting}>
+                                <span>Отмена</span>
                             </button>
-                            <button type="submit" className="form-submit-btn interactive-button" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                <span>Записаться</span>
+                            <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                                <span>{isSubmitting ? 'Запись...' : 'Записаться'}</span>
                             </button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
+
 
 const NotificationCard = memo(({ invite, isActive, onCardClick, onMouseEnter, innerRef }) => {
     const cardClassName = ['notification-card', isActive && 'is-active'].filter(Boolean).join(' ');
@@ -325,6 +391,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const [hoveredInviteId, setHoveredInviteId] = useState(null);
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
+    const [modalPosition, setModalPosition] = useState(null);
 
     // тест
     const [invitations, setInvitations] = useState([
@@ -389,20 +456,45 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
             setHoveredInviteId(null);
         }
     };
+    
+    const handleDownload = (event) => {
+        addNotification(`Загрузка материалов для мероприятия "${event.eventName}"...`, 'info');
+        console.log("Download requested for event:", event.id);
+    };
 
-    const handleSignUp = (event) => {
+    const handleSignUp = (event, e) => {
         if (!currentUser) {
             addNotification("Необходимо войти в систему для записи.", "info");
             return;
         };
+        
+        const buttonRect = e.currentTarget.getBoundingClientRect();
+        const modalWidth = 600; 
+        const gap = 15;
+        let top = buttonRect.top - 80;
+        const left = buttonRect.left - modalWidth - gap;
+
+        if (top < gap) {
+            top = gap;
+        }
+
+        setModalPosition({
+            top: `${top}px`,
+            left: `${Math.max(left, gap)}px`
+        });
         setEventForSignUp(event);
         setIsSignUpModalOpen(true);
     };
 
-    const handleConfirmRegistration = async (data) => {
-        addNotification(`Вы успешно записались на "${eventForSignUp.eventName}"`, 'success');
-        setUserRegisteredEventIds(prev => new Set(prev).add(data.eventId));
+    const handleCloseSignUpModal = () => {
         setIsSignUpModalOpen(false);
+        setModalPosition(null);
+        setEventForSignUp(null);
+    };
+
+    const handleConfirmRegistration = (data) => {
+        setUserRegisteredEventIds(prev => new Set(prev).add(data.eventId));
+        handleCloseSignUpModal();
     };
 
     if (!isOpen) return null;
@@ -419,12 +511,13 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
 
     return ReactDOM.createPortal(
         <div className="notifications-component-scope">
-            {isSignUpModalOpen && (
+            {isSignUpModalOpen && eventForSignUp && (
                 <SignUpModal
                     event={eventForSignUp}
-                    onClose={() => setIsSignUpModalOpen(false)}
+                    onClose={handleCloseSignUpModal}
                     onConfirm={handleConfirmRegistration}
                     currentUser={currentUser}
+                    position={modalPosition}
                 />
             )}
 
@@ -433,6 +526,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                     <DetailedEventContainer
                         event={detailedEvent}
                         onSignUp={handleSignUp}
+                        onDownload={handleDownload}
                         isRegistered={userRegisteredEventIds.has(detailedEvent.id)}
                         isClosing={isDetailCardClosing}
                         isExpanded={isDetailCardExpanded}
