@@ -7,11 +7,14 @@
 //  - Регистрация пользователя (и его команды) на мероприятие
 //  - Получение всех регистраций на конкретное мероприятие
 //  - Получение списка мероприятий на которые записан пользователь
+//  - Скачать все документы мероприятия в zip
  
 const { Event, User, EventRegistration } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
+const archiver = require('archiver');
+const transliterate = require('../utils/transliterate');
 
 // Создать мероприятие
 exports.createEvent = async (req, res) => {
@@ -39,18 +42,36 @@ exports.createEvent = async (req, res) => {
       userId: user.id
     });
 
-    // Если файлы переданы, то сохранить
-    if (req.files && req.files.length > 0) {
-      const uploadsDir = path.join(__dirname, '..', 'uploads', `event_${newEvent.id}`);
-      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+    // Базовая папка для файлов мероприятия
+    const baseDir = path.join(__dirname, '..', 'uploads', `event_${newEvent.id}`);
+    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
 
-      for (const file of req.files) {
-        const filePath = path.join(uploadsDir, file.originalname);
-        fs.writeFileSync(filePath, file.buffer);
+    // Обработка обложки
+    if (req.files && req.files.image) {
+      const imageFile = req.files.image[0];
+      const imageDir = path.join(baseDir, 'image');
+      if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir, { recursive: true });
+
+      const imagePath = path.join(imageDir, imageFile.originalname);
+      fs.writeFileSync(imagePath, imageFile.buffer);
+
+      // сохраняем путь в БД
+      newEvent.coverImage = `/uploads/event_${newEvent.id}/image/${imageFile.originalname}`;
+      await newEvent.save();
+    }
+
+    // Обработка документов
+    if (req.files && req.files.documents) {
+      const docsDir = path.join(baseDir, 'documents');
+      if (!fs.existsSync(docsDir)) fs.mkdirSync(docsDir, { recursive: true });
+
+      for (const doc of req.files.documents) {
+        const filePath = path.join(docsDir, doc.originalname);
+        fs.writeFileSync(filePath, doc.buffer);
       }
     }
 
-    res.status(201).json({ detail: 'Мероприятие успешно создано' });
+    res.status(201).json({ detail: 'Мероприятие успешно создано', eventId: newEvent.id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ detail: 'Ошибка при создании мероприятия' });
@@ -60,7 +81,14 @@ exports.createEvent = async (req, res) => {
 // Получить все мероприятия
 exports.getAllEvents = async (req, res) => {
   try {
-    const events = await Event.findAll({ order: [['eventDate', 'DESC']] });
+    const events = await Event.findAll({
+      attributes: [
+        'id', 'eventName', 'leader', 'organizer', 'location',
+        'eventStatus', 'eventDate', 'description',
+        'maxParticipants', 'teamSize', 'coverImage', 'userId'
+      ],
+      order: [['eventDate', 'DESC']]
+    });
     res.json(events);
   } catch (err) {
     console.error(err);
@@ -74,6 +102,11 @@ exports.deleteEvent = async (req, res) => {
   try {
     const event = await Event.findByPk(id);
     if (!event) return res.status(404).json({ detail: 'Мероприятие не найдено' });
+
+    // проверяем: только создатель может удалить
+    if (!req.user || req.user.id !== event.userId) {
+      return res.status(403).json({ detail: 'Вы не являетесь создателем мероприятия' });
+    }
 
     await event.destroy();
 
@@ -168,5 +201,35 @@ exports.getUserRegistrations = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ detail: 'Ошибка получения регистраций пользователя' });
+  }
+};
+
+// Скачать все документы мероприятия в zip
+exports.downloadEventDocuments = async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    const event = await Event.findByPk(eventId);
+    if (!event) return res.status(404).json({ detail: 'Мероприятие не найдено' });
+
+    const docsDir = path.join(__dirname, '..', 'uploads', `event_${eventId}`, 'documents');
+    if (!fs.existsSync(docsDir)) {
+      return res.status(404).json({ detail: 'Файлы не найдены' });
+    }
+
+    // транслитерация + замена пробелов
+    const safeName = transliterate(event.eventName).replace(/\s+/g, '_');
+    const zipName = `${safeName || 'event'}_documents.zip`;
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${zipName}"`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.pipe(res);
+    archive.directory(docsDir, false);
+    await archive.finalize();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ detail: 'Ошибка при формировании архива' });
   }
 };
