@@ -92,6 +92,10 @@ const handleButtonLeave = (e) => {
     }
 };
 
+const handleDownloadZip = (eventId) => {
+        window.open(`${API_BASE_URL}/api/events/${eventId}/download-documents`, "_blank");
+};
+
 const ConfirmationModal = ({
     isOpen,
     onClose,
@@ -185,7 +189,7 @@ const FormField = ({ label, children }) => (
 const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
-    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic].filter(Boolean).join(' ') : '';
+    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.middleName || user.patronymic].filter(Boolean).join(' ') : '';
     const [participants, setParticipants] = useState(() => [{ fullName: getUserFullName(currentUser), group: currentUser.group || '' }]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef(null);
@@ -541,7 +545,7 @@ const RegistrationsModal = ({ onClose, eventName, registrations = [], position, 
 };
 
 // карточка мероприятия для вида куратора
-const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDelete, onShowList, onDownload, onMouseEnter, innerRef }) => {
+const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDelete, onShowList, onDownload, onMouseEnter, currentUser, innerRef }) => {
     const cardClassName = ['event-card', 'curator-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const handleAction = (e, callback, ...args) => {
         e.stopPropagation();
@@ -584,7 +588,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         {areButtonsRendered && (
                             <button
                                 className={`interactive-button is-icon btn-style-neutral ${animationClass}`}
-                                onClick={(e) => handleAction(e, onDownload, event.id)}
+                                onClick={() => handleDownloadZip(event.id)} 
                                 onMouseMove={handleMouseMoveForEffect}
                                 onMouseLeave={handleButtonLeave}
                                 title="Скачать отчет"
@@ -595,16 +599,29 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
                             <span><ListIcon /> Список</span>
                         </button>
-                        <button className="interactive-button btn-style-delete" onClick={(e) => handleAction(e, onDelete, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                            <span><DeleteIcon /> Удалить</span>
-                        </button>
+                        {console.log("Текущий пользователь:", currentUser)}
+                        {console.log("Создатель события:", event.userId)}
+                        {currentUser?.id === event.userId && (
+                            <button
+                                className="interactive-button btn-style-delete"
+                                onClick={(e) => handleAction(e, onDelete, event, e)}
+                                onMouseMove={handleMouseMoveForEffect}
+                                onMouseLeave={handleButtonLeave}
+                            >
+                               <span><DeleteIcon/> Удалить</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
             <div className="card-details-wrapper">
                 <div className="card-body curator-card-body-grid">
                     <div className="card-body-column column-image">
-                        <img src={defaultEventImage} alt={event.eventName} className="curator-card-image" />
+                        <img 
+                            src={event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage} 
+                            alt={event.eventName} 
+                            className="curator-card-image" 
+                        />
                     </div>
                     <div className="card-body-column column-description">
                         <div className="detail-item">
@@ -642,7 +659,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
             <div className="student-card-inner">
                 <div
                     className="cover-image"
-                    style={{ backgroundImage: `url(${event.imageUrl})` }}
+                    style={{ backgroundImage: `url(${event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage})` }}
                 />
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
                     {isRegistered ? 'Вы записаны' : 'Нет записи'}
@@ -683,7 +700,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                     <div className="details-actions">
                         <button
                             className="interactive-button btn-style-neutral is-icon"
-                            onClick={(e) => handleActionClick(e, onDownload)}
+                            onClick={() => handleDownloadZip(event.id)} 
                             onMouseMove={handleMouseMoveForEffect}
                             onMouseLeave={handleButtonLeave}
                             title="Скачать материалы"
@@ -778,7 +795,7 @@ const StudentEventsView = ({ events, userRegisteredEventIds, onSignUp, onCardCli
 };
 
 // отображение списка для куратора
-const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownload, expandedCardId, hoveredCardId, setHoveredCardId, gliderStyle, cardElements }) => {
+const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownload, expandedCardId, hoveredCardId, setHoveredCardId, gliderStyle, cardElements, currentUser }) => {
     return (
         <div className="page-content">
             <div className="events-list-container" onMouseLeave={() => setHoveredCardId(null)}>
@@ -796,6 +813,7 @@ const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownlo
                                 onDelete={onDelete}
                                 onShowList={onShowList}
                                 onDownload={onDownload}
+                                currentUser={currentUser}
                             />
                             {index < events.length - 1 && <div className="event-divider" />}
                         </React.Fragment>
@@ -847,16 +865,26 @@ export default function EventsPage({ userLogin, userRole }) {
                 if (!eventsResponse.ok) throw new Error('Не удалось загрузить мероприятия.');
                 const eventsData = await eventsResponse.json();
                 // Обрабатываем данные мероприятий
-                const processedEvents = eventsData.map((event, index) => ({
+                const processedEvents = eventsData.map(event => ({
                     ...event,
-                    imageUrl: event.image_url || defaultEventImage,
-                    max_participants: event.max_participants || [50, 100, 20, 150][index % 4],
-                    max_group_size: event.max_group_size || [1, 5, 10][index % 3],
+                    imageUrl: event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage,
+                    max_participants: event.maxParticipants,  
+                    max_group_size: event.teamSize,           
                     recruitment_status: 'Активен',
                     description: event.description || 'Тут будет описание, возможно, когда-нибудь'
                 }));
 
                 setEvents(processedEvents);
+                if (userRole === 'curator') {
+                    console.log("userRole в useEffect:", userRole);
+                    const meResp = await fetch(`${API_BASE_URL}/api/profile/me`, { credentials: 'include' });
+                    if (meResp.ok) {
+                        const me = await meResp.json();
+                        setCurrentUser({ id: me.id, login: me.login });
+                    } else {
+                        console.error("Ошибка при получении профиля:", meResp.status);
+                    }
+                }
                 // Если пользователь - студент, загружаем дополнительные данные
                 if (userRole === 'student' && userLogin) {
                     const profileResponse = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`, {
@@ -867,7 +895,7 @@ export default function EventsPage({ userLogin, userRole }) {
                     setCurrentUser({
                         lastName: profileData.last_name,
                         firstName: profileData.first_name,
-                        patronymic: profileData.patronymic,
+                        middleName: profileData.patronymic,
                         group: profileData.group,
                         login: profileData.login
                     });
@@ -976,7 +1004,10 @@ export default function EventsPage({ userLogin, userRole }) {
     const handleConfirmDelete = async () => {
         if (!eventToDelete) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/events/${eventToDelete.id}`, { method: 'DELETE' });
+            const response = await fetch(`${API_BASE_URL}/api/events/${eventToDelete.id}`, { 
+                method: 'DELETE',
+                credentials: 'include',
+            });
             if (!response.ok) throw new Error('Ошибка удаления');
             addNotification('Мероприятие удалено.', 'success');
             setEvents(prev => prev.filter(e => e.id !== eventToDelete.id));
@@ -1123,6 +1154,7 @@ export default function EventsPage({ userLogin, userRole }) {
                                 setHoveredCardId={setHoveredCardId}
                                 gliderStyle={gliderStyle}
                                 cardElements={cardElements}
+                                currentUser={currentUser}
                             />
                         )}
                     </>

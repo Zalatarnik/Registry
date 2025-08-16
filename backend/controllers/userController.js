@@ -89,6 +89,7 @@ const loginUser = async (req, res) => {
     });
 
     res.json({
+      id: user.id,
       login: user.login,
       role: user.role
     });
@@ -122,6 +123,7 @@ const getUserProfile = async (req, res) => {
     // 1. /profile/me 
     if (req.params.login === 'me') {
       return res.json({
+        id : req.user.id,
         login : req.user.login,
         role  : req.user.role
       });
@@ -131,7 +133,7 @@ const getUserProfile = async (req, res) => {
     const user = await User.findOne({
       where: { login: req.params.login },
       attributes: [
-        'login', 'firstName', 'lastName',
+        'id', 'login', 'firstName', 'lastName',
         'middleName', 'group', 'role', 'studentIdNumber'
       ]
     });
@@ -141,6 +143,7 @@ const getUserProfile = async (req, res) => {
     }
 
     return res.json({
+      id              : user.id,
       login           : user.login,
       firstName       : user.firstName,
       lastName        : user.lastName,
@@ -203,8 +206,8 @@ const getMyProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: [
-        'login', 'firstName', 'lastName', 'middleName',
-        'group', 'role', 'studentIdNumber', 'position', 'avatar'
+        'id', 'login', 'firstName', 'lastName', 'middleName',
+        'group', 'role', 'studentIdNumber', 'position', 'avatar', 
       ]
     });
     if (!user)

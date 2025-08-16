@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     eventDate: DataTypes.DATE,
     description: DataTypes.TEXT,
     maxParticipants: DataTypes.INTEGER,
-    teamSize: DataTypes.INTEGER
+    teamSize: DataTypes.INTEGER,
+    coverImage: DataTypes.STRING
   });
 };
