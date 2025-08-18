@@ -6,6 +6,7 @@ import ClockwiseLoader from '../../components/common/Loader';
 
 // импорт изображения по умолчанию
 import defaultEventImage from '../../images/event-default.jpg';
+import defaultAvatar from '../../images/event-default.jpg';
 
 // иконки
 import { ReactComponent as SearchIcon } from '../../icons/search-icon.svg';
@@ -13,9 +14,9 @@ import { ReactComponent as AddIcon } from '../../icons/add-icon.svg';
 import { ReactComponent as RemoveIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as CloseIcon } from '../../icons/exit-icon.svg';
 import { ReactComponent as DeleteIcon } from '../../icons/remove-icon.svg';
-import { ReactComponent as ListIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
-import { ReactComponent as UsersIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
-import { ReactComponent as GroupIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as ListIcon } from '../../icons/user-icon.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as UsersIcon } from '../../icons/users-icon.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as GroupIcon } from '../../icons/group-icon.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
 import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -90,10 +91,6 @@ const handleButtonLeave = (e) => {
         state.isAnimating = true;
         requestAnimationFrame(() => animateRadii(btn));
     }
-};
-
-const handleDownloadZip = (eventId) => {
-        window.open(`${API_BASE_URL}/api/events/${eventId}/download-documents`, "_blank");
 };
 
 const ConfirmationModal = ({
@@ -189,57 +186,255 @@ const FormField = ({ label, children }) => (
 const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
-    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.middleName || user.patronymic].filter(Boolean).join(' ') : '';
-    const [participants, setParticipants] = useState(() => [{ fullName: getUserFullName(currentUser), group: currentUser.group || '' }]);
+    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic].filter(Boolean).join(' ') : '';
+    
+    const [participants, setParticipants] = useState(() => [{ 
+        id: currentUser.id, 
+        fullName: getUserFullName(currentUser), 
+        group: currentUser.group || '', 
+        avatar: currentUser.avatar || defaultAvatar,
+        isLocked: true 
+    }]);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef(null);
-    const prevHeight = useRef(null);
-    const [dynamicPosition, setDynamicPosition] = useState(position);
+    const [modalPosition, setModalPosition] = useState(position);
+    const dragInfo = useRef({});
+
+    const [allStudents, setAllStudents] = useState([]);
+    const [activeSearchIndex, setActiveSearchIndex] = useState(null);
+    
+    const [hoveredStudentId, setHoveredStudentId] = useState(null);
+    const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
+    const studentElements = useRef(new Map());
+    const participantsListWrapperRef = useRef(null);
+    const modalBodyRef = useRef(null);
+    const searchContainerRef = useRef(null);
+
+    const [isSearchContainerVisible, setIsSearchContainerVisible] = useState(false);
+
+    const shouldSearchBeVisible = useMemo(() => {
+        if (activeSearchIndex === null) return false;
+        const currentFullName = participants[activeSearchIndex]?.fullName.toLowerCase();
+        if (!currentFullName) return false;
+
+        const registeredIds = new Set(participants.map(p => p.id).filter(Boolean));
+        return allStudents.some(student => {
+            const fullName = `${student.lastName} ${student.firstName} ${student.middleName || ''}`.toLowerCase();
+            return !registeredIds.has(student.id) && fullName.includes(currentFullName);
+        });
+    }, [activeSearchIndex, participants, allStudents]);
 
     useEffect(() => {
-        if (modalRef.current) {
-            const currentHeight = modalRef.current.offsetHeight;
-            const oldHeight = prevHeight.current;
-            if (oldHeight !== null && currentHeight !== oldHeight) {
-                const heightDifference = currentHeight - oldHeight;
-                setDynamicPosition(pos => {
-                    if (!pos || typeof pos.top !== 'string') return pos;
-                    return {
-                        ...pos,
-                        top: `${parseFloat(pos.top) - heightDifference}px`
-                    };
-                });
-            }
+        if (shouldSearchBeVisible) {
+            setIsSearchContainerVisible(true);
+        }
+    }, [shouldSearchBeVisible]);
+    
+    const handleSearchAnimationEnd = () => {
+        if (!shouldSearchBeVisible) {
+            setIsSearchContainerVisible(false);
+        }
+    };
 
-            prevHeight.current = currentHeight;
+    useEffect(() => {
+        const bodyEl = modalBodyRef.current;
+        if (bodyEl) {
+            bodyEl.style.overflowY = activeSearchIndex !== null ? 'visible' : 'auto';
+        }
+    }, [activeSearchIndex]);
+
+    useEffect(() => {
+        const wrapper = participantsListWrapperRef.current;
+        if (wrapper) {
+            const oldHeight = wrapper.getBoundingClientRect().height;
+            wrapper.style.height = 'auto';
+            const newHeight = wrapper.scrollHeight;
+
+            if (oldHeight > 0) {
+                wrapper.style.height = `${oldHeight}px`;
+                void wrapper.offsetHeight;
+            }
+            
+            wrapper.style.height = `${newHeight}px`;
         }
     }, [participants.length]);
+    
+    const handleDragMove = useCallback((e) => {
+        if (!dragInfo.current.isDragging || !modalRef.current) return;
+        e.preventDefault();
+    
+        const modalNode = modalRef.current;
+        const { height, width } = modalNode.getBoundingClientRect();
+        const { innerWidth, innerHeight } = window;
+    
+        let newTop = e.clientY - dragInfo.current.offsetY;
+        let newLeft = e.clientX - dragInfo.current.offsetX;
+    
+        newTop = Math.max(0, Math.min(newTop, innerHeight - height));
+        newLeft = Math.max(0, Math.min(newLeft, innerWidth - width));
+    
+        modalNode.style.top = `${newTop}px`;
+        modalNode.style.left = `${newLeft}px`;
+    }, []);
+
+    const handleDragEnd = useCallback(() => {
+        if (!dragInfo.current.isDragging || !modalRef.current) return;
+    
+        document.body.style.cursor = '';
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+    
+        const modalNode = modalRef.current;
+        modalNode.style.transition = 'top 0.2s ease-out, left 0.2s ease-out';
+    
+        const rect = modalNode.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const snapThreshold = 60;
+        const edgeGap = 20;
+    
+        let finalTop = rect.top;
+        let finalLeft = rect.left;
+    
+        if (rect.top < snapThreshold && rect.top > -snapThreshold) {
+            finalTop = edgeGap;
+        } else if (vh - rect.bottom < snapThreshold && vh - rect.bottom > -snapThreshold) {
+            finalTop = vh - rect.height - edgeGap;
+        }
+    
+        if (rect.left < snapThreshold && rect.left > -snapThreshold) {
+            finalLeft = edgeGap;
+        } else if (vw - rect.right < snapThreshold && vw - rect.right > -snapThreshold) {
+            finalLeft = vw - rect.width - edgeGap;
+        }
+        
+        setModalPosition({
+            top: `${finalTop}px`,
+            left: `${finalLeft}px`,
+        });
+        
+        dragInfo.current.isDragging = false;
+    }, [handleDragMove]);
+
+    const handleDragStart = (e) => {
+        if (e.button !== 0 || !modalRef.current) return;
+        
+        const modalNode = modalRef.current;
+        modalNode.style.transition = 'none';
+    
+        const rect = modalNode.getBoundingClientRect();
+        dragInfo.current = {
+            isDragging: true,
+            offsetX: e.clientX - rect.left,
+            offsetY: e.clientY - rect.top,
+        };
+        
+        document.body.style.cursor = 'grabbing';
+        document.addEventListener('mousemove', handleDragMove);
+        document.addEventListener('mouseup', handleDragEnd);
+    };
+
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/all`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Не удалось загрузить список студентов');
+                const data = await response.json();
+                setAllStudents(data.filter(u => u.role === 'student'));
+            } catch (error) {
+                console.error("Ошибка при загрузке студентов:", error);
+            }
+        };
+        fetchStudents();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+          if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+            setActiveSearchIndex(null);
+          }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(onClose, 400);
     };
 
+    const handleOverlayMouseDown = (e) => {
+        if (e.target === e.currentTarget) {
+            handleClose();
+        }
+    };
+
     const addParticipant = () => {
         const maxGroupSize = event.max_group_size || 5;
         if (participants.length < maxGroupSize) {
-            setParticipants([...participants, { fullName: '', group: '' }]);
+            setParticipants([...participants, { id: null, fullName: '', group: '', avatar: defaultAvatar, isLocked: false }]);
         } else {
             addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
         }
     };
 
     const removeParticipant = (index) => {
-        if (index > 0) {
+        if (!participants[index].isLocked) {
             setParticipants(participants.filter((_, i) => i !== index));
         }
     };
 
-    const handleParticipantChange = (index, field, value) => {
+    const handleParticipantChange = (index, value) => {
         const newParticipants = [...participants];
-        newParticipants[index][field] = value;
+        if (newParticipants[index].id) {
+            newParticipants[index].id = null;
+            newParticipants[index].group = '';
+            newParticipants[index].avatar = defaultAvatar;
+        }
+        newParticipants[index].fullName = value;
         setParticipants(newParticipants);
+        setActiveSearchIndex(value ? index : null);
     };
+
+    const handleUserSelect = (index, user) => {
+        const newParticipants = [...participants];
+        newParticipants[index] = {
+            id: user.id,
+            fullName: `${user.lastName} ${user.firstName} ${user.middleName || ''}`.trim(),
+            group: user.group,
+            avatar: user.avatar || defaultAvatar,
+            isLocked: false
+        };
+        setParticipants(newParticipants);
+        setActiveSearchIndex(null);
+    };
+
+    const filteredStudents = useMemo(() => {
+        if (activeSearchIndex === null) return [];
+        const currentFullName = participants[activeSearchIndex]?.fullName.toLowerCase();
+        if (!currentFullName) return [];
+
+        const registeredIds = new Set(participants.map(p => p.id).filter(Boolean));
+
+        return allStudents.filter(student => {
+            const fullName = `${student.lastName} ${student.firstName} ${student.middleName || ''}`.toLowerCase();
+            return !registeredIds.has(student.id) && fullName.includes(currentFullName);
+        }).slice(0, 5);
+    }, [activeSearchIndex, participants, allStudents]);
+    
+    useEffect(() => {
+        const targetElement = hoveredStudentId ? studentElements.current.get(hoveredStudentId) : null;
+        if (targetElement) {
+            setGliderStyle({
+                transform: `translateY(${targetElement.offsetTop}px)`,
+                height: `${targetElement.offsetHeight}px`,
+                opacity: 1,
+            });
+        } else {
+            setGliderStyle(prev => ({ ...prev, opacity: 0 }));
+        }
+    }, [hoveredStudentId, filteredStudents]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -267,30 +462,77 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     };
 
     return ReactDOM.createPortal(
-        <div className={`events-page-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
-            <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
-                <div className="chat-header">
+        <div className={`events-page-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleOverlayMouseDown}>
+            <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} style={modalPosition || {}}>
+                <div className="chat-header" onMouseDown={handleDragStart}>
                     <div className="chat-title-wrapper">
                         <h2>Запись на мероприятие</h2>
                         <p>{event.eventName}</p>
                     </div>
                 </div>
                 <form onSubmit={handleSubmit} className="edit-form-inside-modal">
-                    <div className="edit-modal-body">
-                        <div className="participants-list">
-                            {participants.map((p, index) => (
-                                <div className="participant-entry" key={index}>
-                                    {index > 0 && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon /></button>}
-                                    <div className="form-grid signup-form-grid">
-                                        <FormField label={index === 0 ? "Ваше ФИО" : "ФИО участника"}>
-                                            <input type="text" className="form-input" value={p.fullName} onChange={(e) => handleParticipantChange(index, 'fullName', e.target.value)} required disabled={index === 0} />
-                                        </FormField>
-                                        <FormField label={index === 0 ? "Ваша группа" : "Группа"}>
-                                            <input type="text" className="form-input" value={p.group} onChange={(e) => handleParticipantChange(index, 'group', e.target.value)} required disabled={index === 0} />
-                                        </FormField>
+                    <div ref={modalBodyRef} className="edit-modal-body">
+                        <div
+                            ref={participantsListWrapperRef}
+                            style={{ 
+                                transition: 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1)', 
+                                overflow: activeSearchIndex !== null ? 'visible' : 'hidden' 
+                            }}
+                        >
+                            <div className="participants-list">
+                                {participants.map((p, index) => (
+                                    <div className="participant-entry" key={index}>
+                                        <img 
+                                            src={p.avatar === defaultAvatar ? defaultAvatar : `${API_BASE_URL}${p.avatar}`} 
+                                            alt="avatar" 
+                                            className="participant-avatar" 
+                                        />
+                                        {!p.isLocked && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon /></button>}
+                                        <div className="form-grid signup-form-grid">
+                                            <div className="participant-search-container" ref={index === activeSearchIndex ? searchContainerRef : null}>
+                                                <FormField label={p.isLocked ? "Ваше ФИО" : "ФИО участника"}>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-input" 
+                                                        value={p.fullName} 
+                                                        onChange={(e) => handleParticipantChange(index, e.target.value)} 
+                                                        required 
+                                                        disabled={p.isLocked}
+                                                        onFocus={() => { if (!p.isLocked) setActiveSearchIndex(index); }}
+                                                    />
+                                                </FormField>
+                                                {isSearchContainerVisible && activeSearchIndex === index && (
+                                                    <div
+                                                        className={`user-search-results-container ${!shouldSearchBeVisible ? 'is-closing' : ''}`}
+                                                        onAnimationEnd={handleSearchAnimationEnd}
+                                                        onMouseLeave={() => setHoveredStudentId(null)}
+                                                    >
+                                                        <div className="list-glider" style={gliderStyle}></div>
+                                                        {filteredStudents.map(user => (
+                                                            <div 
+                                                                key={user.id} 
+                                                                ref={node => node ? studentElements.current.set(user.id, node) : studentElements.current.delete(user.id)}
+                                                                className={`user-search-item ${hoveredStudentId === user.id ? 'is-active' : ''}`}
+                                                                onClick={() => handleUserSelect(index, user)}
+                                                                onMouseEnter={() => setHoveredStudentId(user.id)}
+                                                            >
+                                                                <img src={`${API_BASE_URL}${user.avatar}`} alt="avatar" />
+                                                                <div className="user-search-info">
+                                                                    <span>{`${user.lastName} ${user.firstName}`}</span>
+                                                                    <small>{user.group}</small>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <FormField label={p.isLocked ? "Ваша группа" : "Группа"}>
+                                                <input type="text" className="form-input" value={p.group} readOnly required disabled={p.isLocked || p.id} />
+                                            </FormField>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                     <div className="form-actions-container participant-actions">
@@ -311,8 +553,8 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
         </div>,
         document.body
     );
-
 };
+
 
 // модальное окно для приглашения пользователей
 const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) => {
@@ -464,10 +706,86 @@ const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) =>
 
 
 // всплывающее окно для просмотра списка записавшихся
-const RegistrationsModal = ({ onClose, eventName, registrations = [], position, onInvite, onCloseInvite, isInviteModalOpen }) => {
+const RegistrationsModal = ({ onClose, event, registrations = [], position, onInvite, onCloseInvite, isInviteModalOpen, onDeleteGroup }) => {
     const [isClosing, setIsClosing] = useState(false);
     const modalRef = useRef(null);
     const [dynamicPosition, setDynamicPosition] = useState(position);
+    const dragInfo = useRef({});
+
+    const handleDragMove = useCallback((e) => {
+        if (!dragInfo.current.isDragging || !modalRef.current) return;
+        e.preventDefault();
+    
+        const modalNode = modalRef.current;
+        const { height, width } = modalNode.getBoundingClientRect();
+        const { innerWidth, innerHeight } = window;
+    
+        let newTop = e.clientY - dragInfo.current.offsetY;
+        let newLeft = e.clientX - dragInfo.current.offsetX;
+    
+        newTop = Math.max(0, Math.min(newTop, innerHeight - height));
+        newLeft = Math.max(0, Math.min(newLeft, innerWidth - width));
+    
+        modalNode.style.top = `${newTop}px`;
+        modalNode.style.left = `${newLeft}px`;
+    }, []);
+
+    const handleDragEnd = useCallback(() => {
+        if (!dragInfo.current.isDragging || !modalRef.current) return;
+    
+        document.body.style.cursor = '';
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+    
+        const modalNode = modalRef.current;
+        modalNode.style.transition = 'top 0.2s ease-out, left 0.2s ease-out';
+    
+        const rect = modalNode.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const snapThreshold = 60;
+        const edgeGap = 20;
+    
+        let finalTop = rect.top;
+        let finalLeft = rect.left;
+    
+        if (rect.top < snapThreshold && rect.top > -snapThreshold) {
+            finalTop = edgeGap;
+        } else if (vh - rect.bottom < snapThreshold && vh - rect.bottom > -snapThreshold) {
+            finalTop = vh - rect.height - edgeGap;
+        }
+    
+        if (rect.left < snapThreshold && rect.left > -snapThreshold) {
+            finalLeft = edgeGap;
+        } else if (vw - rect.right < snapThreshold && vw - rect.right > -snapThreshold) {
+            finalLeft = vw - rect.width - edgeGap;
+        }
+        
+        setDynamicPosition({
+            top: `${finalTop}px`,
+            left: `${finalLeft}px`,
+        });
+        
+        dragInfo.current.isDragging = false;
+    }, [handleDragMove]);
+
+    const handleDragStart = (e) => {
+        if (e.button !== 0 || !modalRef.current) return;
+        
+        const modalNode = modalRef.current;
+        modalNode.style.transition = 'none';
+    
+        const rect = modalNode.getBoundingClientRect();
+        dragInfo.current = {
+            isDragging: true,
+            offsetX: e.clientX - rect.left,
+            offsetY: e.clientY - rect.top,
+        };
+        
+        document.body.style.cursor = 'grabbing';
+        document.addEventListener('mousemove', handleDragMove);
+        document.addEventListener('mouseup', handleDragEnd);
+    };
 
     useEffect(() => {
         if (modalRef.current) {
@@ -508,17 +826,38 @@ const RegistrationsModal = ({ onClose, eventName, registrations = [], position, 
     return ReactDOM.createPortal(
         <div className={`events-page-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
             <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
-                <div className="chat-header">
+                <div className="chat-header" onMouseDown={handleDragStart}>
                     <div className="chat-title-wrapper">
-                        <h2>Записавшиеся на "{eventName}"</h2>
-                        <p>Всего: {registrations.length} чел.</p>
+                        <h2>Записавшиеся на "{event.eventName}"</h2>
+                        <p>{new Date(event.eventDate).toLocaleDateString('ru-RU')}</p>
+                    </div>
+                    <div className="details-icons registration-modal-icons">
+                        <div className="icon-item" title="Макс. участников">
+                            <UsersIcon />
+                            <span>{registrations.length}/{event.max_participants || '∞'}</span>
+                        </div>
+                        <div className="icon-item" title="Макс. чел. в группе">
+                            <GroupIcon />
+                            <span>{event.max_group_size || 1}</span>
+                        </div>
                     </div>
                 </div>
                 <div className="registrations-modal-body">
                     {registrations.length > 0 ? (
                         Object.values(groupedSubmissions).map((submissionGroup, index) => (
                             <div key={submissionGroup[0].submission_group_id} className="submission-group">
-                                <h5>Группа записи №{index + 1} ({submissionGroup.length} чел.)</h5>
+                                <div className="submission-group-header">
+                                    <h5>Группа №{index + 1} ({submissionGroup.length} чел.)</h5>
+                                    {onDeleteGroup && (
+                                        <button
+                                            className="delete-group-btn"
+                                            onClick={() => onDeleteGroup(submissionGroup[0].submission_group_id)}
+                                            title="Удалить группу"
+                                        >
+                                            <DeleteIcon />
+                                        </button>
+                                    )}
+                                </div>
                                 <ul>
                                     {submissionGroup.map(member => <li key={member.id}>{member.full_name} <span>({member.group})</span></li>)}
                                 </ul>
@@ -545,7 +884,7 @@ const RegistrationsModal = ({ onClose, eventName, registrations = [], position, 
 };
 
 // карточка мероприятия для вида куратора
-const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDelete, onShowList, onDownload, onMouseEnter, currentUser, innerRef }) => {
+const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDelete, onShowList, onDownload, onMouseEnter, innerRef }) => {
     const cardClassName = ['event-card', 'curator-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const handleAction = (e, callback, ...args) => {
         e.stopPropagation();
@@ -588,7 +927,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         {areButtonsRendered && (
                             <button
                                 className={`interactive-button is-icon btn-style-neutral ${animationClass}`}
-                                onClick={() => handleDownloadZip(event.id)} 
+                                onClick={(e) => handleAction(e, onDownload, event.id)}
                                 onMouseMove={handleMouseMoveForEffect}
                                 onMouseLeave={handleButtonLeave}
                                 title="Скачать отчет"
@@ -599,29 +938,16 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
                             <span><ListIcon /> Список</span>
                         </button>
-                        {console.log("Текущий пользователь:", currentUser)}
-                        {console.log("Создатель события:", event.userId)}
-                        {currentUser?.id === event.userId && (
-                            <button
-                                className="interactive-button btn-style-delete"
-                                onClick={(e) => handleAction(e, onDelete, event, e)}
-                                onMouseMove={handleMouseMoveForEffect}
-                                onMouseLeave={handleButtonLeave}
-                            >
-                               <span><DeleteIcon/> Удалить</span>
-                            </button>
-                        )}
+                        <button className="interactive-button btn-style-delete" onClick={(e) => handleAction(e, onDelete, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
+                            <span><DeleteIcon /> Удалить</span>
+                        </button>
                     </div>
                 </div>
             </div>
             <div className="card-details-wrapper">
                 <div className="card-body curator-card-body-grid">
                     <div className="card-body-column column-image">
-                        <img 
-                            src={event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage} 
-                            alt={event.eventName} 
-                            className="curator-card-image" 
-                        />
+                        <img src={defaultEventImage} alt={event.eventName} className="curator-card-image" />
                     </div>
                     <div className="card-body-column column-description">
                         <div className="detail-item">
@@ -659,7 +985,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
             <div className="student-card-inner">
                 <div
                     className="cover-image"
-                    style={{ backgroundImage: `url(${event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage})` }}
+                    style={{ backgroundImage: `url(${event.imageUrl})` }}
                 />
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
                     {isRegistered ? 'Вы записаны' : 'Нет записи'}
@@ -678,7 +1004,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                         <div className="details-icons">
                             <div className="icon-item" title="Макс. участников">
                                 <UsersIcon />
-                                <span>{event.max_participants || '∞'}</span>
+                                <span>{event.current_participants || 0}/{event.max_participants || '∞'}</span>
                             </div>
                             <div className="icon-item" title="Макс. чел. в группе">
                                 <GroupIcon />
@@ -700,7 +1026,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                     <div className="details-actions">
                         <button
                             className="interactive-button btn-style-neutral is-icon"
-                            onClick={() => handleDownloadZip(event.id)} 
+                            onClick={(e) => handleActionClick(e, onDownload)}
                             onMouseMove={handleMouseMoveForEffect}
                             onMouseLeave={handleButtonLeave}
                             title="Скачать материалы"
@@ -795,7 +1121,7 @@ const StudentEventsView = ({ events, userRegisteredEventIds, onSignUp, onCardCli
 };
 
 // отображение списка для куратора
-const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownload, expandedCardId, hoveredCardId, setHoveredCardId, gliderStyle, cardElements, currentUser }) => {
+const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownload, expandedCardId, hoveredCardId, setHoveredCardId, gliderStyle, cardElements }) => {
     return (
         <div className="page-content">
             <div className="events-list-container" onMouseLeave={() => setHoveredCardId(null)}>
@@ -813,7 +1139,6 @@ const CuratorEventsView = ({ events, onCardClick, onDelete, onShowList, onDownlo
                                 onDelete={onDelete}
                                 onShowList={onShowList}
                                 onDownload={onDownload}
-                                currentUser={currentUser}
                             />
                             {index < events.length - 1 && <div className="event-divider" />}
                         </React.Fragment>
@@ -864,27 +1189,31 @@ export default function EventsPage({ userLogin, userRole }) {
                 const eventsResponse = await fetch(`${API_BASE_URL}/api/events`);
                 if (!eventsResponse.ok) throw new Error('Не удалось загрузить мероприятия.');
                 const eventsData = await eventsResponse.json();
+
+                // Пытаемся загрузить количество участников, но не прерываем выполнение, если не получится
+                let countsData = {};
+                try {
+                    const countsResponse = await fetch(`${API_BASE_URL}/api/events/registrations/counts`);
+                    if (countsResponse.ok) {
+                        countsData = await countsResponse.json();
+                    }
+                } catch (e) {
+                    console.error("Не удалось загрузить количество регистраций:", e);
+                }
+
                 // Обрабатываем данные мероприятий
-                const processedEvents = eventsData.map(event => ({
+                const processedEvents = eventsData.map((event, index) => ({
                     ...event,
-                    imageUrl: event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage,
-                    max_participants: event.maxParticipants,  
-                    max_group_size: event.teamSize,           
+                    current_participants: countsData[event.id] || 0,
+                    imageUrl: event.image_url || defaultEventImage,
+                    max_participants: event.max_participants || [50, 100, 20, 150][index % 4],
+                    max_group_size: event.max_group_size || [1, 5, 10][index % 3],
                     recruitment_status: 'Активен',
                     description: event.description || 'Тут будет описание, возможно, когда-нибудь'
                 }));
 
                 setEvents(processedEvents);
-                if (userRole === 'curator') {
-                    console.log("userRole в useEffect:", userRole);
-                    const meResp = await fetch(`${API_BASE_URL}/api/profile/me`, { credentials: 'include' });
-                    if (meResp.ok) {
-                        const me = await meResp.json();
-                        setCurrentUser({ id: me.id, login: me.login });
-                    } else {
-                        console.error("Ошибка при получении профиля:", meResp.status);
-                    }
-                }
+
                 // Если пользователь - студент, загружаем дополнительные данные
                 if (userRole === 'student' && userLogin) {
                     const profileResponse = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`, {
@@ -893,11 +1222,13 @@ export default function EventsPage({ userLogin, userRole }) {
                     if (!profileResponse.ok) throw new Error('Не удалось загрузить профиль.');
                     const profileData = await profileResponse.json();
                     setCurrentUser({
+                        id: profileData.id,
                         lastName: profileData.last_name,
                         firstName: profileData.first_name,
-                        middleName: profileData.patronymic,
+                        patronymic: profileData.patronymic,
                         group: profileData.group,
-                        login: profileData.login
+                        login: profileData.login,
+                        avatar: profileData.avatar
                     });
                     // Загружаем записи на мероприятия
                     const registrationsResponse = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`, {
@@ -907,10 +1238,11 @@ export default function EventsPage({ userLogin, userRole }) {
                     const registrationIds = await registrationsResponse.json();
                     setUserRegisteredEventIds(new Set(registrationIds));
                 }
-                setIsLoading(false);
 
             } catch (error) {
                 console.error("Ошибка при загрузке данных для страницы мероприятий:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchInitialData();
@@ -982,6 +1314,11 @@ export default function EventsPage({ userLogin, userRole }) {
 
     const handleConfirmRegistration = (eventId) => {
         setUserRegisteredEventIds(prev => new Set(prev).add(eventId));
+        setEvents(prevEvents => prevEvents.map(event => 
+            event.id === eventId 
+                ? { ...event, current_participants: (event.current_participants || 0) + 1 }
+                : event
+        ));
         handleCloseSignUpModal();
     };
 
@@ -1004,10 +1341,7 @@ export default function EventsPage({ userLogin, userRole }) {
     const handleConfirmDelete = async () => {
         if (!eventToDelete) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/events/${eventToDelete.id}`, { 
-                method: 'DELETE',
-                credentials: 'include',
-            });
+            const response = await fetch(`${API_BASE_URL}/api/events/${eventToDelete.id}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Ошибка удаления');
             addNotification('Мероприятие удалено.', 'success');
             setEvents(prev => prev.filter(e => e.id !== eventToDelete.id));
@@ -1088,6 +1422,19 @@ export default function EventsPage({ userLogin, userRole }) {
         }
     };
 
+    const handleDeleteGroup = (groupId) => {
+        if (!selectedEvent) return;
+        addNotification(`Удаление группы #${groupId}...`, 'info');
+        const eventId = selectedEvent.id;
+        const updatedRegistrationsForEvent = registrations[eventId].filter(
+            (reg) => reg.submission_group_id !== groupId
+        );
+        setRegistrations((prev) => ({
+            ...prev,
+            [eventId]: updatedRegistrationsForEvent,
+        }));
+    };
+
     const filterStyleMap = { 'Все': 'btn-style-neutral', 'Записан': 'btn-style-registered-filter', 'Не записан': 'btn-style-unregistered-filter' };
 
     return (
@@ -1105,7 +1452,7 @@ export default function EventsPage({ userLogin, userRole }) {
 
             {isSignUpModalOpen && <SignUpModal event={selectedEvent} onClose={handleCloseSignUpModal} onConfirm={handleConfirmRegistration} currentUser={currentUser} position={modalPosition} />}
 
-            {isRegistrationsModalOpen && <RegistrationsModal onClose={handleCloseRegistrationsModal} onInvite={handleOpenInviteModal} onCloseInvite={handleCloseInviteModal} isInviteModalOpen={isInviteModalOpen} eventName={selectedEvent?.eventName} registrations={registrations[selectedEvent?.id]} position={modalPosition} />}
+            {isRegistrationsModalOpen && <RegistrationsModal onClose={handleCloseRegistrationsModal} onInvite={handleOpenInviteModal} onCloseInvite={handleCloseInviteModal} isInviteModalOpen={isInviteModalOpen} event={selectedEvent} registrations={registrations[selectedEvent?.id]} position={modalPosition} onDeleteGroup={handleDeleteGroup} />}
 
             {isInviteModalOpen && <AllUsersModal ref={inviteModalRef} eventName={selectedEvent?.eventName} onClose={onInviteModalClosed} position={inviteModalPosition} />}
 
@@ -1154,7 +1501,6 @@ export default function EventsPage({ userLogin, userRole }) {
                                 setHoveredCardId={setHoveredCardId}
                                 gliderStyle={gliderStyle}
                                 cardElements={cardElements}
-                                currentUser={currentUser}
                             />
                         )}
                     </>
