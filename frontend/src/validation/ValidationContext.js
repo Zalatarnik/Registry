@@ -182,6 +182,7 @@ export const validateSecurity = async ({ email, oldPassword, newPassword }) => {
   return errors;
 };
 
+// для создания нового мероприятия
 export function validateEventCreation(formData, imageFile) {
     const {
         eventName, leader, organizer, location, eventStatus, eventDate,
@@ -222,6 +223,7 @@ export function validateEventCreation(formData, imageFile) {
     return { valid: true };
 }
 
+// для подачи новой заявки
 export function validateNewRequest(formData) {
     const {
         eventName, leader, organizer, location, eventStatus, eventDate, link

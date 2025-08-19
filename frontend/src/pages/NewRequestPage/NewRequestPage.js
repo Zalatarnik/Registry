@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './NewRequestPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
-import { validateNewRequest } from '../../validation/ValidationContext';
+import { validateNewRequest } from '../../validation/ValidationContext'; // файл для проверки
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
