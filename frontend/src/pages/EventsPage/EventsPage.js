@@ -315,7 +315,8 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
 };
 
 // модальное окно для приглашения пользователей
-const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) => {
+const AllUsersModal = memo(forwardRef((
+  { eventId, eventName, curatorLogin, onClose, position }, ref ) => {
     const { addNotification } = useNotification();
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -434,16 +435,40 @@ const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) =>
                                                 </div>
                                                 <div className="invite-user-card-actions">
                                                     <button
-                                                        className="interactive-button btn-style-register"
-                                                        onMouseEnter={() => setHoveredCardId(user.id)}
-                                                        onMouseMove={handleMouseMoveForEffect}
-                                                        onMouseLeave={handleButtonLeave}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
-                                                        }}
+                                                    className="interactive-button btn-style-register"
+                                                    onMouseEnter={() => setHoveredCardId(user.id)}
+                                                    onMouseMove={handleMouseMoveForEffect}
+                                                    onMouseLeave={handleButtonLeave}
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+
+                                                        if (!eventId || !curatorLogin) {
+                                                            addNotification('Не удалось определить мероприятие или куратора.', 'error');
+                                                            return;
+                                                        }
+
+                                                        try {
+                                                            const resp = await fetch(`${API_BASE_URL}/api/notifications`, {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            credentials: "include",
+                                                            body: JSON.stringify({
+                                                                recipientLogin: user.login,   
+                                                                inviter: curatorLogin,        
+                                                                eventId: eventId              
+                                                            })
+                                                        });
+
+                                                        const data = await resp.json();
+                                                        if (!resp.ok) throw new Error(data.detail || 'Не удалось отправить приглашение');
+
+                                                        addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
+                                                    } catch (err) {
+                                                            addNotification(err.message, 'error');
+                                                    }
+                                                    }}
                                                     >
-                                                        <span><AddIcon /> Пригласить</span>
+                                                    <span><AddIcon /> Пригласить</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -599,8 +624,6 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
                             <span><ListIcon /> Список</span>
                         </button>
-                        {console.log("Текущий пользователь:", currentUser)}
-                        {console.log("Создатель события:", event.userId)}
                         {currentUser?.id === event.userId && (
                             <button
                                 className="interactive-button btn-style-delete"
@@ -1107,8 +1130,16 @@ export default function EventsPage({ userLogin, userRole }) {
 
             {isRegistrationsModalOpen && <RegistrationsModal onClose={handleCloseRegistrationsModal} onInvite={handleOpenInviteModal} onCloseInvite={handleCloseInviteModal} isInviteModalOpen={isInviteModalOpen} eventName={selectedEvent?.eventName} registrations={registrations[selectedEvent?.id]} position={modalPosition} />}
 
-            {isInviteModalOpen && <AllUsersModal ref={inviteModalRef} eventName={selectedEvent?.eventName} onClose={onInviteModalClosed} position={inviteModalPosition} />}
-
+            {isInviteModalOpen && (
+            <AllUsersModal
+                ref={inviteModalRef}
+                eventId={selectedEvent?.id}            
+                eventName={selectedEvent?.eventName}
+                curatorLogin={currentUser?.login}  
+                onClose={onInviteModalClosed}
+                position={inviteModalPosition}
+            />
+            )}
             <div className="events-container">
                 <h1>Мероприятия</h1>
 

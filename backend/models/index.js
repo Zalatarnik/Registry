@@ -10,6 +10,7 @@ const Request = require('./request')(sequelize, Sequelize.DataTypes);
 const Event = require('./event')(sequelize, Sequelize.DataTypes);
 const EventRegistration = require('./eventRegistration')(sequelize, Sequelize.DataTypes);
 const Message = require('./message')(sequelize, Sequelize.DataTypes);
+const Notification = require('./notification')(sequelize, Sequelize.DataTypes);
 
 // ОПИСАНИЕ СВЯЗЕЙ
 // Пользователь может иметь много заявок
@@ -28,6 +29,11 @@ Message.belongsTo(Request, { foreignKey: 'requestId' });
 User.hasMany(Message, { foreignKey: 'senderLogin', sourceKey: 'login' });
 Message.belongsTo(User, { foreignKey: 'senderLogin', targetKey: 'login' });
 
-// Экспорт моделей и подключение к БД
-module.exports = { sequelize, User, Request, Event, EventRegistration, Message };
+User.hasMany(Notification, { foreignKey: 'recipientLogin', sourceKey: 'login' });
+Notification.belongsTo(User, { foreignKey: 'recipientLogin', targetKey: 'login' });
 
+Event.hasMany(Notification, { foreignKey: 'eventId' });
+Notification.belongsTo(Event, { foreignKey: 'eventId' });
+
+// Экспорт моделей и подключение к БД
+module.exports = { sequelize, User, Request, Event, EventRegistration, Message, Notification };

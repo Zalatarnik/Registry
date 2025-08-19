@@ -14,6 +14,8 @@ import { ReactComponent as UsersIcon } from '../../icons/cat.svg'; // замен
 import { ReactComponent as GroupIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
 import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
+const API_BASE_URL = 'http://localhost:8000';
+
 const useNotification = () => ({
     addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
 });
@@ -392,11 +394,27 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
     const [modalPosition, setModalPosition] = useState(null);
+    const [invitations, setInvitations] = useState([]);
 
-    // тест
-    const [invitations, setInvitations] = useState([
-        { inviter: "Иванов Иван", event: { id: 1, eventName: "Хакатон", eventDate: "2025-09-15", description: "Тут нет описания, честно. Но вот зачем оно тут? не понимаю", leader: "Петров П.П.", organizer: "СПбГАСУ", location: "СПбГАСУ", eventStatus: "Активно", recruitment_status: 'Активен', max_participants: 100, max_group_size: 5 } },
-    ]);
+        useEffect(() => {
+    if (!isOpen || !userLogin) return;
+    const fetchInvites = async () => {
+        try {
+        const res = await fetch(`${API_BASE_URL}/api/notifications/${userLogin}`, {
+            credentials: "include"
+        });
+        const data = await res.json();
+        setInvitations(data.map(n => ({
+            inviter: n.inviter,
+            event: n.Event,
+            message: n.message
+        })));
+        } catch (err) {
+        addNotification("Ошибка загрузки уведомлений", "error");
+        }
+    };
+    fetchInvites();
+    }, [isOpen, userLogin]);
 
     const handleCloseDetails = useCallback(() => {
         setIsDetailCardExpanded(false);
