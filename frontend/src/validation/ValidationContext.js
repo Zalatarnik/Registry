@@ -181,3 +181,77 @@ export const validateSecurity = async ({ email, oldPassword, newPassword }) => {
 
   return errors;
 };
+
+export function validateEventCreation(formData, imageFile) {
+    const {
+        eventName, leader, organizer, location, eventStatus, eventDate,
+        maxParticipants, teamSize
+    } = formData;
+    const ValidationError = (message) => ({ valid: false, message });
+
+    if (!eventName.trim()) return ValidationError("Пожалуйста, введите название мероприятия.");
+    if (!leader.trim()) return ValidationError("Пожалуйста, укажите руководителя.");
+    if (!organizer.trim()) return ValidationError("Пожалуйста, укажите организатора.");
+    if (!location.trim()) return ValidationError("Пожалуйста, укажите место проведения.");
+    if (!eventStatus) return ValidationError("Пожалуйста, выберите статус мероприятия.");
+
+    if (!eventDate) {
+        return ValidationError("Пожалуйста, укажите дату проведения.");
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(eventDate);
+    if (selectedDate < today) {
+        return ValidationError("Дата проведения не может быть в прошлом.");
+    }
+    if (selectedDate.getFullYear() > 2100) {
+        return ValidationError("Год проведения не может быть больше 2100.");
+    }
+
+
+    if (!maxParticipants) return ValidationError("Пожалуйста, укажите макс. число участников.");
+    if (Number(maxParticipants) <= 0) return ValidationError("Макс. число участников должно быть положительным.");
+
+    if (!teamSize) return ValidationError("Пожалуйста, укажите число участников в команде.");
+    if (Number(teamSize) <= 0) return ValidationError("Число участников в команде должно быть положительным.");
+    
+    if (Number(teamSize) > Number(maxParticipants)) return ValidationError("Размер команды не может превышать макс. число участников.");
+
+    if (!imageFile) return ValidationError("Пожалуйста, загрузите изображение для обложки мероприятия.");
+
+    return { valid: true };
+}
+
+export function validateNewRequest(formData) {
+    const {
+        eventName, leader, organizer, location, eventStatus, eventDate, link
+    } = formData;
+    const ValidationError = (message) => ({ valid: false, message });
+
+    if (!eventName.trim()) return ValidationError("Пожалуйста, введите название мероприятия.");
+    if (!leader.trim()) return ValidationError("Пожалуйста, укажите руководителя.");
+    if (!organizer.trim()) return ValidationError("Пожалуйста, укажите организатора.");
+    if (!location.trim()) return ValidationError("Пожалуйста, укажите место проведения.");
+    if (!eventStatus) return ValidationError("Пожалуйста, выберите статус мероприятия.");
+
+    if (!eventDate) {
+        return ValidationError("Пожалуйста, укажите дату проведения.");
+    }
+    const selectedDate = new Date(eventDate);
+    if (selectedDate.getFullYear() < 1900) {
+        return ValidationError("Год проведения не может быть раньше 1900.");
+    }
+    if (selectedDate.getFullYear() > 2100) {
+        return ValidationError("Год проведения не может быть больше 2100.");
+    }
+    
+    if (link && link.trim()) {
+        try {
+            new URL(link.trim());
+        } catch (_) {
+            return ValidationError("Пожалуйста, введите корректную ссылку на ресурс мероприятия.");
+        }
+    }
+
+    return { valid: true };
+}

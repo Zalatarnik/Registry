@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './NewRequestPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
+import { validateNewRequest } from '../../validation/ValidationContext';
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
@@ -284,15 +285,12 @@ export default function NewRequestPage({ userLogin }) {
             return;
         }
 
-        // Проверяем только обязательные поля
-        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate'];
-        for (const key of requiredFields) {
-            if (!formData[key]) {
-                addNotification("Пожалуйста, заполните все обязательные поля.", "error");
-                return;
-            }
+        const validationResult = validateNewRequest(formData);
+        if (!validationResult.valid) {
+            addNotification(validationResult.message, "error");
+            return;
         }
-
+        
         setIsSubmitting(true);
         const data = new FormData();
         // Добавляем все поля из formData

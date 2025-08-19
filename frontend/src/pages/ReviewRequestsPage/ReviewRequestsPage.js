@@ -179,12 +179,12 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
                 <div className="request-card-body-grid">
                     <div className="card-body-column column-files">
                         {(request.files && request.files.length > 0) ? (
-                            <div className="mac-stack-download" onClick={(e) => handleActionClick(e, onDownload, request)} title="Скачать прикрепленные файлы">
+                            <div className="m-stack-download" onClick={(e) => handleActionClick(e, onDownload, request)} title="Скачать прикрепленные файлы">
                                 <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">{formatFileText(request.files.length)}</div>
                             </div>
                         ) : (
-                            <div className="mac-stack-download is-empty">
+                            <div className="m-stack-download is-empty">
                                 <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">Нет файлов</div>
                             </div>
