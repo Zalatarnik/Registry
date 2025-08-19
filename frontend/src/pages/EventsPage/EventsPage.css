@@ -50,7 +50,6 @@
   }
 }
 
-/* анимации для нового модального окна */
 @keyframes events-modal-fade-in {
   from {
     opacity: 0;
@@ -154,6 +153,28 @@
   to {
     opacity: 0;
     transform: scale(0.95);
+  }
+}
+
+@keyframes events-search-results-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes events-search-results-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 }
 
@@ -928,6 +949,7 @@
   border-bottom: 1px solid #e9ecef;
   justify-content: space-between;
   align-items: center;
+  cursor: grab;
 }
 
 .events-page-scope .chat-title-wrapper h2 {
@@ -985,6 +1007,7 @@
   flex-direction: column;
   flex-grow: 1;
   min-height: 0;
+  position: relative;
 }
 
 /* внунтри модального окна */
@@ -995,6 +1018,7 @@
 }
 .events-page-scope .signup-form-grid {
   grid-template-columns: 2.5fr 1fr;
+  position: relative;
 }
 
 .events-page-scope .form-field {
@@ -1062,18 +1086,28 @@
 }
 
 .events-page-scope .participants-list {
-  flex-grow: 1;
-  overflow-y: auto;
   min-height: 0;
 }
 
 .events-page-scope .participants-list .participant-entry {
   position: relative;
   padding: 16px;
+  padding-left: 72px;
   margin-bottom: 16px;
   border: 1px solid #e9ecef;
   border-radius: 8px;
   background-color: rgba(248, 249, 250, 0.7);
+}
+
+.events-page-scope .participant-avatar {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .events-page-scope .remove-participant-btn {
@@ -1108,12 +1142,12 @@
 .events-page-scope .form-actions-container {
   display: flex;
   gap: 12px;
-  margin-top: auto;
-  padding: 8px 24px 24px;
-  border-top: none;
+  padding: 16px 24px;
   justify-content: flex-end;
-  flex-shrink: 0;
   background-color: transparent;
+  flex-shrink: 0;
+  border-top: none;
+  z-index: 10;
 }
 
 .events-page-scope .participant-actions {
@@ -1213,6 +1247,20 @@
 }
 
 /* стили модального окна записавшихся */
+.events-page-scope .registration-modal-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.events-page-scope .registration-modal-icons .icon-item {
+    color: #495057;
+}
+
+.events-page-scope .registration-modal-icons .icon-item svg {
+    fill: #495057;
+}
+
 .events-page-scope .no-registrations {
   padding: 40px 20px;
   color: #6c757d;
@@ -1230,13 +1278,52 @@
   margin-top: 0;
 }
 
+.events-page-scope .submission-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #b84900;
+  padding-right: 8px;
+}
+
 .events-page-scope .submission-group h5 {
   margin: 0;
   padding: 12px 16px;
   color: #f0e4d9;
-  background-color: #b84900;
+  background-color: transparent;
   font-size: 16px;
   font-weight: 700;
+  flex-grow: 1;
+}
+
+.events-page-scope .delete-group-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.events-page-scope .delete-group-btn:hover {
+    color: #fff;
+}
+
+.events-page-scope .delete-group-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.events-page-scope .delete-group-btn:hover svg {
+    transform: scale(1.2);
 }
 
 .events-page-scope .submission-group ul {
@@ -1455,4 +1542,78 @@
 
 .events-page-scope .confirmation-modal-button.reject::before {
   background-color: #dc3545;
+}
+
+/* стили для поиска в модальном окне */
+.participant-search-container {
+  position: relative;
+}
+
+.user-search-results-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: rgba(248, 249, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-top: -8px;
+  overflow: hidden;
+  border-radius: 8px;
+  animation: events-search-results-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.user-search-results-container.is-closing {
+  animation: events-search-results-out 0.3s ease-in forwards;
+}
+
+.user-search-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.user-search-results-container .user-search-item:not(:last-child) {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.user-search-item img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+
+.user-search-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-search-info span,
+.user-search-info small {
+  transition: color 0.3s ease;
+}
+
+.user-search-item.is-active .user-search-info span,
+.user-search-item.is-active .user-search-info small {
+  color: #fff;
+}
+
+
+.user-search-info span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.user-search-info small {
+  font-size: 12px;
+  color: #6c757d;
 }
