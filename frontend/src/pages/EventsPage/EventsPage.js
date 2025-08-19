@@ -316,7 +316,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
 
 // модальное окно для приглашения пользователей
 const AllUsersModal = memo(forwardRef((
-  { eventId, eventName, curatorLogin, onClose, position }, ref ) => {
+  { eventId, eventName, curatorLogin, onClose, position, registeredParticipants = [] }, ref ) => {
     const { addNotification } = useNotification();
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -328,6 +328,7 @@ const AllUsersModal = memo(forwardRef((
     const cardElements = useRef(new Map());
     const modalRef = useRef(null);
     const [dynamicPosition, setDynamicPosition] = useState(position);
+    const [invitedLogins, setInvitedLogins] = useState(new Set());
 
     const handleClose = useCallback(() => {
         if (isClosing) return;
@@ -389,6 +390,12 @@ const AllUsersModal = memo(forwardRef((
             });
     }, [users, searchTerm]);
 
+    // Множество логинов уже участвующих 
+    const registeredLogins = useMemo(
+    () => new Set((registeredParticipants || []).map(r => r.userLogin)),
+    [registeredParticipants]
+    );
+
     useEffect(() => {
         const targetElement = hoveredCardId ? cardElements.current.get(hoveredCardId) : null;
         if (targetElement) {
@@ -419,6 +426,8 @@ const AllUsersModal = memo(forwardRef((
                             filteredUsers.length > 0 ? (
                                 filteredUsers.map((user, index) => {
                                     const isActive = hoveredCardId === user.id;
+                                    const isRegistered = registeredLogins.has(user.login);
+                                    const isInvited = invitedLogins.has(user.login);
                                     return (
                                         <React.Fragment key={user.id}>
                                             <div
@@ -435,40 +444,47 @@ const AllUsersModal = memo(forwardRef((
                                                 </div>
                                                 <div className="invite-user-card-actions">
                                                     <button
-                                                    className="interactive-button btn-style-register"
-                                                    onMouseEnter={() => setHoveredCardId(user.id)}
-                                                    onMouseMove={handleMouseMoveForEffect}
-                                                    onMouseLeave={handleButtonLeave}
-                                                    onClick={async (e) => {
-                                                        e.stopPropagation();
+                                                        className="interactive-button btn-style-register"
+                                                        disabled={isRegistered || isInvited}
+                                                        onMouseEnter={() => setHoveredCardId(user.id)}
+                                                        onMouseMove={handleMouseMoveForEffect}
+                                                        onMouseLeave={handleButtonLeave}
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            if (isRegistered || isInvited) return;
 
-                                                        if (!eventId || !curatorLogin) {
+                                                            if (!eventId || !curatorLogin) {
                                                             addNotification('Не удалось определить мероприятие или куратора.', 'error');
                                                             return;
-                                                        }
+                                                            }
 
-                                                        try {
+                                                            try {
                                                             const resp = await fetch(`${API_BASE_URL}/api/notifications`, {
-                                                            method: "POST",
-                                                            headers: { "Content-Type": "application/json" },
-                                                            credentials: "include",
-                                                            body: JSON.stringify({
-                                                                recipientLogin: user.login,   
-                                                                inviter: curatorLogin,        
-                                                                eventId: eventId              
-                                                            })
-                                                        });
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                credentials: "include",
+                                                                body: JSON.stringify({
+                                                                recipientLogin: user.login,
+                                                                inviter: curatorLogin,
+                                                                eventId: eventId
+                                                                })
+                                                            });
+                                                            const data = await resp.json();
+                                                            if (!resp.ok) throw new Error(data.detail || 'Не удалось отправить приглашение');
 
-                                                        const data = await resp.json();
-                                                        if (!resp.ok) throw new Error(data.detail || 'Не удалось отправить приглашение');
-
-                                                        addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
-                                                    } catch (err) {
+                                                            setInvitedLogins(prev => new Set(prev).add(user.login));
+                                                            addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
+                                                            } catch (err) {
                                                             addNotification(err.message, 'error');
-                                                    }
-                                                    }}
-                                                    >
-                                                    <span><AddIcon /> Пригласить</span>
+                                                            }
+                                                        }}
+                                                        >
+                                                        <span>
+                                                            {isRegistered
+                                                            ? 'Участвует'
+                                                            : (isInvited ? 'Приглашён' : <><AddIcon /> Пригласить</>)
+                                                            }
+                                                        </span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -916,10 +932,10 @@ export default function EventsPage({ userLogin, userRole }) {
                     if (!profileResponse.ok) throw new Error('Не удалось загрузить профиль.');
                     const profileData = await profileResponse.json();
                     setCurrentUser({
-                        lastName: profileData.last_name,
-                        firstName: profileData.first_name,
-                        middleName: profileData.patronymic,
-                        group: profileData.group,
+                        lastName: profileData.lastName,
+                        firstName: profileData.firstName,
+                        middleName: profileData.patronymic ?? profileData.middleName?? '',
+                        group: profileData.group ?? '',
                         login: profileData.login
                     });
                     // Загружаем записи на мероприятия
@@ -1135,7 +1151,8 @@ export default function EventsPage({ userLogin, userRole }) {
                 ref={inviteModalRef}
                 eventId={selectedEvent?.id}            
                 eventName={selectedEvent?.eventName}
-                curatorLogin={currentUser?.login}  
+                curatorLogin={currentUser?.login} 
+                registeredParticipants={registrations[selectedEvent?.id] || []} 
                 onClose={onInviteModalClosed}
                 position={inviteModalPosition}
             />
