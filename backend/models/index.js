@@ -10,6 +10,7 @@ const Request = require('./request')(sequelize, Sequelize.DataTypes);
 const Event = require('./event')(sequelize, Sequelize.DataTypes);
 const EventRegistration = require('./eventRegistration')(sequelize, Sequelize.DataTypes);
 const Message = require('./message')(sequelize, Sequelize.DataTypes);
+const Notification = require('./notification')(sequelize, Sequelize.DataTypes);
 
 // ОПИСАНИЕ СВЯЗЕЙ
 // Пользователь может иметь много заявок
@@ -28,6 +29,21 @@ Message.belongsTo(Request, { foreignKey: 'requestId' });
 User.hasMany(Message, { foreignKey: 'senderLogin', sourceKey: 'login' });
 Message.belongsTo(User, { foreignKey: 'senderLogin', targetKey: 'login' });
 
-// Экспорт моделей и подключение к БД
-module.exports = { sequelize, User, Request, Event, EventRegistration, Message };
+// Уведомления, полученные пользователем
+User.hasMany(Notification, { foreignKey: 'recipientLogin', sourceKey: 'login' });
+Notification.belongsTo(User, { foreignKey: 'recipientLogin', targetKey: 'login' });
 
+// Мероприятие может иметь много уведомлений 
+Event.hasMany(Notification, { foreignKey: 'eventId' });
+Notification.belongsTo(Event, { foreignKey: 'eventId' });
+
+// Уведомление связано с пригласившим пользователем
+Notification.belongsTo(User, { foreignKey: 'inviter', targetKey: 'login', as: 'Inviter' });
+User.hasMany(Notification, { foreignKey: 'inviter', sourceKey: 'login', as: 'SentNotifications' });
+
+// Уведомление связано с получателем 
+Notification.belongsTo(User, { foreignKey: 'recipientLogin', targetKey: 'login', as: 'Recipient' });
+User.hasMany(Notification, { foreignKey: 'recipientLogin', sourceKey: 'login', as: 'ReceivedNotifications' });
+
+// Экспорт моделей и подключение к БД
+module.exports = { sequelize, User, Request, Event, EventRegistration, Message, Notification };

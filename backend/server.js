@@ -28,6 +28,7 @@ app.use('/api', require('./routes/userRoutes'));
 app.use('/api', require('./routes/requestRoutes'));
 app.use('/api', require('./routes/eventRoutes'));
 app.use('/api', require('./routes/messageRoutes'));
+app.use('/api', require('./routes/notificationRoutes'));
 
 // Статика 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

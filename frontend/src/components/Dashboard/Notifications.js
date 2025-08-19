@@ -14,6 +14,8 @@ import { ReactComponent as UsersIcon } from '../../icons/cat.svg'; // замен
 import { ReactComponent as GroupIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
 import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
+const API_BASE_URL = 'http://localhost:8000';
+
 const useNotification = () => ({
     addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
 });
@@ -206,10 +208,22 @@ const FormField = ({ label, children }) => (
 const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
-    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic].filter(Boolean).join(' ') : '';
+    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic || user.middleName].filter(Boolean).join(' ') : '';
     const [participants, setParticipants] = useState(() => [
         { id: 1, fullName: getUserFullName(currentUser), group: currentUser.group || '' }
     ]);
+
+    useEffect(() => {
+    if (!currentUser) return;
+    setParticipants(prev => {
+        if (prev.length && (prev[0].fullName?.trim() || prev[0].group?.trim())) return prev;
+        return [{
+        fullName: getUserFullName(currentUser),
+        group: currentUser.group || ''
+        }];
+    });
+    }, [currentUser]);
+
     const nextId = useRef(2);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef(null);
@@ -275,26 +289,38 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        for (const p of participants) {
-            if (!p.fullName.trim() || !p.group.trim()) {
-                addNotification('Пожалуйста, заполните все поля.', 'error');
-                return;
-            }
+    e.preventDefault();
+
+    for (const p of participants) {
+        if (!p.fullName.trim() || !p.group.trim()) {
+        addNotification('Пожалуйста, заполните все поля.', 'error');
+        return;
         }
-        setIsSubmitting(true);
-        setTimeout(() => {
-            try {
-                const result = { message: `Вы успешно записались на "${event.eventName}"` };
-                addNotification(result.message, 'success');
-                onConfirm({ eventId: event.id, user_login: currentUser.login, participants });
-            } catch (error) {
-                addNotification(error.message, 'error');
-            } finally {
-                setIsSubmitting(false);
-            }
-        }, 500);
+    }
+
+    setIsSubmitting(true);
+    try {
+        const resp = await fetch(`${API_BASE_URL}/api/events/${event.id}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+            user_login: currentUser.login,
+            participants: participants.map(({ id, isDeleting, ...rest }) => rest)
+        }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Не удалось записаться');
+
+        addNotification(`Вы успешно записались на "${event.eventName}"`, 'success');
+        onConfirm({ eventId: event.id, user_login: currentUser.login, participants });
+    } catch (error) {
+        addNotification(error.message, 'error');
+    } finally {
+        setIsSubmitting(false);
+    }
     };
+
     
     if (!event) return null;
 
@@ -392,11 +418,46 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
     const [modalPosition, setModalPosition] = useState(null);
+    const [invitations, setInvitations] = useState([]);
 
-    // тест
-    const [invitations, setInvitations] = useState([
-        { inviter: "Иванов Иван", event: { id: 1, eventName: "Хакатон", eventDate: "2025-09-15", description: "Тут нет описания, честно. Но вот зачем оно тут? не понимаю", leader: "Петров П.П.", organizer: "СПбГАСУ", location: "СПбГАСУ", eventStatus: "Активно", recruitment_status: 'Активен', max_participants: 100, max_group_size: 5 } },
-    ]);
+        useEffect(() => {
+    if (!isOpen || !userLogin) return;
+    const fetchInvites = async () => {
+        try {
+        const res = await fetch(`${API_BASE_URL}/api/notifications/${userLogin}`, {
+            credentials: "include"
+        });
+        const data = await res.json();
+        setInvitations(data.map(n => {
+            const ev = n.Event || {};
+            const normalizedEvent = {
+                ...ev,
+                imageUrl: ev.coverImage ? `${API_BASE_URL}${ev.coverImage}` : defaultEventImage,
+                max_participants: ev.maxParticipants,
+                max_group_size: ev.teamSize,
+                recruitment_status: ev.recruitment_status || 'Активен',
+                description: ev.description || 'Тут будет описание, возможно, когда-нибудь',
+            };
+
+            const inviterUser = n.Inviter; // придёт из include
+            const inviterName = inviterUser
+                ? `${inviterUser.lastName} ${inviterUser.firstName}${inviterUser.middleName ? ' ' + inviterUser.middleName : ''}`.trim()
+                : n.inviter;
+            const inviterGroup = inviterUser?.group || '';
+
+            return {
+                inviter: inviterName,
+                inviterGroup,
+                event: normalizedEvent,
+                message: n.message,
+            };
+            }));
+        } catch (err) {
+        addNotification("Ошибка загрузки уведомлений", "error");
+        }
+    };
+    fetchInvites();
+    }, [isOpen, userLogin]);
 
     const handleCloseDetails = useCallback(() => {
         setIsDetailCardExpanded(false);
@@ -419,15 +480,49 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         }, 400);
     }, [onClose, detailedEvent, handleCloseDetails]);
 
-    // тест
+       const handleDeleteAll = async () => {
+        try {
+            const resp = await fetch(`${API_BASE_URL}/api/notifications/user/${userLogin}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+            if (!resp.ok) throw new Error('Не удалось удалить все уведомления');
+            setInvitations([]); 
+            addNotification('Все уведомления удалены', 'success');
+        } catch (e) {
+            addNotification(e.message, 'error');
+        }
+    };
+
     useEffect(() => {
-        if (!isOpen) return;
-        const fetchUserData = async () => {
-            setIsLoading(true);
-            setCurrentUser({ login: userLogin, lastName: 'Васильев', firstName: 'Александр', patronymic: 'Игоревич', group: 'ИТ-301' });
-            setIsLoading(false);
-        };
-        fetchUserData();
+    if (!isOpen || !userLogin) return;
+
+    const load = async () => {
+        setIsLoading(true);
+        try {
+        const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`, { credentials: 'include' });
+        if (!profileRes.ok) throw new Error('Не удалось загрузить профиль');
+        const p = await profileRes.json();
+        setCurrentUser({
+            login: p.login,
+            lastName: p.lastName,
+            firstName: p.firstName,
+            patronymic: p.patronymic,
+            group: p.group,
+        });
+
+        const regsRes = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`, { credentials: 'include' });
+        if (!regsRes.ok) throw new Error('Не удалось загрузить записи');
+        const ids = await regsRes.json();
+        setUserRegisteredEventIds(new Set(ids));
+        } catch (e) {
+        addNotification(e.message, 'error');
+        } finally {
+        setIsLoading(false);
+        }
+    };
+
+    load();
     }, [isOpen, userLogin]);
 
     const gliderTargetId = detailedEvent ? detailedEvent.id : hoveredInviteId;
@@ -513,6 +608,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         <div className="notifications-component-scope">
             {isSignUpModalOpen && eventForSignUp && (
                 <SignUpModal
+                    key={currentUser?.login || 'nouser'}
                     event={eventForSignUp}
                     onClose={handleCloseSignUpModal}
                     onConfirm={handleConfirmRegistration}
@@ -537,8 +633,12 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 <div className={`notifications-modal ${isClosing ? 'is-closing' : ''}`}>
                     <div className="info-modal-header">
                         <h2>Уведомления</h2>
-                        <button onClick={handleClosePanel} className="chat-close-btn" title="Закрыть">
-                            <ExitIcon />
+                        <button
+                        className="chat-close-btn"
+                        title="Удалить все уведомления"
+                        onClick={handleDeleteAll}
+                        >
+                        <ExitIcon />
                         </button>
                     </div>
                     <div className="info-modal-body">
@@ -555,12 +655,12 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                                     const isActive = invite.event.id === gliderTargetId;
 
                                     return (
-                                        <React.Fragment key={invite.event.id}>
+                                        <React.Fragment key={invite.id}>
                                             <NotificationCard
-                                                innerRef={node => node ? cardElements.current.set(invite.event.id, node) : cardElements.current.delete(invite.event.id)}
+                                                innerRef={node => node ? cardElements.current.set(invite.id, node) : cardElements.current.delete(invite.id)}
                                                 invite={invite}
                                                 isActive={isActive}
-                                                onMouseEnter={() => setHoveredInviteId(invite.event.id)}
+                                                onMouseEnter={() => setHoveredInviteId(invite.id)}
                                                 onCardClick={handleViewDetails}
                                             />
                                             {index < invitations.length - 1 && <div className="notification-divider" />}

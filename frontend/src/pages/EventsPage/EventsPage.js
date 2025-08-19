@@ -315,7 +315,8 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
 };
 
 // модальное окно для приглашения пользователей
-const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) => {
+const AllUsersModal = memo(forwardRef((
+  { eventId, eventName, curatorLogin, onClose, position, registeredParticipants = [] }, ref ) => {
     const { addNotification } = useNotification();
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -327,6 +328,7 @@ const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) =>
     const cardElements = useRef(new Map());
     const modalRef = useRef(null);
     const [dynamicPosition, setDynamicPosition] = useState(position);
+    const [invitedLogins, setInvitedLogins] = useState(new Set());
 
     const handleClose = useCallback(() => {
         if (isClosing) return;
@@ -388,6 +390,12 @@ const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) =>
             });
     }, [users, searchTerm]);
 
+    // Множество логинов уже участвующих 
+    const registeredLogins = useMemo(
+    () => new Set((registeredParticipants || []).map(r => r.userLogin)),
+    [registeredParticipants]
+    );
+
     useEffect(() => {
         const targetElement = hoveredCardId ? cardElements.current.get(hoveredCardId) : null;
         if (targetElement) {
@@ -418,6 +426,8 @@ const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) =>
                             filteredUsers.length > 0 ? (
                                 filteredUsers.map((user, index) => {
                                     const isActive = hoveredCardId === user.id;
+                                    const isRegistered = registeredLogins.has(user.login);
+                                    const isInvited = invitedLogins.has(user.login);
                                     return (
                                         <React.Fragment key={user.id}>
                                             <div
@@ -435,15 +445,46 @@ const AllUsersModal = memo(forwardRef(({ eventName, onClose, position }, ref) =>
                                                 <div className="invite-user-card-actions">
                                                     <button
                                                         className="interactive-button btn-style-register"
+                                                        disabled={isRegistered || isInvited}
                                                         onMouseEnter={() => setHoveredCardId(user.id)}
                                                         onMouseMove={handleMouseMoveForEffect}
                                                         onMouseLeave={handleButtonLeave}
-                                                        onClick={(e) => {
+                                                        onClick={async (e) => {
                                                             e.stopPropagation();
+                                                            if (isRegistered || isInvited) return;
+
+                                                            if (!eventId || !curatorLogin) {
+                                                            addNotification('Не удалось определить мероприятие или куратора.', 'error');
+                                                            return;
+                                                            }
+
+                                                            try {
+                                                            const resp = await fetch(`${API_BASE_URL}/api/notifications`, {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                credentials: "include",
+                                                                body: JSON.stringify({
+                                                                recipientLogin: user.login,
+                                                                inviter: curatorLogin,
+                                                                eventId: eventId
+                                                                })
+                                                            });
+                                                            const data = await resp.json();
+                                                            if (!resp.ok) throw new Error(data.detail || 'Не удалось отправить приглашение');
+
+                                                            setInvitedLogins(prev => new Set(prev).add(user.login));
                                                             addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
+                                                            } catch (err) {
+                                                            addNotification(err.message, 'error');
+                                                            }
                                                         }}
-                                                    >
-                                                        <span><AddIcon /> Пригласить</span>
+                                                        >
+                                                        <span>
+                                                            {isRegistered
+                                                            ? 'Участвует'
+                                                            : (isInvited ? 'Приглашён' : <><AddIcon /> Пригласить</>)
+                                                            }
+                                                        </span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -599,8 +640,6 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
                         <button className="interactive-button btn-style-list" onClick={(e) => handleAction(e, onShowList, event, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
                             <span><ListIcon /> Список</span>
                         </button>
-                        {console.log("Текущий пользователь:", currentUser)}
-                        {console.log("Создатель события:", event.userId)}
                         {currentUser?.id === event.userId && (
                             <button
                                 className="interactive-button btn-style-delete"
@@ -893,10 +932,10 @@ export default function EventsPage({ userLogin, userRole }) {
                     if (!profileResponse.ok) throw new Error('Не удалось загрузить профиль.');
                     const profileData = await profileResponse.json();
                     setCurrentUser({
-                        lastName: profileData.last_name,
-                        firstName: profileData.first_name,
-                        middleName: profileData.patronymic,
-                        group: profileData.group,
+                        lastName: profileData.lastName,
+                        firstName: profileData.firstName,
+                        middleName: profileData.patronymic ?? profileData.middleName?? '',
+                        group: profileData.group ?? '',
                         login: profileData.login
                     });
                     // Загружаем записи на мероприятия
@@ -1107,8 +1146,17 @@ export default function EventsPage({ userLogin, userRole }) {
 
             {isRegistrationsModalOpen && <RegistrationsModal onClose={handleCloseRegistrationsModal} onInvite={handleOpenInviteModal} onCloseInvite={handleCloseInviteModal} isInviteModalOpen={isInviteModalOpen} eventName={selectedEvent?.eventName} registrations={registrations[selectedEvent?.id]} position={modalPosition} />}
 
-            {isInviteModalOpen && <AllUsersModal ref={inviteModalRef} eventName={selectedEvent?.eventName} onClose={onInviteModalClosed} position={inviteModalPosition} />}
-
+            {isInviteModalOpen && (
+            <AllUsersModal
+                ref={inviteModalRef}
+                eventId={selectedEvent?.id}            
+                eventName={selectedEvent?.eventName}
+                curatorLogin={currentUser?.login} 
+                registeredParticipants={registrations[selectedEvent?.id] || []} 
+                onClose={onInviteModalClosed}
+                position={inviteModalPosition}
+            />
+            )}
             <div className="events-container">
                 <h1>Мероприятия</h1>
 

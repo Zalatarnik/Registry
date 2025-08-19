@@ -175,7 +175,8 @@ exports.getEventRegistrations = async (req, res) => {
       id: reg.id,
       full_name: reg.fullName,
       group: reg.group,
-      submission_group_id: reg.submissionGroupId
+      submission_group_id: reg.submissionGroupId,
+      userLogin: reg.userLogin
     })));
   } catch (error) {
     console.error(error);
