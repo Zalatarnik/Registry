@@ -103,6 +103,7 @@ const handleButtonLeave = (e) => {
 };
 
 const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRequest, onDownload }) => {
+    const isOpen = event.eventStatus === 'Набор открыт';
     const cardClassName = [
         'event-card-student',
         isDetailed && 'is-detailed-view'
@@ -123,12 +124,12 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
     return (
         <div className={cardClassName}>
             <div className="student-card-inner">
-                <img src={defaultEventImage} alt="Event texture" className="cover-image" />
+                <img src={event.imageUrl || defaultEventImage} alt="Event texture" className="cover-image" />
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
                     {isRegistered ? 'Вы записаны' : 'Нет записи'}
                 </div>
-                <div className={`recruitment-status-badge status-${event.recruitment_status === 'Активен' ? 'active' : 'completed'}`}>
-                    {event.recruitment_status}
+                <div className={`recruitment-status-badge status-${event.eventStatus === 'Активен' ? 'active' : 'completed'}`}>
+                    {event.eventStatus}
                 </div>
                 <div className="details-container">
                     <div className="details-header" onClick={handleHeaderClick}>
@@ -169,10 +170,16 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
                             className="interactive-button btn-style-register"
                             onClick={(e) => handleActionClick(e, onSignUp)}
                             onMouseMove={handleMouseMoveForEffect}
-                            onMouseLeave={handleButtonLeave}
-                            disabled={isRegistered}
-                        >
-                            <span><AddIcon /> {isRegistered ? 'Вы уже записаны' : 'Записаться'}</span>
+                            disabled={isRegistered || !isOpen}
+                            >
+                             <span>
+                               <AddIcon />
+                               {isRegistered
+                                 ? 'Вы уже записаны'
+                                 : !isOpen
+                                   ? 'Набор закрыт'
+                                   : 'Записаться'}
+                             </span>
                         </button>
                     </div>
                 </div>
@@ -435,17 +442,18 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 imageUrl: ev.coverImage ? `${API_BASE_URL}${ev.coverImage}` : defaultEventImage,
                 max_participants: ev.maxParticipants,
                 max_group_size: ev.teamSize,
-                recruitment_status: ev.recruitment_status || 'Активен',
+                eventStatus: ev.eventStatus,
                 description: ev.description || 'Тут будет описание, возможно, когда-нибудь',
             };
 
-            const inviterUser = n.Inviter; // придёт из include
+            const inviterUser = n.Inviter; 
             const inviterName = inviterUser
                 ? `${inviterUser.lastName} ${inviterUser.firstName}${inviterUser.middleName ? ' ' + inviterUser.middleName : ''}`.trim()
                 : n.inviter;
             const inviterGroup = inviterUser?.group || '';
 
             return {
+                id: n.id,
                 inviter: inviterName,
                 inviterGroup,
                 event: normalizedEvent,
@@ -553,8 +561,12 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     };
     
     const handleDownload = (event) => {
-        addNotification(`Загрузка материалов для мероприятия "${event.eventName}"...`, 'info');
-        console.log("Download requested for event:", event.id);
+       const link = document.createElement("a");
+       link.href = `${API_BASE_URL}/api/events/${event.id}/download-documents`;
+       link.setAttribute("download", `${event.eventName}_documents.zip`);
+       document.body.appendChild(link);
+       link.click();
+       document.body.removeChild(link);
     };
 
     const handleSignUp = (event, e) => {

@@ -8,6 +8,8 @@
 //  - Получение всех регистраций на конкретное мероприятие
 //  - Получение списка мероприятий на которые записан пользователь
 //  - Скачать все документы мероприятия в zip
+//  - Получение количества записавшихся на мероприятие
+//  - Удалить всю группу участников по eventId и submissionGroupId
  
 const { Event, User, EventRegistration } = require('../models');
 const { v4: uuidv4 } = require('uuid');
@@ -15,6 +17,7 @@ const path = require('path');
 const fs = require('fs');
 const archiver = require('archiver');
 const transliterate = require('../utils/transliterate');
+const { Sequelize } = require('sequelize');
 
 // Создать мероприятие
 exports.createEvent = async (req, res) => {
@@ -79,16 +82,35 @@ exports.createEvent = async (req, res) => {
 };
 
 // Получить все мероприятия
+// Получить все мероприятия
 exports.getAllEvents = async (req, res) => {
   try {
     const events = await Event.findAll({
       attributes: [
         'id', 'eventName', 'leader', 'organizer', 'location',
         'eventStatus', 'eventDate', 'description',
-        'maxParticipants', 'teamSize', 'coverImage', 'userId'
+        'maxParticipants', 'teamSize', 'coverImage', 'userId',
+        [Sequelize.fn('COUNT', Sequelize.col('EventRegistrations.id')), 'currentCount']
       ],
+      include: [
+        { model: EventRegistration, attributes: [] }
+      ],
+      group: ['Event.id'],
       order: [['eventDate', 'DESC']]
     });
+
+    events.forEach(ev => {
+      const now = new Date();
+      const eventDate = new Date(ev.eventDate);
+      const currentCount = Number(ev.dataValues.currentCount || 0);
+
+      if (eventDate < now || (ev.maxParticipants && currentCount >= ev.maxParticipants)) {
+        ev.dataValues.eventStatus = 'Набор закрыт';
+      } else {
+        ev.dataValues.eventStatus = 'Набор открыт';
+      }
+    });
+
     res.json(events);
   } catch (err) {
     console.error(err);
@@ -232,5 +254,45 @@ exports.downloadEventDocuments = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ detail: 'Ошибка при формировании архива' });
+  }
+};
+
+// Получение количества записавшихся н мероприятие
+exports.getRegistrationCounts = async (req, res) => {
+  try {
+    const counts = await EventRegistration.findAll({
+      attributes: ['eventId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
+      group: ['eventId'],
+      raw: true,
+    });
+
+    const map = {};
+    for (const row of counts) {
+      map[row.eventId] = Number(row.count);
+    }
+    res.json(map);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ detail: 'Ошибка получения количества регистраций' });
+  }
+};
+
+// Удалить всю группу участников по eventId и submissionGroupId
+exports.removeGroupBySubmissionId = async (req, res) => {
+  const { eventId, submissionGroupId } = req.params;
+
+  try {
+    const deleted = await EventRegistration.destroy({
+      where: { eventId, submissionGroupId }
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ detail: 'Группа не найдена' });
+    }
+
+    return res.json({ detail: 'Группа участников удалена', deleted });
+  } catch (error) {
+    console.error('Ошибка при удалении группы:', error);
+    return res.status(500).json({ detail: 'Ошибка при удалении группы' });
   }
 };

@@ -6,7 +6,6 @@ import ClockwiseLoader from '../../components/common/Loader';
 
 // импорт изображения по умолчанию
 import defaultEventImage from '../../images/event-default.jpg';
-import defaultAvatar from '../../images/event-default.jpg';
 
 // иконки
 import { ReactComponent as SearchIcon } from '../../icons/search-icon.svg';
@@ -201,7 +200,6 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
         id: currentUser.id, 
         fullName: getUserFullName(currentUser), 
         group: currentUser.group || '', 
-        avatar: currentUser.avatar || defaultAvatar,
         isLocked: true 
     }]);
 
@@ -380,9 +378,9 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     };
 
     const addParticipant = () => {
-        const maxGroupSize = event.max_group_size || 5;
+        const maxGroupSize = event.teamSize || 5;
         if (participants.length < maxGroupSize) {
-            setParticipants([...participants, { id: null, fullName: '', group: '', avatar: defaultAvatar, isLocked: false }]);
+            setParticipants([...participants, { id: null, fullName: '', group: '', isLocked: false }]);
         } else {
             addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
         }
@@ -399,7 +397,6 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
         if (newParticipants[index].id) {
             newParticipants[index].id = null;
             newParticipants[index].group = '';
-            newParticipants[index].avatar = defaultAvatar;
         }
         newParticipants[index].fullName = value;
         setParticipants(newParticipants);
@@ -412,7 +409,6 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
             id: user.id,
             fullName: `${user.lastName} ${user.firstName} ${user.middleName || ''}`.trim(),
             group: user.group,
-            avatar: user.avatar || defaultAvatar,
             isLocked: false
         };
         setParticipants(newParticipants);
@@ -463,7 +459,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.detail || 'Ошибка записи');
             addNotification(result.message, 'success');
-            onConfirm(event.id);
+            onConfirm({ eventId: event.id, participantsCount: participants.length });
         } catch (error) {
             addNotification(error.message, 'error');
             setIsSubmitting(false);
@@ -491,11 +487,6 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
                             <div className="participants-list">
                                 {participants.map((p, index) => (
                                     <div className="participant-entry" key={index}>
-                                        <img 
-                                            src={p.avatar === defaultAvatar ? defaultAvatar : `${API_BASE_URL}${p.avatar}`} 
-                                            alt="avatar" 
-                                            className="participant-avatar" 
-                                        />
                                         {!p.isLocked && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon /></button>}
                                         <div className="form-grid signup-form-grid">
                                             <div className="participant-search-container" ref={index === activeSearchIndex ? searchContainerRef : null}>
@@ -525,9 +516,8 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
                                                                 onClick={() => handleUserSelect(index, user)}
                                                                 onMouseEnter={() => setHoveredStudentId(user.id)}
                                                             >
-                                                                <img src={`${API_BASE_URL}${user.avatar}`} alt="avatar" />
                                                                 <div className="user-search-info">
-                                                                    <span>{`${user.lastName} ${user.firstName}`}</span>
+                                                                    <span>{`${user.lastName} ${user.firstName} ${user.middleName || ''}`}</span>
                                                                     <small>{user.group}</small>
                                                                 </div>
                                                             </div>
@@ -545,7 +535,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
                         </div>
                     </div>
                     <div className="form-actions-container participant-actions">
-                        <button type="button" className="form-secondary-btn btn-add-plus" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={isSubmitting || participants.length >= (event.max_group_size || 5)}>
+                        <button type="button" className="form-secondary-btn btn-add-plus" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={addParticipant} disabled={isSubmitting || participants.length >= (event.teamSize || 5)}>
                             <span>+</span>
                         </button>
                         <div className="form-actions-right">
@@ -567,7 +557,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
 
 // модальное окно для приглашения пользователей
 const AllUsersModal = memo(forwardRef((
-  { eventId, eventName, curatorLogin, onClose, position, registeredParticipants = [] }, ref ) => {
+  { eventId, curatorLogin, onClose, position, registeredParticipants = [] }, ref ) => {
     const { addNotification } = useNotification();
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -647,6 +637,14 @@ const AllUsersModal = memo(forwardRef((
     [registeredParticipants]
     );
 
+    // Множество уже участвующих (для групповых заявок)
+    const registeredNameGroupSet = useMemo(() => {
+    const norm = (s = '') => s.toLowerCase().replace(/\s+/g, ' ').trim();
+    return new Set(
+        (registeredParticipants || []).map(r => `${norm(r.full_name)}|${norm(r.group)}`)
+    );
+    }, [registeredParticipants]);
+
     useEffect(() => {
         const targetElement = hoveredCardId ? cardElements.current.get(hoveredCardId) : null;
         if (targetElement) {
@@ -677,7 +675,10 @@ const AllUsersModal = memo(forwardRef((
                             filteredUsers.length > 0 ? (
                                 filteredUsers.map((user, index) => {
                                     const isActive = hoveredCardId === user.id;
-                                    const isRegistered = registeredLogins.has(user.login);
+                                    const norm = (s = '') => s.toLowerCase().replace(/\s+/g, ' ').trim();
+                                    const userFullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`;
+                                    const userKey = `${norm(userFullName)}|${norm(user.group)}`;
+                                    const isRegistered = registeredLogins.has(user.login) || registeredNameGroupSet.has(userKey);
                                     const isInvited = invitedLogins.has(user.login);
                                     return (
                                         <React.Fragment key={user.id}>
@@ -687,9 +688,8 @@ const AllUsersModal = memo(forwardRef((
                                                 onMouseEnter={() => setHoveredCardId(user.id)}
                                             >
                                                 <div className="invite-user-card-main-info">
-                                                    <img src={`${API_BASE_URL}${user.avatar}`} alt="avatar" className="user-avatar" />
                                                     <div className="header-content">
-                                                        <h3>{`${user.lastName} ${user.firstName}`}</h3>
+                                                        <h3>{`${user.lastName} ${user.firstName} ${user.middleName || ''}`}</h3>
                                                         <div className="card-subtitle">{user.group}</div>
                                                     </div>
                                                 </div>
@@ -724,7 +724,7 @@ const AllUsersModal = memo(forwardRef((
                                                             if (!resp.ok) throw new Error(data.detail || 'Не удалось отправить приглашение');
 
                                                             setInvitedLogins(prev => new Set(prev).add(user.login));
-                                                            addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName}`, 'success');
+                                                            addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName} ${user.middleName || ''}`, 'success');
                                                             } catch (err) {
                                                             addNotification(err.message, 'error');
                                                             }
@@ -884,11 +884,11 @@ const RegistrationsModal = ({ onClose, event, registrations = [], position, onIn
                     <div className="details-icons registration-modal-icons">
                         <div className="icon-item" title="Макс. участников">
                             <UsersIcon />
-                            <span>{registrations.length}/{event.max_participants || '∞'}</span>
+                            <span>{registrations.length}/{event.maxParticipants || '∞'}</span>
                         </div>
                         <div className="icon-item" title="Макс. чел. в группе">
                             <GroupIcon />
-                            <span>{event.max_group_size || 1}</span>
+                            <span>{event.teamSize || 1}</span>
                         </div>
                     </div>
                 </div>
@@ -1031,6 +1031,7 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
 
 // карточка мероприятия для вида студента
 const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDetailed, onDownload }) => {
+    const isOpen = event.eventStatus === 'Набор открыт';
     const cardClassName = [
         'event-card-student',
         isCentral && 'is-central',
@@ -1052,8 +1053,8 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                     {isRegistered ? 'Вы записаны' : 'Нет записи'}
                 </div>
 
-                <div className={`recruitment-status-badge status-${event.recruitment_status === 'Активен' ? 'active' : 'completed'}`}>
-                    {event.recruitment_status}
+                <div className={`recruitment-status-badge status-${isOpen ? 'active' : 'completed'}`}>
+                {isOpen ? 'Набор открыт' : 'Набор закрыт'}
                 </div>
 
                 <div className="details-container">
@@ -1065,11 +1066,11 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                         <div className="details-icons">
                             <div className="icon-item" title="Макс. участников">
                                 <UsersIcon />
-                                <span>{event.current_participants || 0}/{event.max_participants || '∞'}</span>
+                                <span>{event.current_participants || 0}/{event.maxParticipants || '∞'}</span>
                             </div>
                             <div className="icon-item" title="Макс. чел. в группе">
                                 <GroupIcon />
-                                <span>{event.max_group_size || 1}</span>
+                                <span>{event.teamSize || 1}</span>
                             </div>
                         </div>
                     </div>
@@ -1098,10 +1099,17 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                             className="interactive-button btn-style-register"
                             onClick={(e) => handleActionClick(e, onSignUp)}
                             onMouseMove={handleMouseMoveForEffect}
-                            onMouseLeave={handleButtonLeave}
-                            disabled={isRegistered}
-                        >
-                            <span><AddIcon /> {isRegistered ? 'Вы уже записаны' : 'Записаться'}</span>
+                            onMouseLeave={handleButtonLeave}                          
+                            disabled={isRegistered || !isOpen}
+                            >
+                             <span>
+                               <AddIcon />
+                               {isRegistered 
+                                 ? 'Вы уже записаны' 
+                                 : !isOpen 
+                                   ? 'Набор закрыт' 
+                                   : 'Записаться'}
+                             </span>
                         </button>
                     </div>
                 </div>
@@ -1267,14 +1275,10 @@ export default function EventsPage({ userLogin, userRole }) {
                 const processedEvents = eventsData.map(event => ({
                     ...event,
                     imageUrl: event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage,
-                    max_participants: event.maxParticipants,  
-                    max_group_size: event.teamSize,           
-                    current_participants: countsData[event.id] || 0,
-                    imageUrl: event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage,
-                    max_participants: event.max_participants || event.maxParticipants || 100,
-                    max_group_size: event.max_group_size || event.teamSize || 5,
-                    recruitment_status: 'Активен',
-                    description: event.description || 'Тут будет описание, возможно, когда-нибудь'
+                    maxParticipants: event.maxParticipants ?? 100,
+                    teamSize: event.teamSize ?? 5,
+                    current_participants: Number(countsData[event.id] ?? 0),
+                    description: event.description || 'Тут будет описание, возможно, когда-нибудь',
                 }));
 
                 setEvents(processedEvents);
@@ -1302,7 +1306,6 @@ export default function EventsPage({ userLogin, userRole }) {
                         middleName: profileData.middleName || profileData.patronymic || '',
                         group: profileData.group || '',
                         login: profileData.login,
-                        avatar: profileData.avatar
                     });
                     // Загружаем записи на мероприятия
                     const registrationsResponse = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`, {
@@ -1386,13 +1389,20 @@ export default function EventsPage({ userLogin, userRole }) {
         setSelectedEvent(null);
     };
 
-    const handleConfirmRegistration = (eventId) => {
+    const handleConfirmRegistration = ({ eventId, participantsCount }) => {
         setUserRegisteredEventIds(prev => new Set(prev).add(eventId));
-        setEvents(prevEvents => prevEvents.map(event => 
-            event.id === eventId 
-                ? { ...event, current_participants: (event.current_participants || 0) + 1 }
-                : event
-        ));
+         setEvents(prevEvents => prevEvents.map(ev => {
+           if (ev.id !== eventId) return ev;
+           const newCount = (ev.current_participants || 0) + (participantsCount || 1);
+           const isClosed =
+             new Date(ev.eventDate) < new Date() ||
+             (ev.maxParticipants && newCount >= ev.maxParticipants);
+           return {
+             ...ev,
+             current_participants: newCount,
+             eventStatus: isClosed ? 'Набор закрыт' : 'Набор открыт',
+           };
+         }));
         handleCloseSignUpModal();
     };
 
@@ -1499,17 +1509,32 @@ export default function EventsPage({ userLogin, userRole }) {
         }
     };
 
-    const handleDeleteGroup = (groupId) => {
+    const handleDeleteGroup = async (groupId) => {
         if (!selectedEvent) return;
-        addNotification(`Удаление группы #${groupId}...`, 'info');
+
         const eventId = selectedEvent.id;
-        const updatedRegistrationsForEvent = registrations[eventId].filter(
-            (reg) => reg.submission_group_id !== groupId
-        );
-        setRegistrations((prev) => ({
+        if (!window.confirm('Удалить всю группу участников?')) return;
+
+        try {
+            const resp = await fetch(
+            `${API_BASE_URL}/api/events/${eventId}/registrations/group/${groupId}`,
+            { method: 'DELETE', credentials: 'include' }
+            );
+
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.detail || 'Не удалось удалить группу');
+
+            setRegistrations(prev => ({
             ...prev,
-            [eventId]: updatedRegistrationsForEvent,
-        }));
+            [eventId]: (prev[eventId] || []).filter(
+                r => r.submission_group_id !== groupId
+            ),
+            }));
+
+            addNotification(data.detail || 'Группа удалена', 'success');
+        } catch (err) {
+            addNotification(err.message, 'error');
+        }
     };
 
     const filterStyleMap = { 'Все': 'btn-style-neutral', 'Записан': 'btn-style-registered-filter', 'Не записан': 'btn-style-unregistered-filter' };
