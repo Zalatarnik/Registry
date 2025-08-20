@@ -535,6 +535,7 @@
   background-size: cover;
   background-position: center;
   z-index: 1;
+  object-fit: cover;
 }
 
 .events-page-scope .registration-status-badge,
@@ -1092,7 +1093,6 @@
 .events-page-scope .participants-list .participant-entry {
   position: relative;
   padding: 16px;
-  padding-left: 72px;
   margin-bottom: 16px;
   border: 1px solid #e9ecef;
   border-radius: 8px;
@@ -1424,6 +1424,8 @@
   padding: 0 12px;
   height: 36px;
   font-size: 13px;
+  width: 130px;
+  height: 40px;
 }
 
 .invite-user-divider {

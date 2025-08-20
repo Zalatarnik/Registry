@@ -1045,9 +1045,10 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
     return (
         <div className={cardClassName}>
             <div className="student-card-inner">
-                <div
+                <img
+                    src={event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage}
+                    alt={event.eventName}
                     className="cover-image"
-                    style={{ backgroundImage: `url(${event.coverImage ? `${API_BASE_URL}${event.coverImage}` : defaultEventImage})` }}
                 />
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
                     {isRegistered ? 'Вы записаны' : 'Нет записи'}

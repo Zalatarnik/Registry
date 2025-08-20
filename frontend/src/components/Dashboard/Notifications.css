@@ -74,37 +74,26 @@
     to { transform: translateX(50px); opacity: 0; }
 }
 
-@keyframes notifications-scope-participant-in {
-    from {
-        opacity: 0;
-        transform: translateY(-15px);
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-bottom: 0;
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-        max-height: 150px;
-    }
+@keyframes notifications-scope-search-results-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes notifications-scope-participant-out {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-        max-height: 150px;
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-15px);
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-bottom: 0;
-        border: 0;
-    }
+@keyframes notifications-scope-search-results-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 
@@ -514,7 +503,6 @@
     right: 0;
     bottom: 0;
     z-index: 2000;
-    display: block; 
     background-color: rgba(33, 37, 41, 0.6);
     backdrop-filter: blur(5px);
     animation: notifications-scope-modal-fade-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
@@ -538,6 +526,7 @@
     border-radius: 16px;
     flex-direction: column;
     overflow: hidden;
+    transition: top 0.3s ease-out, left 0.3s ease-out;
     animation: notifications-scope-modal-slide-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
@@ -552,6 +541,7 @@
     border-bottom: 1px solid #e9ecef;
     justify-content: space-between;
     align-items: center;
+    cursor: grab;
 }
 
 .notifications-component-scope .chat-title-wrapper h2 {
@@ -655,9 +645,6 @@
 }
 
 .notifications-component-scope .participants-list {
-  flex-grow: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
   min-height: 0;
 }
 
@@ -668,12 +655,6 @@
     border: 1px solid #e9ecef;
     border-radius: 8px;
     background-color: rgba(248, 249, 250, 0.7);
-    animation: notifications-scope-participant-in 0.3s ease-out forwards;
-    overflow: hidden;
-}
-
-.notifications-component-scope .participants-list .participant-entry.is-deleting {
-    animation: notifications-scope-participant-out 0.3s ease-out forwards;
 }
 
 .notifications-component-scope .remove-participant-btn {
@@ -903,4 +884,70 @@
     width: 24px;
     height: 24px;
     fill: currentColor;
+}
+
+/* стили для поиска в модальном окне */
+.notifications-component-scope .participant-search-container {
+  position: relative;
+}
+
+.notifications-component-scope .user-search-results-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: rgba(248, 249, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-top: -8px;
+  overflow: hidden;
+  border-radius: 8px;
+  animation: notifications-scope-search-results-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.notifications-component-scope .user-search-results-container.is-closing {
+  animation: notifications-scope-search-results-out 0.3s ease-in forwards;
+}
+
+.notifications-component-scope .user-search-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.notifications-component-scope .user-search-results-container .user-search-item:not(:last-child) {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.notifications-component-scope .user-search-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-component-scope .user-search-info span,
+.notifications-component-scope .user-search-info small {
+  transition: color 0.3s ease;
+}
+
+.notifications-component-scope .user-search-item.is-active .user-search-info span,
+.notifications-component-scope .user-search-item.is-active .user-search-info small {
+  color: #fff;
+}
+
+
+.notifications-component-scope .user-search-info span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.notifications-component-scope .user-search-info small {
+  font-size: 12px;
+  color: #6c757d;
 }
