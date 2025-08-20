@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './CreateEventPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
+import { validateEventCreation } from '../../validation/ValidationContext'; // файл для проверки
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
@@ -332,16 +333,9 @@ export default function CreateEventPage({ userLogin }) {
             return;
         }
 
-        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate', 'maxParticipants', 'teamSize'];
-        for (const key of requiredFields) {
-            if (!formData[key]) {
-                addNotification("Пожалуйста, заполните все обязательные поля.", "error");
-                return;
-            }
-        }
-        
-        if (!imageFile) {
-            addNotification("Пожалуйста, загрузите изображение для обложки мероприятия.", "error");
+        const validationResult = validateEventCreation(formData, imageFile);
+        if (!validationResult.valid) {
+            addNotification(validationResult.message, "error");
             return;
         }
 
