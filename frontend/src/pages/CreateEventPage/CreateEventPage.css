@@ -438,6 +438,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    max-width: 300px;
 }
 
 .create-event-container .file-item-remove-btn {
@@ -452,6 +455,7 @@
     font-weight: bold;
     line-height: 0;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 /* эффект наведения на элемент списка */
