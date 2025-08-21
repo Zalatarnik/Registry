@@ -244,7 +244,9 @@ export default function ReviewRequestsPage({ userLogin }) {
         const fetchRequests = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/requests`);
+                const response = await fetch(`${API_BASE_URL}/api/requests`, {
+                    credentials: 'include' 
+                });
                 if (!response.ok) {
                     throw new Error('Не удалось загрузить заявки');
                 }
@@ -252,18 +254,27 @@ export default function ReviewRequestsPage({ userLogin }) {
                 const processedData = data.map(req => ({
                     ...req,
                     description: req.description || "Описание для этой заявки еще не добавлено.",
-                    link: req.link || ""
+                    link: req.link || "",
+                    User: req.User || {} 
                 }));
                 setRequests(processedData);
                 setIsLoading(false);
-
             } catch (error) {
                 console.error("Ошибка при загрузке заявок:", error);
+                addNotification(error.message, 'error');
             }
         };
 
         fetchRequests();
-    }, []);
+    }, [addNotification]);
+
+    const handleOpenChat = (request) => {
+        setActiveChatRequest({
+            id: request.id,
+            eventName: request.eventName,
+            User: request.User || { login: request.owner?.login, firstName: request.owner?.firstName, lastName: request.owner?.lastName, avatar: request.owner?.avatar, role: request.owner?.role }
+        });
+    };
 
     const handleCloseFilter = () => {
         const filterModal = topPanelRef.current?.querySelector('.filter-modal-dropdown-container');
@@ -375,7 +386,6 @@ export default function ReviewRequestsPage({ userLogin }) {
     const handleApprove = (id) => handleAction(id, 'approve');
     const handleReject = (id) => handleAction(id, 'reject');
 
-    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
     
 
