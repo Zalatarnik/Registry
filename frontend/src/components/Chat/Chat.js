@@ -196,7 +196,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
                 if (!response.ok) throw new Error('Не удалось загрузить сообщения чата.');
                 const data = await response.json();
                 
-                // обновляем состояние только если пришли новые данные, чтобы избежать лишних ререндеров
+                // обновляем состояние только если пришли новые данные
                 setMessages(prevMessages => {
                     const prevIds = new Set(prevMessages.map(m => m.id));
                     const hasNewData = data.length !== prevMessages.length || !data.every(m => prevIds.has(m.id));
@@ -209,7 +209,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
             } catch (error) {
                 // показываем ошибку только при первой загрузке
                 if (messages.length === 0) {
-                   addNotificationOnce(error.message, 'error');
+                    addNotificationOnce(error.message, 'error');
                 }
             } finally {
                 setIsLoading(false);
@@ -234,16 +234,13 @@ const ChatView = ({ userLogin, request, onClose }) => {
 
     const currentUser = useMemo(() => allUsers.get(userLogin), [allUsers, userLogin]);
 
+    // Определяем студента, связанного с заявкой
     const studentParticipant = useMemo(() => {
-        if (currentUser?.role !== 'curator' || allUsers.size === 0) return null;
-        
-        const student = Array.from(allUsers.values()).find(user => 
-            user.role === 'student' && messages.some(msg => msg.sender.login === user.login)
-        );
-        
-        return student;
-    }, [messages, allUsers, currentUser]);
+        if (!allUsers.size || !request?.User?.login) return null;
+        return request.User || null;
+    }, [allUsers, request]);
 
+    // Определяем кураторов, которые отправили сообщения по этой заявке
     const curators = useMemo(() => {
         if (currentUser?.role === 'curator' || !messages || allUsers.size === 0) return [];
         const senderLogins = new Set(messages.map(msg => msg.sender.login));
@@ -257,9 +254,12 @@ const ChatView = ({ userLogin, request, onClose }) => {
         return uniqueCurators;
     }, [messages, allUsers, currentUser]);
 
+    // Автоматический выбор первого куратора, если он есть
     useEffect(() => {
         if (curators.length > 0 && !selectedCuratorLogin) {
             setSelectedCuratorLogin(curators[0].login);
+        } else if (curators.length === 0) {
+            setSelectedCuratorLogin(null);
         }
     }, [curators, selectedCuratorLogin]);
 
@@ -267,14 +267,23 @@ const ChatView = ({ userLogin, request, onClose }) => {
         setSelectedCuratorLogin(curatorLogin);
     };
 
+    // Фильтруем сообщения в зависимости от выбранного куратора
     const filteredMessages = useMemo(() => {
-        if (!selectedCuratorLogin) {
-            return messages;
+        if (currentUser?.role === 'curator' && studentParticipant) {
+            // Для куратора показываем сообщения между ним и студентом
+            return messages.filter(msg => 
+                (msg.sender.login === userLogin && msg.recipient?.login === studentParticipant.login) ||
+                (msg.sender.login === studentParticipant.login && (msg.recipient?.login === userLogin || !msg.recipient))
+            );
+         } else if (currentUser?.role === 'student' && selectedCuratorLogin) {
+            // Для студента показываем сообщения с выбранным куратором
+            return messages.filter(msg => 
+                (msg.sender.login === userLogin && msg.recipient?.login === selectedCuratorLogin) ||
+                (msg.sender.login === selectedCuratorLogin && (msg.recipient?.login === userLogin || !msg.recipient))
+            );
         }
-        return messages.filter(msg => 
-            msg.sender.login === userLogin || msg.sender.login === selectedCuratorLogin
-        );
-    }, [messages, selectedCuratorLogin, userLogin]);
+        return [];
+    }, [messages, selectedCuratorLogin, userLogin, currentUser, studentParticipant]);
 
     const selectedCurator = useMemo(() => {
         if (!selectedCuratorLogin) return null;
@@ -305,24 +314,33 @@ const ChatView = ({ userLogin, request, onClose }) => {
             sender_login: userLogin,
         };
 
-        if (currentUser?.role === 'student' && selectedCuratorLogin) {
+        if (currentUser?.role === 'student' && !selectedCuratorLogin) {
+            addNotificationOnce('Выберите куратора для отправки', 'error');
+            return;
+        }
+        if (currentUser?.role === 'curator' && !studentParticipant) {
+            addNotificationOnce('Не удалось определить студента для отправки', 'error');
+            return;
+        }
+
+        if (currentUser?.role === 'student') {
             bodyPayload.recipient_login = selectedCuratorLogin;
-        } else if (currentUser?.role === 'curator' && studentParticipant) {
+        } else if (currentUser?.role === 'curator') {
             bodyPayload.recipient_login = studentParticipant.login;
         }
 
         try {
-        const response = await fetch(
-        `${API_BASE_URL}/api/requests/${request.id}/chat`,
-        {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(bodyPayload)
-        }
-        );
+            const response = await fetch(
+                `${API_BASE_URL}/api/requests/${request.id}/chat`,
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bodyPayload)
+                }
+            );
             if (!response.ok) throw new Error('Не удалось отправить сообщение.');
             
             const sentMessage = await response.json();
@@ -351,7 +369,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
                         <div className="student-info-tab">
                             <span className="student-info-label">Вы общаетесь с:</span>
                             <div className="student-info-card">
-                                 <img
+                                <img
                                     src={`${API_BASE_URL}${studentParticipant.avatar}`}
                                     alt={`${studentParticipant.firstName} ${studentParticipant.lastName}`}
                                     className="curator-avatar"
@@ -364,38 +382,41 @@ const ChatView = ({ userLogin, request, onClose }) => {
                     </div>
                 )}
 
-                {currentUser?.role !== 'curator' && curators.length > 0 && (
+                {currentUser?.role === 'student' && (
                     <div
                         ref={curatorTabsRef}
                         className="chat-curator-tabs"
                         onMouseLeave={() => setHoveredCurator(null)}
                     >
-                        {curators.map(curator => {
-                            const isSelected = selectedCuratorLogin === curator.login;
-                            const isHovered = hoveredCurator === curator.login;
-                            const isActive = isSelected || isHovered;
-                            return (
-                                <button
-                                    key={curator.login}
-                                    className={`curator-tab-button ${isActive ? 'active' : ''} ${isSelected ? 'selected' : ''}`}
-                                    onMouseEnter={() => setHoveredCurator(curator.login)}
-                                    onClick={() => handleCuratorSelect(curator.login)}
-                                    title={`${curator.firstName} ${curator.lastName}`}
-                                >
-                                    <img
-                                        src={`${API_BASE_URL}${curator.avatar}`}
-                                        alt={`${curator.firstName} ${curator.lastName}`}
-                                        className="curator-avatar"
-                                    />
-                                    <span className="curator-name-label">
-                                        {`${curator.firstName} ${curator.lastName}`}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                        {curators.length > 0 ? (
+                            curators.map(curator => {
+                                const isSelected = selectedCuratorLogin === curator.login;
+                                const isHovered = hoveredCurator === curator.login;
+                                const isActive = isSelected || isHovered;
+                                return (
+                                    <button
+                                        key={curator.login}
+                                        className={`curator-tab-button ${isActive ? 'active' : ''} ${isSelected ? 'selected' : ''}`}
+                                        onMouseEnter={() => setHoveredCurator(curator.login)}
+                                        onClick={() => handleCuratorSelect(curator.login)}
+                                        title={`${curator.firstName} ${curator.lastName}`}
+                                    >
+                                        <img
+                                            src={`${API_BASE_URL}${curator.avatar}`}
+                                            alt={`${curator.firstName} ${curator.lastName}`}
+                                            className="curator-avatar"
+                                        />
+                                        <span className="curator-name-label">
+                                            {`${curator.firstName} ${curator.lastName}`}
+                                        </span>
+                                    </button>
+                                );
+                            })
+                        ) : (
+                            <p style={{textAlign: 'center', color: '#6c757d', padding: '10px'}}>С Вами пока не начинали чат кураторы. Вы не можете написать сообщение</p>
+                        )}
                     </div>
                 )}
-
 
                 <div className="chat-popup-messages">
                     {isLoading && messages.length === 0 ? (
@@ -405,12 +426,11 @@ const ChatView = ({ userLogin, request, onClose }) => {
                         filteredMessages.map(msg => (
                             <div
                                 key={msg.id}
-                                // выравниваем свои сообщения справа, чужие - слева
                                 className={`message-bubble-wrapper ${msg.sender.login === userLogin ? 'my-message' : 'other-message'} ${msg.isNew ? 'new-message' : ''}`}
                             >
                                 <div
-                                  className="message-bubble"
-                                  onMouseMove={handleMouseMove}
+                                    className="message-bubble"
+                                    onMouseMove={handleMouseMove}
                                 >
                                     <div className="message-sender">{getSenderName(msg.sender)}</div>
                                     <div className="message-text">{msg.text}</div>
@@ -419,7 +439,6 @@ const ChatView = ({ userLogin, request, onClose }) => {
                             </div>
                         ))
                     ) : (
-                        // сообщение, если чат пуст
                         <p style={{textAlign: 'center', color: '#6c757d'}}>В этом чате пока нет сообщений.</p>
                     )}
                     <div ref={messagesEndRef} />
@@ -431,14 +450,23 @@ const ChatView = ({ userLogin, request, onClose }) => {
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder={
-                                selectedCurator
+                                currentUser?.role === 'curator' && studentParticipant
+                                    ? `Сообщение для ${studentParticipant.firstName}...`
+                                    : selectedCurator
                                     ? `Сообщение для ${selectedCurator.firstName}...`
                                     : "Напишите сообщение..."
                             }
                             autoFocus
+                            disabled={currentUser?.role === 'student' && curators.length === 0}
                         />
                     </div>
-                    <button type="submit" className="chat-submit-btn"><span><SendIcon /></span></button>
+                    <button 
+                        type="submit" 
+                        className="chat-submit-btn"
+                        disabled={currentUser?.role === 'student' && curators.length === 0}
+                    >
+                        <span><SendIcon /></span>
+                    </button>
                 </form>
             </div>
         </div>,
