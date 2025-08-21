@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { useNotification } from '../../notification/NotificationContext';
 import './MyRequestsPage.css';
@@ -93,30 +93,6 @@ const handleButtonLeave = (e) => {
 };
 
 
-// Открытие вложеных файлов в заметку
-const downloadAllFilesAsZip = (request) => {
-    const files = request.files || [];
-
-    if (files.length === 0) {
-        alert("Нет файлов для скачивания.");
-        return;
-    }
-
-    if (files.length === 1) {
-        // Один файл — просто открыть в новой вкладке
-        const fileUrl = `http://localhost:8000${files[0].url}`;
-        window.open(fileUrl, '_blank');
-    } else {
-        // Несколько файлов — скачать архив
-        const zipUrl = `http://localhost:8000/api/requests/${request.id}/files-zip`;
-        const link = document.createElement('a');
-        link.href = zipUrl;
-        link.setAttribute('download', `request_${request.id}_files.zip`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-};
 
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -129,19 +105,20 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [ref]);
     const handleSelect = (option) => {
-        onChange(option);
+        onChange(option.value);
         setIsOpen(false);
     };
+    const selected = options.find(o => o.value === value);
     return (
         <div ref={ref} className={`custom-select-container ${isOpen ? 'is-open' : ''}`}>
             <div className="form-input custom-select-value" onClick={() => setIsOpen(!isOpen)}>
-                {value || <span style={{ opacity: 0.6 }}>{placeholder}</span>}
+                {selected ? selected.label : <span style={{ opacity: 0.6 }}>{placeholder}</span>}
                 <DownIcon />
             </div>
             <div className="custom-select-options">
-                {options.map(option => (
-                    <div key={option} className={`custom-select-option ${value === option ? 'is-selected' : ''}`} onClick={() => handleSelect(option)}>
-                        {option}
+                {options.map(opt => (
+                    <div key={opt.value} className={`custom-select-option ${value === opt.value ? 'is-selected' : ''}`} onClick={() => handleSelect(opt)}>
+                        {opt.label}
                     </div>
                 ))}
             </div>
@@ -260,7 +237,7 @@ const getEventStatusLabel = (raw, t) => {
   try { return t(dictKey); } catch { return raw; }
 };
 
-const EditRequestModal = ({ request, onClose, onSave }) => {
+const EditRequestModal = ({ request, onClose, onSave, position }) => {
     const { t } = useTranslation(); 
     const { addNotification } = useNotification();
     const STATUS_OPTIONS = [
@@ -320,7 +297,7 @@ const EditRequestModal = ({ request, onClose, onSave }) => {
                             <FormField label={t('createEvent.field.leader')}><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
                             <FormField label={t('createEvent.field.organizer')}><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
                             <FormField label={t('createEvent.field.location')}><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
-                            <FormField label={t('createEvent.field.status')}><CustomSelect options={STATUS_OPTIONS} value={formData.eventStatus} onChange={(value) => handleInputChange('eventStatus', value)} placeholder={t('createEvent.field.status.placeholder')} /></FormField>
+                            <FormField label={t('createEvent.field.status')}><CustomSelect options={STATUS_OPTIONS} value={formData.eventStatus} onChange={(val) => handleInputChange('eventStatus', val)} placeholder={t('createEvent.field.status.placeholder')} /></FormField>
                             <FormField label={t('createEvent.field.date')}><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
                             <FileUploadArea files={files} setFiles={setFiles} />
                         </div>
@@ -341,7 +318,7 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
     const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const handleActionClick = (e, callback, ...args) => {
         e.stopPropagation();
-        if (typeof callback === 'function') callback(...args);
+        if (typeof callback === 'function') callback(e, ...args);
     };
 
     const [areButtonsRendered, setAreButtonsRendered] = useState(false);
@@ -390,7 +367,7 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                                 {request.status === 'pending' &&
                                     <button className={`interactive-button is-icon btn-style-neutral ${animationClass}`} title={t('myRequests.action.edit')} onClick={(e) => handleActionClick(e, onEdit, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
                                 }
-                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title={t('myRequests.action.delete')} onClick={(e) => handleActionClick(e, onDelete, request.id)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
+                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title={t('myRequests.action.delete')} onClick={(e) => handleActionClick(e, onDelete, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
                             </>
                         )}
                         <button className="interactive-button is-icon btn-style-chat" title={t('review.chat.open')} onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
@@ -442,6 +419,13 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
         </div>
     );
 });
+
+const FormField = ({ label, children }) => (
+  <div className="form-field">
+    <label>{label}</label>
+    <div className="input-wrapper">{children}</div>
+  </div>
+);
 
 
 export default function MyRequestsPage({ userLogin }) {
@@ -519,7 +503,30 @@ export default function MyRequestsPage({ userLogin }) {
         setEditingRequest(request);
     };
 
-    const promptCancelRequest = (request, e) => {
+    // Открытие вложеных файлов в заметку
+    const downloadAllFilesAsZip = useCallback((_e, request) => {
+        const files = request.files || [];
+
+        if (files.length === 0) {
+            alert(t('review.download.noFiles'));
+            return;
+        }
+
+        if (files.length === 1) {
+            const fileUrl = `http://localhost:8000${files[0].url}`;
+            window.open(fileUrl, '_blank');
+        } else {
+            const zipUrl = `http://localhost:8000/api/requests/${request.id}/files-zip`;
+            const link = document.createElement('a');
+            link.href = zipUrl;
+            link.setAttribute('download', `request_${request.id}_files.zip`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }, [t]);
+
+    const promptCancelRequest = (e, request) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const modalWidth = 380;
         const gap = 15;
@@ -550,7 +557,7 @@ export default function MyRequestsPage({ userLogin }) {
         }
     };
 
-    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
+    const handleOpenChat = (_e, request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
 
     const handleSaveRequest = async (updatedData) => {
@@ -594,10 +601,10 @@ export default function MyRequestsPage({ userLogin }) {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmCancel}
                 position={deleteModalPosition}
-                title="Подтверждение отмены"
-                message={`Вы уверены, что хотите удалить заявку "${requestToDelete?.eventName || ''}"? Это действие необратимо.`}
-                confirmText="Удалить заявку"
-                cancelText="Назад"
+                title={t('confirm.title')}
+                message={t('confirm.cancelRequest')}
+                confirmText={t('common.delete')}
+                cancelText={t('common.back')}
             />
             {activeChatRequest && (<ChatView userLogin={userLogin} request={activeChatRequest} onClose={handleCloseChat} />)}
             {editingRequest && <EditRequestModal request={editingRequest} onClose={() => { setEditingRequest(null); setModalPosition(null); }} onSave={handleSaveRequest} position={modalPosition} />}

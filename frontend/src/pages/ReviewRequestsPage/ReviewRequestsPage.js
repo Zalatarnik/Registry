@@ -218,12 +218,12 @@ const RequestReviewCard = memo(({ request, isActive, isExpanded, onCardClick, on
                 <div className="request-card-body-grid">
                     <div className="card-body-column column-files">
                         {(request.files && request.files.length > 0) ? (
-                            <div className="mac-stack-download" onClick={(e) => handleActionClick(e, onDownload, request)} title={t('review.download.title')}>
+                            <div className="m-stack-download" onClick={(e) => handleActionClick(e, onDownload, request)} title={t('review.download.title')}>
                                 <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">{formatFileText(request.files.length)}</div>
                             </div>
                         ) : (
-                            <div className="mac-stack-download is-empty">
+                            <div className="m-stack-download is-empty">
                                 <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">{t('review.card.noFiles')}</div>
                             </div>
@@ -412,7 +412,7 @@ export default function ReviewRequestsPage({ userLogin }) {
     // Преобразует массив заявок в лист Excel и скачивает .xlsx
     const generateXlsx = async (requestsToExport, fileName = 'export.xlsx') => {
     if (!requestsToExport || requestsToExport.length === 0) {
-        addNotification('Нет данных для экспорта.', 'info');
+        addNotification(t('review.export.noData'), 'info');
         return;
     }
 
@@ -541,13 +541,13 @@ export default function ReviewRequestsPage({ userLogin }) {
         URL.revokeObjectURL(url);
     } catch (err) {
         console.error('Ошибка при создании xlsx', err);
-        addNotification('Ошибка при создании файла', 'error');
+        addNotification(t('review.export.error.createFile'), 'error');
     }
     };
 
   const handleExport = () => {
     if (!filteredRequests || filteredRequests.length === 0) {
-        addNotification('Нет заявок для экспорта.', 'info');
+        addNotification(t('review.export.noData'), 'info');
         return;
     }
     const fileName = `requests_all_${new Date().toISOString().slice(0,10)}`.xlsx;
@@ -556,13 +556,13 @@ export default function ReviewRequestsPage({ userLogin }) {
 
     const handleExportSelected = () => {
     if (selectedRequests.length === 0) {
-        addNotification("Сначала выберите заявки для выгрузки.", "info");
+        addNotification(t('review.export.selected.none'), 'info');
         return;
     }
     const toExport = filteredRequests.filter(r => selectedRequests.includes(r.id));
     const exportList = toExport.length > 0 ? toExport : requests.filter(r => selectedRequests.includes(r.id));
     if (exportList.length === 0) {
-        addNotification('Не найдены выбранные заявки для экспорта.', 'error');
+        addNotification(t('review.export.selected.notFound'), 'error');
         return;
     }
     const fileName = `requests_selected_${new Date().toISOString().slice(0,10)}`.xlsx;

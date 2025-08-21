@@ -4,9 +4,7 @@ import ChatView from '../Chat/Chat';
 import './Dashboard.css';
 import ThemeToggle from '../common/ThemeToggle';
 import LogoutConfirmation from './LogoutConfirmation';
-import ThemeToggle from '../common/ThemeToggle';
 
-import LogoutConfirmation from './LogoutConfirmation';
 import Notifications from './Notifications';
 import Support from './Support';
 import Settings from './Settings';
@@ -18,6 +16,9 @@ import { ReactComponent as ExitIcon } from '../../icons/exit-icon.svg';
 import { ReactComponent as NotificationIcon } from '../../icons/notification-icon.svg';
 import { ReactComponent as SupportIcon } from '../../icons/support-icon.svg';
 import { ReactComponent as SettingsIcon } from '../../icons/settings-icon.svg';
+
+
+
 
 const HeaderButtons = ({ userLogin, t }) => {
   const [activeModal, setActiveModal] = useState(null);
@@ -132,12 +133,12 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
 
   return (
     <div className="dashboard-viewport">
-        <HeaderButtons userLogin={userLogin} t={t} />
-        <div className={`dashboard-slider ${activeChat.isOpen ? 'is-chat-active' : ''}`}>
-          <div className="main-view-panel">
-            <div className={`dashboard-container ${activePage ? 'page-view' : 'menu-view'}`}>
-              <div className="menu-container" style={menuContainerStyle} onMouseLeave={() => setHoveredTile(null)}>
-                
+      <HeaderButtons userLogin={userLogin} t={t} />
+
+      <div className={`dashboard-slider ${activeChat.isOpen ? 'is-chat-active' : ''}`}>
+        <div className="main-view-panel">
+          <div className={`dashboard-container ${activePage ? 'page-view' : 'menu-view'}`}>
+            <div className="menu-container" style={menuContainerStyle} onMouseLeave={() => setHoveredTile(null)}>
               <div
                 className="menu-glider"
                 style={{
@@ -155,91 +156,61 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
                 }}
               />
 
-                {menuItems.map((item, index) => {
+              {menuItems.map((item, index) => {
+                const isSelected    = item.id === activePage;
+                const isHighlighted = item.id === (hoveredTile || activePage);
+                const IconComponent = item.icon;
+                const transformStyle = !activePage
+                  ? `translate(${(index % 2) * TILE_WIDTH}px, ${Math.floor(index / 2) * TILE_HEIGHT}px)`
+                  : `translate(0px, ${index * TILE_HEIGHT}px)`;
 
-                  const isSelected    = item.id === activePage;
-                  const isHighlighted = item.id === (hoveredTile || activePage);
-                  const IconComponent = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    ref={item.id === 'logout' ? logoutButtonRef : null}
+                    onClick={() => handleTileClick(item.id)}
+                    onMouseEnter={() => setHoveredTile(item.id)}
+                    className={`tile-button ${isSelected ? 'selected' : ''} ${isHighlighted ? 'hover-active' : ''}`}
+                    style={{ transform: transformStyle }}
+                  >
+                    {IconComponent && <IconComponent className="tile-icon" />}
+                    <span>{t(item.i18n)}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-                  const transformStyle = !activePage
-                    ? `translate(${(index % 2) * TILE_WIDTH}px, ${Math.floor(index / 2) * TILE_HEIGHT}px)`
-                    : `translate(0px, ${index * TILE_HEIGHT}px)`;
+            <div className="menu-footer">
+             
+            </div>
 
-                  return (
-                    <button
-                      key={item.id}
-                      ref={item.id === 'logout' ? logoutButtonRef : null}
-                      onClick={() => handleTileClick(item.id)}
-                      onMouseEnter={() => setHoveredTile(item.id)}
-                      className={`tile-button ${isSelected ? 'selected' : ''} ${isHighlighted ? 'hover-active' : ''}`}
-                      style={{ transform: transformStyle }}
-                    >
-                      {IconComponent && <IconComponent className="tile-icon" />}
-                      <span>{t(item.i18n)}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-                <div className="menu-footer">
-                  <ThemeToggle />
-                </div>
-              
-              <div className="content-area" style={{ height: !activePage ? menuContainerStyle.height : undefined }}>
-                {activePage && <PageComponent pageId={activePage} userRole={userRole} userLogin={userLogin} onOpenChat={handleOpenChat} key={activePage} />}
-              </div>
+            <div className="content-area" style={{ height: !activePage ? menuContainerStyle.height : undefined }}>
+              {activePage && (
+                <PageComponent
+                  pageId={activePage}
+                  userRole={userRole}
+                  userLogin={userLogin}
+                  onOpenChat={handleOpenChat}
+                  key={activePage}
+                />
+              )}
             </div>
           </div>
-          
-          <div className="chat-view-panel">
-            {activeChat.request && (
-              <ChatView userLogin={userLogin} request={activeChat.request} onClose={handleCloseChat}/>
-            )}
-          </div>
-            <div className="main-view-panel">
-                <div className={`dashboard-container ${activePage ? 'page-view' : 'menu-view'}`}>
-                    <div className="menu-container" style={menuContainerStyle} onMouseLeave={() => setHoveredTile(null)}>
-                        <div className="menu-glider" style={{
-                            opacity: gliderTargetId ? 1 : 0,
-                            transform: (() => {
-                                const index = menuItems.findIndex((item) => item.id === gliderTargetId);
-                                if (index === -1) return 'scale(0)';
-                                const col = activePage ? 0 : index % 2;
-                                const row = activePage ? index : Math.floor(index / 2);
-                                return `translate(${col * TILE_WIDTH}px, ${row * TILE_HEIGHT}px)`;
-                            })(),
-                        }} />
-                        {menuItems.map((item, index) => {
-                            const isSelected = item.id === activePage;
-                            const isHighlighted = item.id === gliderTargetId;
-                            const IconComponent = item.icon;
-                            const col = activePage ? 0 : index % 2;
-                            const row = activePage ? index : Math.floor(index / 2);
-                            const transformStyle = `translate(${col * TILE_WIDTH}px, ${row * TILE_HEIGHT}px)`;
-                            return (
-                                <button
-                                    key={item.id}
-                                    ref={item.id === 'logout' ? logoutButtonRef : null}
-                                    onClick={() => handleTileClick(item.id)}
-                                    onMouseEnter={() => setHoveredTile(item.id)}
-                                    className={`tile-button ${isSelected ? 'selected' : ''} ${isHighlighted ? 'hover-active' : ''}`}
-                                    style={{ transform: transformStyle }}>
-                                    {IconComponent && <IconComponent className="tile-icon" />}
-                                    <span>{item.label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div className="content-area" style={{ height: !activePage ? menuContainerStyle.height : undefined }}>
-                        {activePage && <PageComponent pageId={activePage} userRole={userRole} userLogin={userLogin} onOpenChat={handleOpenChat} key={activePage} />}
-                    </div>
-                </div>
-            </div>
-            <div className="chat-view-panel">
-                {activeChat.request && <ChatView userLogin={userLogin} request={activeChat.request} onClose={handleCloseChat}/>}
-            </div>
         </div>
-        <LogoutConfirmation isOpen={isConfirmModalOpen} onClose={() => setIsConfirmModalOpen(false)} onConfirm={handleConfirmLogout} position={modalPosition} />
+
+        <div className="chat-view-panel">
+          {activeChat.request && (
+            <ChatView userLogin={userLogin} request={activeChat.request} onClose={handleCloseChat} />
+          )}
+        </div>
+      </div>
+
+      <LogoutConfirmation
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+        position={modalPosition}
+      />
     </div>
   );
 }

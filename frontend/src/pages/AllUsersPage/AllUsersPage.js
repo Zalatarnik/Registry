@@ -228,9 +228,9 @@ export default function AllUsersPage() {
 
             // Иначе просто обновляем список пользователей
             setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
-            addNotificationOnce(t('allUsers.notification.deleteSuccess'), 'success');
+            addNotification(t('allUsers.notification.deleteSuccess'), 'success');
         } catch (error) {
-            addNotificationOnce(error.message, 'error');
+            addNotification(error.message, 'error');
         } finally {
             setUserToDelete(null); 
         }

@@ -186,3 +186,80 @@ export const validateSecurity = async ({ email, oldPassword, newPassword, t }) =
 
   return errors;
 };
+
+
+// для создания нового мероприятия
+export function validateEventCreation(formData, imageFile, t)  {
+    const {
+        eventName, leader, organizer, location, eventStatus, eventDate,
+        maxParticipants, teamSize
+    } = formData;
+    const ValidationError = (message) => ({ valid: false, message });
+
+    if (!eventName?.trim()) return ValidationError(tr(t, 'createEvent.validation.eventName.required', 'Please enter the event name.'));
+    if (!leader?.trim())    return ValidationError(tr(t, 'createEvent.validation.leader.required', 'Please specify the leader.'));
+    if (!organizer?.trim()) return ValidationError(tr(t, 'createEvent.validation.organizer.required', 'Please specify the organizer.'));
+    if (!location?.trim())  return ValidationError(tr(t, 'createEvent.validation.location.required', 'Please specify the location.'));
+    if (!eventStatus)       return ValidationError(tr(t, 'createEvent.validation.status.required', 'Please select the event status.'));
+
+    if (!eventDate) {
+      return ValidationError(tr(t, 'createEvent.validation.date.required', 'Please specify the event date.'));
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(eventDate);
+    if (selectedDate < today) {
+      return ValidationError(tr(t, 'createEvent.validation.date.past', 'The event date cannot be in the past.'));
+    }
+    if (selectedDate.getFullYear() > 2100) {
+      return ValidationError(tr(t, 'createEvent.validation.date.yearTooBig', 'The year cannot be greater than 2100.'));
+    }
+
+
+    if (!maxParticipants)                 return ValidationError(tr(t, 'createEvent.validation.maxParticipants.required', 'Please specify the maximum number of participants.'));
+    if (Number(maxParticipants) <= 0)     return ValidationError(tr(t, 'createEvent.validation.maxParticipants.positive', 'Max participants must be a positive number.'));
+
+    if (!teamSize)                        return ValidationError(tr(t, 'createEvent.validation.teamSize.required', 'Please specify the team size.'));
+    if (Number(teamSize) <= 0)            return ValidationError(tr(t, 'createEvent.validation.teamSize.positive', 'Team size must be a positive number.'));
+    if (Number(teamSize) > Number(maxParticipants))
+                                          return ValidationError(tr(t, 'createEvent.validation.teamSize.tooBig', 'Team size cannot exceed max participants.'));
+
+    if (!imageFile) return ValidationError(tr(t, 'createEvent.validation.image.required', 'Please upload a cover image.'));
+
+    return { valid: true };
+}
+
+// для подачи новой заявки
+export function validateNewRequest(formData, t) {
+    const {
+        eventName, leader, organizer, location, eventStatus, eventDate, link
+    } = formData;
+    const ValidationError = (message) => ({ valid: false, message });
+
+    if (!eventName?.trim()) return ValidationError(tr(t, 'newRequest.validation.eventName.required', 'Please enter the event name.'));
+    if (!leader?.trim())    return ValidationError(tr(t, 'newRequest.validation.leader.required', 'Please specify the leader.'));
+    if (!organizer?.trim()) return ValidationError(tr(t, 'newRequest.validation.organizer.required', 'Please specify the organizer.'));
+    if (!location?.trim())  return ValidationError(tr(t, 'newRequest.validation.location.required', 'Please specify the location.'));
+    if (!eventStatus)       return ValidationError(tr(t, 'newRequest.validation.status.required', 'Please select the event status.'));
+
+    if (!eventDate) {
+      return ValidationError(tr(t, 'newRequest.validation.date.required', 'Please specify the event date.'));
+    }
+    const selectedDate = new Date(eventDate);
+    if (selectedDate.getFullYear() < 1900) {
+      return ValidationError(tr(t, 'newRequest.validation.date.yearTooSmall', 'The year cannot be earlier than 1900.'));
+    }
+    if (selectedDate.getFullYear() > 2100) {
+      return ValidationError(tr(t, 'newRequest.validation.date.yearTooBig', 'The year cannot be greater than 2100.'));
+    }
+    
+    if (link && link.trim()) {
+        try {
+            new URL(link.trim());
+        } catch (_) {
+            return ValidationError(tr(t, 'newRequest.validation.link.invalid', 'Please enter a valid event resource link.'));
+        }
+    }
+
+    return { valid: true };
+}

@@ -115,7 +115,6 @@ exports.getRequestsByStudent = async (req, res) => {
 
 // Обновление информации заявки и файлов
 exports.updateRequest = async (req, res) => {
-  const { t } = useTranslation();
   try {
     const { id } = req.params;
     const {

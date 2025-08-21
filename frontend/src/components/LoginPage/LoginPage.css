@@ -230,101 +230,123 @@
   z-index: 1;
 }
 
-body[data-theme="dark"] {
-
-  /* фон страницы и блоков */
-  .auth-container                       { background: var(--bg); }
-  .auth-container                       { background: var(--bg); }
-  .form-toggle,
-  .role-toggle,
-  .form-box                             { background: var(--surface); border-color: var(--surface-soft); }
-
-  /* текстовые цвета */
-  .toggle-button                        { color: var(--text-soft); }
-  .toggle-button.selected,
-  .toggle-button.hover-active           { color: #fff; }
-
-  .glider                               { background: var(--accent); }
-
-  /* подписи, иконки*/
-  .form-group label,
-  .input-icon                           { color: var(--text-muted, #9ca3af); }
-  .form-group input::placeholder        { color: var(--text-muted, #9ca3af); }
-
-  .form-group::before                   { background: var(--surface-soft); }
-
-  /* поля ввода */
-  .form-group input                     { color: var(--text); }
-
-  /* кнопка отправки */
-  .submit-btn                           { background: var(--accent); }
-  .submit-btn::before                   { background: #a64d05; }
-
-  .form-box::-webkit-scrollbar-thumb    { background: #555; }
+body[data-theme='dark']{
+  --surface:#1a1a1a;
+  --surface-soft:#242424;
+  --text:#e8e8e8;
+  --text-soft:#a0a0a0;
+  --accent:#d35400;
 }
 
-body[data-theme="dark"] {
+/* переключатели (вход/регистрация, роли) */
+body[data-theme='dark'] .form-toggle,
+body[data-theme='dark'] .role-toggle{
+  background: var(--surface-soft);
+  border: 1px solid rgba(255,255,255,.08);
+}
+body[data-theme='dark'] .toggle-button{
+  color: var(--text);
+}
+body[data-theme='dark'] .toggle-button.selected{
+  color:#fff;
+  box-shadow: inset 0 0 0 1000px rgba(255,255,255,.06);
+}
+body[data-theme='dark'] .toggle-button.hover-active{ color:#fff; }
 
-  /* сам input снова полностью прозрачный */
-  .form-group input{
-    background : transparent !important;   /* убираем #1b1c1e */
-    border     : none;                     /* на случай авто-стилей */
-    box-shadow : none;
-  }
-
-  /* “сероватая” линия внизу (по умолчанию) */
-  .form-group::before{
-    background : rgba(255,255,255,.15);     /* чуть ярче, чем .12 */
-  }
-
-  /* активная оранжевая линия при hover / focus */
-  .form-group:hover::after,
-  .form-group:focus-within::after{
-    background : var(--accent);             /* тот же #e88b4d */
-  }
-
-  /* иконки — на полтона светлее для контраста */
-  .input-icon{
-    color : #d0d4d8;
-  }
+/* глайдер + лёгкое свечение */
+body[data-theme='dark'] .glider{
+  background: var(--accent);
+  box-shadow: 0 0 30px 8px rgba(211,84,0,.55);
 }
 
-body[data-theme="dark"] {
-    .app-logo{
-    filter: brightness(.80) contrast(1.05);
-  }
+/* форма */
+body[data-theme='dark'] .form-box{
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 12px 32px rgba(0,0,0,.6);
+  /* скролл как в светлой теме */
+  scrollbar-width: thin;
+  scrollbar-color: #6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .form-box::-webkit-scrollbar{ width:12px; }
+body[data-theme='dark'] .form-box::-webkit-scrollbar-track{ background:#1f1f20; }
+body[data-theme='dark'] .form-box::-webkit-scrollbar-thumb{
+  background:#6b6d70; border-radius:8px; border:2px solid #2a2a2c;
+}
 
-  .app-logo{
-    filter: brightness(.80) contrast(1.05);
-  }
+/* подписи, линии, иконки */
+body[data-theme='dark'] .form-group label{ color: var(--text-soft); }
+body[data-theme='dark'] .form-group::before{ background: rgba(255,255,255,.12); }
+body[data-theme='dark'] .form-group::after{ background: var(--accent); }
+body[data-theme='dark'] .input-icon{ color:#8a8f95; }
+body[data-theme='dark'] .form-group:hover .input-icon,
+body[data-theme='dark'] .form-group:focus-within .input-icon{ color: var(--accent); }
 
-  .form-box{
-    box-shadow : 0 4px 12px rgba(0,0,0,.25); 
-    border     : 1px solid #2c2d31;
-  }
+/* инпуты */
+body[data-theme='dark'] .form-group input{
+  color: var(--text);
+  background: transparent;
+}
+body[data-theme='dark'] .form-group input::placeholder{ color: #8a8a8a; }
 
+/* кнопка отправки со свечением */
+body[data-theme='dark'] .submit-btn{
+  background: var(--accent);
+  color:#fff;
+  outline: 1px solid rgba(211,84,0,.5);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.18),
+    0 0 26px 6px rgba(211,84,0,.6);
+}
+body[data-theme='dark'] .submit-btn:hover{
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.24),
+    0 0 36px 10px rgba(211,84,0,.8);
+}
+body[data-theme='dark'] .submit-btn:focus-visible{
+  outline: 2px solid rgba(211,84,0,.75);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.28),
+    0 0 44px 12px rgba(211,84,0,.85);
+}
 
-  .form-group{
-    background: transparent !important;
-  }
+body[data-theme='dark'] .auth-container h1,
+body[data-theme='dark'] .auth-container h2{
+  color: var(--text);
+  text-shadow: 0 0 18px rgba(255,255,255,.25);
+}
 
-  .form-group::before{
-    background : rgba(255,255,255,.10);
-  }
+body[data-theme='dark'] .form-box{
+  scrollbar-width: auto;
+  scrollbar-color: #8c8c8c #1f1f20;
+  scrollbar-gutter: stable;
+}
 
-  .glider{
-    background: #d27a3c;
-  }
+body[data-theme='dark'] .form-box::-webkit-scrollbar{
+  width: 16px;
+}
 
-  .form-box{
-    scrollbar-width: thin;
-    scrollbar-color: #444 #1b1c1e;
-  }
-  .form-box::-webkit-scrollbar{
-    width: 6px;
-  }
-  .form-box::-webkit-scrollbar-thumb{
-    background: #444;
-    border-radius: 3px;
-  }
+body[data-theme='dark'] .form-box::-webkit-scrollbar-track{
+  background: #1f1f20;
+  border-radius: 10px;
+}
+
+body[data-theme='dark'] .form-box::-webkit-scrollbar-thumb{
+  background: #8c8c8c;                  
+  border: 4px solid #1f1f20;
+  border-radius: 10px;
+}
+
+body[data-theme='dark'] .form-box::-webkit-scrollbar-thumb:hover{
+  background: #a6a6a6;
+}
+
+body[data-theme='dark'] .form-box::-webkit-scrollbar-corner{
+  background: transparent;
+}
+
+body[data-theme='dark'] .form-box::-webkit-scrollbar-button{
+  height: 16px;
+  background: transparent;
 }

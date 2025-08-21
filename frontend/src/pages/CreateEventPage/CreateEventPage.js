@@ -3,6 +3,7 @@ import './CreateEventPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
 import { useTranslation } from '../../components/common/useTranslation';
+import { validateEventCreation } from '../../validation/ValidationContext';
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
@@ -341,16 +342,9 @@ export default function CreateEventPage({ userLogin }) {
             return;
         }
 
-        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate', 'maxParticipants', 'teamSize'];
-        for (const key of requiredFields) {
-            if (!formData[key]) {
-                addNotification(t('createEvent.notify.fieldsRequired'), "error");
-                return;
-            }
-        }
-        
-        if (!imageFile) {
-            addNotification("Пожалуйста, загрузите изображение для обложки мероприятия.", "error");
+        const validationResult = validateEventCreation(formData, imageFile, t);
+        if (!validationResult.valid) {
+            addNotification(validationResult.message, "error");
             return;
         }
 
@@ -405,7 +399,7 @@ export default function CreateEventPage({ userLogin }) {
                         <FormField label={t('createEvent.field.leader')}><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
                         <FormField label={t('createEvent.field.organizer')}><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
                         <FormField label={t('createEvent.field.location')}><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
-                        <FormField label={t('createEvent.field.location')}>
+                        <FormField label={t('createEvent.field.status')}>
                             <CustomSelect
                             options={STATUS_OPTIONS}
                             value={formData.eventStatus}

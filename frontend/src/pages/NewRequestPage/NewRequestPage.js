@@ -3,6 +3,7 @@ import './NewRequestPage.css';
 import { useNotification } from '../../notification/NotificationContext';
 import ClockwiseLoader from '../../components/common/Loader';
 import { useTranslation } from '../../components/common/useTranslation';
+import { validateNewRequest } from '../../validation/ValidationContext';
 
 // иконки
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
@@ -303,12 +304,10 @@ export default function NewRequestPage({ userLogin }) {
             return;
         }
         // Проверяем только обязательные поля
-        const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate'];
-        for (const key of requiredFields) {
-            if (!formData[key]) {
-                addNotification(t('newRequest.notification.missingFields'), "error");
-                return;
-            }
+        const validationResult = validateNewRequest(formData, t);
+        if (!validationResult.valid) {
+            addNotification(validationResult.message, "error");
+            return;
         }
 
         setIsSubmitting(true);

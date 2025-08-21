@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useEffect, useState } from "react";
+import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import ru from "../locales/ru.json";
 import en from "../locales/en.json";
 
@@ -11,34 +11,56 @@ export const LocaleContext = createContext({
 });
 
 export const LocaleProvider = ({ children }) => {
-  const [locale, setLocaleState] = useState(
-    localStorage.getItem("locale") || "ru"
-  );
+  const [locale, setLocaleState] = useState(() => {
+    try { return localStorage.getItem("locale") || "ru"; } catch { return "ru"; }
+  });
 
   const setLocale = useCallback((lng) => {
-    localStorage.setItem("locale", lng);
+    try { localStorage.setItem("locale", lng); } catch {}
     setLocaleState(lng);
+  }, []);
+
+  // безопасно определяем dev-режим и под Vite, и под CRA/Webpack
+  const isDev = useMemo(() => {
+    let v = false;
+    try {
+      // Vite
+      // (важно: НЕ typeof import, а обращение к import.meta)
+      v = typeof import.meta !== "undefined" && import.meta?.env?.MODE === "development";
+    } catch {}
+    if (!v) {
+      try {
+        // CRA/Webpack/Node
+        v = typeof process !== "undefined" && (
+          process?.env?.MODE === "development" || process?.env?.NODE_ENV === "development"
+        );
+      } catch {}
+    }
+    return v;
   }, []);
 
   const t = useCallback(
     (key, vars = {}) => {
-      const template = dictionaries[locale][key];
+      const dict = dictionaries[locale] || {};
+      const template = dict[key];
       if (!template) {
-        if (import.meta.env.MODE === "development")
-          console.warn(`Missing translation: "${key}" (${locale})`);
+        if (isDev) console.warn(`Missing translation: "${key}" (${locale})`);
         return key;
       }
-      return template.replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? `{${v}}`);
+      // поддерживаем и {var}, и {{var}}
+      return String(template)
+        .replace(/\{\{\s*(\w+)\s*\}\}/g, (_, v) => (v in vars ? vars[v] : `{{${v}}}`))
+        .replace(/\{\s*(\w+)\s*\}/g,   (_, v) => (v in vars ? vars[v] : `{${v}}`));
     },
-    [locale]
+    [locale, isDev]
   );
 
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
+  useEffect(() => { document.documentElement.lang = locale; }, [locale]);
+
+  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale, t }}>
+    <LocaleContext.Provider value={value}>
       {children}
     </LocaleContext.Provider>
   );

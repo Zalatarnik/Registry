@@ -338,6 +338,12 @@
     position: relative;
     z-index: 2;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    margin-right: 12px;
 }
 
 .new-request-container .file-item-remove-btn {
@@ -351,6 +357,7 @@
     font-weight: bold;
     line-height: 0;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 /* эффект наведения на элемент списка */
@@ -441,71 +448,144 @@
   color: #fff;
 }
 
-body[data-theme='dark'] {
-
-  /* фон всего контейнера */
-  .new-request-container{
-    background: var(--surface);
-  }
-  .new-request-container .page-content{
-    background: var(--surface);
-    box-shadow: none;
-  }
-
-  /* заголовок страницы */
-  .new-request-container h1{
-    color: var(--text-primary, #ffffff);
-  }
-
-  /* подписи к полям */
-  .new-request-container .form-field label{
-    color: var(--text-muted, #9ca3af);
-  }
-
-  /* текст внутри инпутов */
-  .new-request-container .form-input{
-    color: var(--text-primary, #ffffff);
-  }
-  .new-request-container .form-input::placeholder{
-    color: var(--text-muted, #9ca3af);
-  }
-
-  /* нижние линии под полями */
-  .new-request-container .input-wrapper::before{
-    background: var(--border-light, rgba(255,255,255,.20));
-  }
-
-  .new-request-container .file-upload-container{
-    border-color: var(--border-light, rgba(255,255,255,.20));
-  }
-  ::-webkit-scrollbar-thumb{
-    background: #555;
-  }
+body[data-theme='dark'] .new-request-container h1{
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.25),
+    0 0 18px rgba(255,255,255,.35),
+    0 0 36px rgba(255,255,255,.18);
 }
 
-body[data-theme='dark'] .apply-claim-scope{
-  --bg-main  : #212529;
-  --bg-panel : #181a1b;
-  background : var(--bg-main);
+/* Контент */
+body[data-theme='dark'] .new-request-container .page-content{
+  background: var(--surface);
+  color: var(--text);
 }
 
-body[data-theme='dark'] .apply-claim-scope .application-form-container{
-  background : var(--bg-panel);
-  border     : 1px solid rgba(255,255,255,.07);
+/* Инпуты */
+body[data-theme='dark'] .new-request-container .form-field label{ color: var(--text-soft); }
+body[data-theme='dark'] .new-request-container .form-input{ color: var(--text); }
+body[data-theme='dark'] .new-request-container .form-input::placeholder{ color: var(--text-soft); }
+body[data-theme='dark'] .new-request-container .form-input::selection{ background: rgba(211,84,0,.35); color:#fff; }
+body[data-theme='dark'] .new-request-container .input-wrapper::before{ background:#4c4f52; }
+body[data-theme='dark'] .new-request-container .input-wrapper::after{ background: var(--accent); }
+
+/* Кастомный select */
+body[data-theme='dark'] .new-request-container .custom-select-value{ color: var(--text); }
+body[data-theme='dark'] .new-request-container .custom-select-value svg{ stroke: var(--text-soft); }
+body[data-theme='dark'] .new-request-container .custom-select-options{
+  background: var(--surface);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 20px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .new-request-container .custom-select-option{ color: var(--text); }
+body[data-theme='dark'] .new-request-container .custom-select-option:hover{ background: rgba(255,255,255,.06); }
+body[data-theme='dark'] .new-request-container .custom-select-option.is-selected{
+  color:#8ab5ff; background: rgba(0,123,255,.16); font-weight:700;
 }
 
-body[data-theme='dark'] .apply-claim-scope input,
-body[data-theme='dark'] .apply-claim-scope textarea,
-body[data-theme='dark'] .apply-claim-scope select{
-  color            : #f1f3f4;
-  background-color : transparent;
+/* Загрузка файлов */
+body[data-theme='dark'] .new-request-container .file-upload-container{ border-color: rgba(255,255,255,.12); }
+body[data-theme='dark'] .new-request-container .file-upload-area{
+  color:#adb5bd;
+  background: rgba(36,36,38,.9);
+}
+body[data-theme='dark'] .new-request-container .file-upload-text span{ color: var(--accent); }
+body[data-theme='dark'] .new-request-container .file-item{
+  background: var(--surface-soft);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+body[data-theme='dark'] .new-request-container .file-item-name{ color: var(--text); }
+
+/* Кнопки формы */
+body[data-theme='dark'] .new-request-container .form-submit-btn{
+  color:#fff; background: var(--accent);
+}
+body[data-theme='dark'] .new-request-container .form-secondary-btn{
+  color: var(--text);
+  background: var(--surface-soft);
+}
+body[data-theme='dark'] .new-request-container .form-secondary-btn:hover span{ color:#fff; }
+
+/* Тёмные скроллбары */
+body[data-theme='dark'] .new-request-container .page-content,
+body[data-theme='dark'] .new-request-container .file-list-inside,
+body[data-theme='dark'] .new-request-container .custom-select-options{
+  scrollbar-width: auto;
+  scrollbar-color:#6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .new-request-container .page-content::-webkit-scrollbar,
+body[data-theme='dark'] .new-request-container .file-list-inside::-webkit-scrollbar,
+body[data-theme='dark'] .new-request-container .custom-select-options::-webkit-scrollbar{
+  width:14px;
+}
+body[data-theme='dark'] .new-request-container .page-content::-webkit-scrollbar-track,
+body[data-theme='dark'] .new-request-container .file-list-inside::-webkit-scrollbar-track,
+body[data-theme='dark'] .new-request-container .custom-select-options::-webkit-scrollbar-track{
+  background:#1f1f20; border-left:1px solid #2a2a2c;
+}
+body[data-theme='dark'] .new-request-container .page-content::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .new-request-container .file-list-inside::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .new-request-container .custom-select-options::-webkit-scrollbar-thumb{
+  background:#6b6d70; border-radius:8px; border:2px solid #2a2a2c;
 }
 
-body[data-theme='dark'] .apply-claim-scope input::placeholder,
-body[data-theme='dark'] .apply-claim-scope textarea::placeholder{
-  color: #9ca3af;
+body[data-theme='dark'] .new-request-container .form-submit-btn{
+  background-color: var(--accent);
+  color: #fff;
+  box-shadow:
+    0 0 24px 6px rgba(211, 84, 0, .55),
+    0 6px 18px rgba(0, 0, 0, .6);
+  outline: 2px solid rgba(211, 84, 0, .4);
 }
 
-body[data-theme='dark'] .apply-claim-scope .form-divider{
-  background: rgba(255,255,255,.12);
+body[data-theme='dark'] .new-request-container .form-submit-btn:hover,
+body[data-theme='dark'] .new-request-container .form-submit-btn:focus-visible{
+  box-shadow:
+    0 0 32px 10px rgba(211, 84, 0, .75),
+    0 8px 24px rgba(0, 0, 0, .75);
+}
+
+body[data-theme='dark'] .new-request-container .form-submit-btn:active{
+  box-shadow:
+    0 0 20px 6px rgba(211, 84, 0, .6),
+    0 4px 16px rgba(0, 0, 0, .7);
+}
+
+body[data-theme='dark'] .new-request-container .form-submit-btn:disabled{
+  box-shadow: none;
+  outline-color: transparent;
+}
+
+body[data-theme='dark'] .create-event-container .file-upload-container,
+body[data-theme='dark'] .new-request-container .file-upload-container,
+body[data-theme='dark'] .my-requests-scope .file-upload-container{
+  border-color: rgba(255,255,255,.12);
+}
+
+body[data-theme='dark'] .create-event-container .file-upload-area,
+body[data-theme='dark'] .new-request-container .file-upload-area,
+body[data-theme='dark'] .my-requests-scope .file-upload-area{
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  backdrop-filter: none;
+}
+
+body[data-theme='dark'] .create-event-container .file-upload-container:hover .file-upload-area,
+body[data-theme='dark'] .new-request-container .file-upload-container:hover .file-upload-area,
+body[data-theme='dark'] .my-requests-scope .file-upload-container:hover .file-upload-area{
+  background: #333539;
+}
+
+body[data-theme='dark'] .create-event-container .file-upload-area.is-dragging,
+body[data-theme='dark'] .new-request-container .file-upload-area.is-dragging,
+body[data-theme='dark'] .my-requests-scope .file-upload-area.is-dragging{
+  background: rgba(211,84,0,.08);
+}
+
+body[data-theme='dark'] .create-event-container .file-upload-area::after,
+body[data-theme='dark'] .new-request-container .file-upload-area::after,
+body[data-theme='dark'] .my-requests-scope .file-upload-area::after{
+  background: radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y),
+                               rgba(211,84,0,.22), transparent 80%);
 }

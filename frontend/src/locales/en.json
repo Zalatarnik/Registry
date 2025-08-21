@@ -387,7 +387,6 @@
 
   "events.regListTitle":"Registrations for \"{event}\"",
   "events.total":       "Total: {count}",
-  "events.groupN":      "Submission group #{n} ({count})",
   "events.noRegistrations":"No one has registered yet.",
   "events.recruitment.active":            "Active",
   "events.recruitment.completed":         "Completed",
@@ -410,6 +409,100 @@
   "confirm.message": "Are you sure?",
   "common.confirm": "Confirm",
   "common.cancel": "Cancel",
-  "common.logoAlt": "Logo"
+  "common.logoAlt": "Logo",
+
+  "events.recruitment.open": "Open",
+  "events.recruitment.closed": "Closed",
+  "signup.submit": "Sign up",
+  "signup.saving": "Saving…",
+  "signup.yourFullName": "Your full name",
+  "signup.participantFullName": "Participant's full name",
+  "signup.yourGroup": "Your group",
+  "signup.group": "Group",
+
+  "common.confirmation": "Confirmation",
+  "common.areYouSure": "Are you sure?",
+  "common.close": "Close",
+  "common.delete": "Delete",
+  "common.back": "Back",
+
+
+  "search.placeholder": "Search...",
+
+  "filters.all": "All",
+  "filters.registered": "Registered",
+  "filters.unregistered": "Unregistered",
+
+  "events.downloadReport": "Download report",
+  "events.registeredFor": "Registered for \"{{name}}\"",
+  "events.peopleShort": "ppl",
+  "events.groupN": "Group #{{n}}",
+  "events.invite": "Invite",
+  "events.materials.download": "Download materials",
+  "events.deleteGroup": "Delete group",
+  "events.deleteGroupConfirm": "Delete the whole group?",
+  "events.deleteGroupError": "Failed to delete group",
+  "events.groupDeleted": "Group deleted",
+  "events.deleted": "Event deleted.",
+  "events.deleteError": "Delete failed",
+  "events.confirmDeleteTitle": "Delete confirmation",
+  "events.confirmDeleteText": "Are you sure you want to delete the event \"{{name}}\"? This cannot be undone.",
+
+
+  "signup.title": "Event sign-up",
+  "signup.fillAllFields": "Please fill in all fields.",
+  "signup.error": "Sign-up error",
+
+  "invite.loadUsersError": "Failed to load users",
+  "invite.studentsNotFound": "No students found.",
+  "invite.participates": "Participating",
+  "invite.invited": "Invited",
+  "invite.invite": "Invite",
+  "invite.errorSend": "Failed to send invite",
+  "invite.sentTo": "Invitation sent to {{firstName}} {{lastName}} {{middleName}}",
+
+  "notification.cannotDetectEventOrCurator": "Couldn’t detect event or curator.",
+  "notification.loadingReport": "Downloading report for event #{{id}}...",
+  "notification.loadingMaterials": "Downloading materials for \"{{name}}\"...",
+
+  "notification.errorLoadEvents": "Failed to load events.",
+  "notification.errorLoadProfile": "Failed to load profile.",
+  "notification.errorLoadRegistrations": "Failed to load registrations.",
+  "notification.errorLoadRegistrationsCounts": "Failed to load registration counts.",
+
+  "notifications.deleteAll": "Delete all notifications",
+  "notifications.cleared": "All notifications deleted",
+  "notifications.loadError": "Failed to load notifications",
+  "notifications.deleteAllError": "Failed to delete notifications",
+
+  "review.export.noData": "There is no data to export.",
+  "review.export.error.createFile": "Failed to create the file.",
+  "review.export.selected.notFound": "Selected requests for export were not found.",
+
+  "createEvent.validation.eventName.required": "Please enter the event name.",
+  "createEvent.validation.leader.required": "Please specify the leader.",
+  "createEvent.validation.organizer.required": "Please specify the organizer.",
+  "createEvent.validation.location.required": "Please specify the location.",
+  "createEvent.validation.status.required": "Please select the event status.",
+  "createEvent.validation.date.required": "Please specify the event date.",
+  "createEvent.validation.date.past": "The event date cannot be in the past.",
+  "createEvent.validation.date.yearTooBig": "The year cannot be greater than 2100.",
+  "createEvent.validation.maxParticipants.required": "Please specify the maximum number of participants.",
+  "createEvent.validation.maxParticipants.positive": "Max participants must be a positive number.",
+  "createEvent.validation.teamSize.required": "Please specify the team size.",
+  "createEvent.validation.teamSize.positive": "Team size must be a positive number.",
+  "createEvent.validation.teamSize.tooBig": "Team size cannot exceed max participants.",
+  "createEvent.validation.image.required": "Please upload a cover image.",
+
+  "newRequest.validation.eventName.required": "Please enter the event name.",
+  "newRequest.validation.leader.required": "Please specify the leader.",
+  "newRequest.validation.organizer.required": "Please specify the organizer.",
+  "newRequest.validation.location.required": "Please specify the location.",
+  "newRequest.validation.status.required": "Please select the event status.",
+  "newRequest.validation.date.required": "Please specify the event date.",
+  "newRequest.validation.date.yearTooSmall": "The year cannot be earlier than 1900.",
+  "newRequest.validation.date.yearTooBig": "The year cannot be greater than 2100.",
+  "newRequest.validation.link.invalid": "Please enter a valid event resource link."
+
 
 }

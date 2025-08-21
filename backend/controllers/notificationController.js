@@ -41,6 +41,21 @@ exports.getUserNotifications = async (req, res) => {
       ],
       order: [['createdAt', 'DESC']]
     });
+
+    notifs.forEach(n => {
+      if (n.Event) {
+        const now = new Date();
+        const eventDate = new Date(n.Event.eventDate);
+        const currentCount = n.Event.currentCount || 0;
+
+        if (eventDate < now || (n.Event.maxParticipants && currentCount >= n.Event.maxParticipants)) {
+          n.Event.dataValues.eventStatus = 'Набор закрыт';
+        } else {
+          n.Event.dataValues.eventStatus = 'Набор открыт';
+        }
+      }
+    });
+
     res.json(notifs);
   } catch (err) {
     console.error(err);

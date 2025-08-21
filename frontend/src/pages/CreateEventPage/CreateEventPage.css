@@ -14,15 +14,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-:root {
-  --bg-main      : #ffffff;
-  --bg-panel     : #f8f9fa;
-  --text-primary : #212529;
-  --text-muted   : #6c757d;
-  --border-light : #e9ecef;
-  --border-dark  : rgba(255,255,255,.15);
-}
-
 /* общие стили контейнера */
 .create-event-container {
     padding: 20px;
@@ -34,7 +25,7 @@
 .create-event-container h1 {
   margin-bottom: 24px;
   margin-left: 36px;
-  color: var(--heading-color);
+  color: #212529;
   font-size: 32px;
   font-weight: 700;
 }
@@ -44,7 +35,7 @@
   margin-left: 26px;
   padding: 10px;
   overflow-y: auto;
-  background-color: var(--bg-main);
+  background-color: #ffffff;
   box-shadow: none;
   width: 109vh;
   max-height: 55vh;
@@ -73,7 +64,7 @@
 .create-event-container .form-field-span-2 label {
   display: block;
   margin-bottom: 5px;
-  color: var(--text-muted);
+  color: #6c757d;
   font-size: 14px;
   font-weight: 500;
 }
@@ -91,7 +82,7 @@
   bottom: 0;
   width: 100%;
   height: 2px;
-  background-color: var(--border-light);
+  background-color: #e9ecef;
 }
 
 .create-event-container .input-wrapper::after {
@@ -119,7 +110,7 @@
   border: none;
   outline: none;
   box-sizing: border-box;
-  color: var(--text-primary);
+  color: #212529;
   background-color: transparent;
   font-size: 18px;
   font-weight: 600;
@@ -447,6 +438,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    max-width: 300px;
 }
 
 .create-event-container .file-item-remove-btn {
@@ -461,6 +455,7 @@
     font-weight: bold;
     line-height: 0;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 /* эффект наведения на элемент списка */
@@ -551,24 +546,120 @@
   color: #fff;
 }
 
-/* темная тема */
-
-body[data-theme='dark']
-  .create-event-container h1 {
-  color: var(--heading-color)
+body[data-theme='dark'] .create-event-container h1{
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.25),
+    0 0 18px rgba(255,255,255,.35),
+    0 0 36px rgba(255,255,255,.18);
 }
 
-body[data-theme='dark'] {
-  --bg-main      : #181a1b;   /* фон страницы */
-  --bg-panel     : #181a1b;   /* выпадашки, инпуты и т.д. */
-  --bg-input     : transparent;
-  --text-primary : #ffffff;
-  --text-muted   : #9ca3af;
-  --border-light : rgba(255,255,255,0.15);
+/* Контент и тексты */
+body[data-theme='dark'] .create-event-container .page-content{
+  background: var(--surface);
+  color: var(--text);
 }
 
-body[data-theme='dark']
-  .create-event-container .page-content {
+body[data-theme='dark'] .create-event-container .form-field label{
+  color: var(--text-soft);
+}
+
+body[data-theme='dark'] .create-event-container .form-input{
+  color: var(--text);
   background: transparent;
-  box-shadow: none;
+}
+
+/* Линия под полями */
+body[data-theme='dark'] .create-event-container .input-wrapper::before{
+  background: #4c4f52;
+}
+body[data-theme='dark'] .create-event-container .input-wrapper::after{
+  background: var(--accent);
+}
+
+body[data-theme='dark'] .create-event-container .custom-select-options{
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 10px 20px rgba(0,0,0,.45);
+}
+body[data-theme='dark'] .create-event-container .custom-select-option:hover{
+  background: var(--surface-soft);
+}
+body[data-theme='dark'] .create-event-container .custom-select-option.is-selected{
+  color: var(--text);
+  background: rgba(211,84,0,.16);
+}
+
+/* Загрузка файлов / изображений */
+body[data-theme='dark'] .create-event-container .file-upload-container,
+body[data-theme='dark'] .create-event-container .image-upload-container{
+  border-color: rgba(255,255,255,.15);
+}
+body[data-theme='dark'] .create-event-container .file-upload-area{
+  color: var(--text-soft);
+  background: var(--surface);
+}
+body[data-theme='dark'] .create-event-container .file-upload-container:hover .file-upload-area,
+body[data-theme='dark'] .create-event-container .image-upload-container:hover .file-upload-area{
+  background: var(--surface-soft);
+}
+body[data-theme='dark'] .create-event-container .file-upload-area::after{
+  background: radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y),
+    rgba(211,84,0,.2), transparent 80%);
+}
+/* файлы в списке */
+body[data-theme='dark'] .create-event-container .file-item{
+  background: var(--surface-soft);
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  color: var(--text);
+}
+
+/* Скролл*/
+body[data-theme='dark'] .create-event-container .page-content,
+body[data-theme='dark'] .create-event-container .file-list-inside{
+  scrollbar-width: auto;
+  scrollbar-color: #6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .create-event-container .page-content::-webkit-scrollbar,
+body[data-theme='dark'] .create-event-container .file-list-inside::-webkit-scrollbar{
+  width: 14px;
+}
+body[data-theme='dark'] .create-event-container .page-content::-webkit-scrollbar-track,
+body[data-theme='dark'] .create-event-container .file-list-inside::-webkit-scrollbar-track{
+  background: #1f1f20;
+  border-left: 1px solid #2a2a2c;
+}
+body[data-theme='dark'] .create-event-container .page-content::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .create-event-container .file-list-inside::-webkit-scrollbar-thumb{
+  background: #6b6d70;
+  border-radius: 8px;
+  border: 2px solid #2a2a2c;
+}
+
+body[data-theme='dark'] .create-event-container .form-submit-btn{
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid rgba(211,84,0,.65);
+  box-shadow: 0 0 24px 6px rgba(211,84,0,.45);
+  transition: box-shadow .25s ease, transform .08s ease, background .2s ease;
+}
+body[data-theme='dark'] .create-event-container .form-submit-btn:hover{
+  box-shadow: 0 0 36px 10px rgba(211,84,0,.70);
+  transform: translateY(-1px);
+}
+body[data-theme='dark'] .create-event-container .form-submit-btn:active{
+  transform: translateY(0);
+  box-shadow: 0 0 20px 6px rgba(211,84,0,.55);
+}
+body[data-theme='dark'] .create-event-container .form-submit-btn::before{
+  background: #b84a00;
+}
+
+/* Вспомогательная кнопка в дарке */
+body[data-theme='dark'] .create-event-container .form-secondary-btn{
+  color: var(--text);
+  background: var(--surface-soft);
+}
+body[data-theme='dark'] .create-event-container .form-secondary-btn::before{
+  background: #6c757d;
 }

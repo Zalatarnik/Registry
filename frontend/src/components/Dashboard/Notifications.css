@@ -1,6 +1,3 @@
-.notifications-component-scope {
-    /* Этот класс теперь является корневым для всех стилей ниже */
-}
 
 .notifications-component-scope .notifications-view-wrapper {
     position: absolute;
@@ -74,37 +71,26 @@
     to { transform: translateX(50px); opacity: 0; }
 }
 
-@keyframes notifications-scope-participant-in {
-    from {
-        opacity: 0;
-        transform: translateY(-15px);
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-bottom: 0;
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-        max-height: 150px;
-    }
+@keyframes notifications-scope-search-results-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes notifications-scope-participant-out {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-        max-height: 150px;
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-15px);
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-bottom: 0;
-        border: 0;
-    }
+@keyframes notifications-scope-search-results-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 
@@ -514,7 +500,6 @@
     right: 0;
     bottom: 0;
     z-index: 2000;
-    display: block; 
     background-color: rgba(33, 37, 41, 0.6);
     backdrop-filter: blur(5px);
     animation: notifications-scope-modal-fade-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
@@ -538,6 +523,7 @@
     border-radius: 16px;
     flex-direction: column;
     overflow: hidden;
+    transition: top 0.3s ease-out, left 0.3s ease-out;
     animation: notifications-scope-modal-slide-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
@@ -552,6 +538,7 @@
     border-bottom: 1px solid #e9ecef;
     justify-content: space-between;
     align-items: center;
+    cursor: grab;
 }
 
 .notifications-component-scope .chat-title-wrapper h2 {
@@ -655,9 +642,6 @@
 }
 
 .notifications-component-scope .participants-list {
-  flex-grow: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
   min-height: 0;
 }
 
@@ -668,12 +652,6 @@
     border: 1px solid #e9ecef;
     border-radius: 8px;
     background-color: rgba(248, 249, 250, 0.7);
-    animation: notifications-scope-participant-in 0.3s ease-out forwards;
-    overflow: hidden;
-}
-
-.notifications-component-scope .participants-list .participant-entry.is-deleting {
-    animation: notifications-scope-participant-out 0.3s ease-out forwards;
 }
 
 .notifications-component-scope .remove-participant-btn {
@@ -905,79 +883,273 @@
     fill: currentColor;
 }
 
-body[data-theme='dark'] .notifications-component-scope{
-  .notifications-modal{
-    background: rgba(24,24,27,.92);
-    box-shadow: 0 8px 28px rgba(0,0,0,.55);
-  }
-
-  .info-modal-header{
-    border-bottom:1px solid rgba(255,255,255,.12);
-  }
-  .info-modal-header h2{ color:#fff; }
-
-  .notifications-empty,
-  .notifications-loader{ color:#b5b9be; }
-
-  .card-content-wrapper{ background:#181a1b; }
-  .notification-divider{ background:rgba(255,255,255,.07); }
-
-  .notification-item-info h5{ color:#f1f3f4; }
-  .notification-item-info p { color:#adb5bd; }
-
-  .btn-style-accept{
-    background:rgba(40,167,69,.18);
-    color:#66e28b;
-  }
-  .btn-style-accept::before{ background:#28a745; }
-  .notification-card.is-active .btn-style-accept{
-    background:rgba(255,255,255,.20);
-    color:#fff;
-  }
-
-  .details-container{ background:rgba(24,24,27,.94); }
-  .details-body{
-    background:#181a1b;
-    color:#e0e0e0;
-  }
-  .details-header{
-    background:#b84900;
-  }
-
-  .details-title-section h4,
-  .details-title-section .card-date,
-  .details-icons .icon-item{ color:#fff; }
-  .details-icons .icon-item svg{ fill:#fff; }
-
-  .details-actions{
-    background:#1f2023;
-    border-top:1px solid rgba(255,255,255,.10);
-  }
-
-  ::-webkit-scrollbar-thumb{ background:#555; }
+/* стили для поиска в модальном окне */
+.notifications-component-scope .participant-search-container {
+  position: relative;
 }
 
-body[data-theme='dark'] .notifications-component-scope {
-  .info-modal-header svg,
-  .info-modal-header svg path{
-    fill:#f1f3f4 !important;
-  }
-  .info-modal-header button:hover svg path{
-    fill:#ff6961;
-  }
+.notifications-component-scope .user-search-results-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: rgba(248, 249, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-top: -8px;
+  overflow: hidden;
+  border-radius: 8px;
+  animation: notifications-scope-search-results-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-body[data-theme='dark'] {
-
-  .details-body{
-    color:#e0e0e0 !important;
-    background:#181a1b !important;
-  }
-  .details-body .detail-label{
-    color:#9ca3af !important;
-  }
+.notifications-component-scope .user-search-results-container.is-closing {
+  animation: notifications-scope-search-results-out 0.3s ease-in forwards;
 }
 
-body[data-theme='dark'] .detail-item, .detail-description {
-  color:#f1f3f4 !important;
+.notifications-component-scope .user-search-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.notifications-component-scope .user-search-results-container .user-search-item:not(:last-child) {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.notifications-component-scope .user-search-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-component-scope .user-search-info span,
+.notifications-component-scope .user-search-info small {
+  transition: color 0.3s ease;
+}
+
+.notifications-component-scope .user-search-item.is-active .user-search-info span,
+.notifications-component-scope .user-search-item.is-active .user-search-info small {
+  color: #fff;
+}
+
+
+.notifications-component-scope .user-search-info span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.notifications-component-scope .user-search-info small {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+body[data-theme='dark']{
+  --surface:#1a1a1a;
+  --surface-soft:#2b2b2c;
+  --text:#e8e8e8;
+  --text-soft:#a0a0a0;
+  --accent:#d35400;
+}
+
+/* Модалка списка уведомлений */
+body[data-theme='dark'] .notifications-component-scope .notifications-modal{
+  background: rgba(24,24,27,.92);
+  color: var(--text);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 10px 40px rgba(0,0,0,.6);
+}
+
+/* Заголовок/пусто/лоадер */
+body[data-theme='dark'] .notifications-component-scope .info-modal-header{
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+body[data-theme='dark'] .notifications-component-scope .info-modal-header h2{ color:var(--text); }
+body[data-theme='dark'] .notifications-component-scope .notifications-empty,
+body[data-theme='dark'] .notifications-component-scope .notifications-loader{ color:var(--text-soft); }
+
+/* Лист/глайдер/разделители */
+body[data-theme='dark'] .notifications-component-scope .list-glider{ background:var(--accent); }
+body[data-theme='dark'] .notifications-component-scope .list-glider.is-fixed{ background:#b84900; }
+body[data-theme='dark'] .notifications-component-scope .notification-divider{ background:rgba(255,255,255,.12); }
+
+/* Карточки */
+body[data-theme='dark'] .notifications-component-scope .notification-item-info h5{ color:var(--text); }
+body[data-theme='dark'] .notifications-component-scope .notification-item-info p{ color:var(--text-soft); }
+
+/* Кнопка “Принять” в списке */
+body[data-theme='dark'] .notifications-component-scope .btn-style-accept{
+  color:#98e6b8;
+  background:rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .notifications-component-scope .btn-style-accept::before{ background:#28a745; }
+
+/* Карточка события (студент) */
+body[data-theme='dark'] .notifications-component-scope .student-card-inner{
+  background: var(--surface-soft);
+  box-shadow:0 10px 30px rgba(0,0,0,.55);
+}
+body[data-theme='dark'] .notifications-component-scope .details-container{
+  background: rgba(24,24,27,.92);
+}
+body[data-theme='dark'] .notifications-component-scope .details-header{
+  background: var(--surface);
+}
+body[data-theme='dark'] .notifications-component-scope .details-title-section h4{ color:var(--text); }
+body[data-theme='dark'] .notifications-component-scope .details-title-section .card-date{ color:var(--text-soft); }
+body[data-theme='dark'] .notifications-component-scope .details-icons .icon-item,
+body[data-theme='dark'] .notifications-component-scope .details-icons .icon-item svg{
+  color:var(--text-soft); fill:var(--text-soft);
+}
+body[data-theme='dark'] .notifications-component-scope .details-body{
+  background: var(--surface-soft);
+  color: var(--text);
+}
+body[data-theme='dark'] .notifications-component-scope .details-body .detail-label{ color:var(--text-soft); }
+body[data-theme='dark'] .notifications-component-scope .details-body .detail-description{
+  color:var(--text);
+  border-bottom-color: var(--accent);
+}
+body[data-theme='dark'] .notifications-component-scope .details-actions{
+  background: rgba(24,24,27,.85);
+  border-top:1px solid rgba(255,255,255,.12);
+}
+
+/* Оверлей и модалка регистрации/приглашения */
+body[data-theme='dark'] .notifications-component-scope .modal-overlay{ background:rgba(0,0,0,.65); }
+body[data-theme='dark'] .notifications-component-scope .edit-modal-content.signup-modal{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .notifications-component-scope .chat-header{
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+body[data-theme='dark'] .notifications-component-scope .chat-title-wrapper h2{ color:var(--text); }
+body[data-theme='dark'] .notifications-component-scope .chat-title-wrapper p{ color:var(--text-soft); }
+body[data-theme='dark'] .notifications-component-scope .chat-close-btn{ color:#9ca3af; }
+body[data-theme='dark'] .notifications-component-scope .chat-close-btn:hover{ color:var(--accent); }
+
+/* Поля формы */
+body[data-theme='dark'] .notifications-component-scope .form-field label{ color:var(--text-soft); }
+body[data-theme='dark'] .notifications-component-scope .form-input{ color:var(--text); background:transparent; }
+body[data-theme='dark'] .notifications-component-scope .input-wrapper::before{ background:rgba(255,255,255,.12); }
+body[data-theme='dark'] .notifications-component-scope .input-wrapper::after{ background:var(--accent); }
+
+/* Участники */
+body[data-theme='dark'] .notifications-component-scope .participants-list .participant-entry{
+  background: var(--surface-soft);
+  border:1px solid rgba(255,255,255,.12);
+}
+body[data-theme='dark'] .notifications-component-scope .remove-participant-btn{ color:#ff9090; }
+
+/* Кнопки формы */
+body[data-theme='dark'] .notifications-component-scope .form-submit-btn{
+  background: var(--accent);
+  color:#fff;
+  outline:1px solid rgba(211,84,0,.5);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.18),
+    0 0 26px 6px rgba(211,84,0,.60);
+}
+body[data-theme='dark'] .notifications-component-scope .form-submit-btn:hover{
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.24),
+    0 0 36px 10px rgba(211,84,0,.80);
+}
+body[data-theme='dark'] .notifications-component-scope .form-secondary-btn{
+  color:var(--text);
+  background: var(--surface-soft);
+}
+
+/* Общие варианты кнопок */
+body[data-theme='dark'] .notifications-component-scope .btn-style-register{
+  color:#98e6b8; background:rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .notifications-component-scope .btn-style-neutral{
+  color:var(--text); background:var(--surface-soft);
+}
+
+/* Поиск участников  */
+body[data-theme='dark'] .notifications-component-scope .user-search-results-container{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 10px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .notifications-component-scope .user-search-results-container .user-search-item:not(:last-child){
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+body[data-theme='dark'] .notifications-component-scope .user-search-info span{ color:var(--text); }
+body[data-theme='dark'] .notifications-component-scope .user-search-info small{ color:var(--text-soft); }
+
+body[data-theme='dark'] .notifications-component-scope .info-modal-body,
+body[data-theme='dark'] .notifications-component-scope .details-body,
+body[data-theme='dark'] .notifications-component-scope .edit-modal-body{
+  scrollbar-width:auto; scrollbar-color:#6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .notifications-component-scope .info-modal-body::-webkit-scrollbar,
+body[data-theme='dark'] .notifications-component-scope .details-body::-webkit-scrollbar,
+body[data-theme='dark'] .notifications-component-scope .edit-modal-body::-webkit-scrollbar{ width:14px; }
+body[data-theme='dark'] .notifications-component-scope .info-modal-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .notifications-component-scope .details-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .notifications-component-scope .edit-modal-body::-webkit-scrollbar-track{
+  background:#1f1f20; border-left:1px solid #2a2a2c;
+}
+body[data-theme='dark'] .notifications-component-scope .info-modal-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .notifications-component-scope .details-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .notifications-component-scope .edit-modal-body::-webkit-scrollbar-thumb{
+  background:#6b6d70; border-radius:8px; border:2px solid #2a2a2c;
+}
+
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body,
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body p,
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body li,
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body span {
+  color: var(--text) !important;
+}
+
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body .detail-label,
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body b,
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-body strong {
+  color: #f0f0f0 !important;
+  font-weight: 600;
+}
+
+body[data-theme='dark'] .notifications-component-scope .detailed-event-container .details-container p {
+  color: var(--text) !important;
+}
+
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item {
+  color: var(--text) !important; 
+}
+
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item .detail-value,
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item span,
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item a {
+  color: var(--text) !important;
+  text-decoration-color: rgba(255,255,255,.35);
+}
+
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item .detail-label,
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item b,
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .student-card-inner .details-body .detail-item strong {
+  color: #f0f0f0 !important;
+  font-weight: 600;
+}
+
+body[data-theme='dark'] .notifications-component-scope
+.detailed-event-container .details-container p {
+  color: var(--text) !important;
 }

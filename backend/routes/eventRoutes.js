@@ -30,5 +30,9 @@ router.get('/events/:eventId/registrations', eventController.getEventRegistratio
 router.get('/users/:login/registrations', eventController.getUserRegistrations);
 // Скачать все документы мероприятия в zip
 router.get('/events/:eventId/download-documents', eventController.downloadEventDocuments);
+// Получение количества записавшихся н мероприятие
+router.get('/events/registrations/counts', eventController.getRegistrationCounts);
+// Удалить группу по submissionGroupId 
+router.delete('/events/:eventId/registrations/group/:submissionGroupId', authMiddleware, eventController.removeGroupBySubmissionId);
 
 module.exports = router;

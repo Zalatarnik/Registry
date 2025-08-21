@@ -9,6 +9,6 @@ router.post('/notifications', authMiddleware, notificationController.createNotif
 // Получение уведомлений пользователя
 router.get('/notifications/:login', authMiddleware, notificationController.getUserNotifications);
 // Удаление всех уведомлений
-router.delete('/notifications/user/:login', notificationController.deleteAllUserNotifications);
+router.delete('/notifications/user/:login', authMiddleware, notificationController.deleteAllUserNotifications);
 
 module.exports = router;

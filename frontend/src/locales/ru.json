@@ -386,7 +386,6 @@
 
   "events.regListTitle":          "Записавшиеся на «{event}»",
   "events.total":                 "Всего: {count} чел.",
-  "events.groupN":                "Группа записи №{n} ({count} чел.)",
   "events.noRegistrations":       "На это мероприятие ещё никто не записался.",
   "events.recruitment.active":            "Активен",
   "events.recruitment.completed":         "Завершён",
@@ -409,7 +408,98 @@
   "confirm.message": "Вы уверены?",
   "common.confirm": "Подтвердить",
   "common.cancel": "Отмена",
-  "common.logoAlt": "Логотип"
+  "common.logoAlt": "Логотип",
   
+
+  "common.confirmation": "Подтверждение",
+  "common.areYouSure": "Вы уверены?",
+  "common.close": "Закрыть",
+  "common.delete": "Удалить",
+  "common.back": "Назад",
+
+  "search.placeholder": "Поиск...",
+
+  "filters.all": "Все",
+  "filters.registered": "Записан",
+  "filters.unregistered": "Не записан",
+
+  "events.downloadReport": "Скачать отчёт",
+  "events.registeredFor": "Записавшиеся на \"{{name}}\"",
+  "events.peopleShort": "чел.",
+  "events.groupN": "Группа №{{n}}",
+  "events.invite": "Пригласить",
+  "events.materials.download": "Скачать материалы",
+  "events.deleteGroup": "Удалить группу",
+  "events.deleteGroupConfirm": "Удалить всю группу участников?",
+  "events.deleteGroupError": "Не удалось удалить группу",
+  "events.groupDeleted": "Группа удалена",
+  "events.deleted": "Мероприятие удалено.",
+  "events.deleteError": "Ошибка удаления",
+  "events.confirmDeleteTitle": "Подтверждение удаления",
+  "events.confirmDeleteText": "Вы уверены, что хотите удалить мероприятие \"{{name}}\"? Это действие необратимо.",
+
+  "events.recruitment.open": "Набор открыт",
+  "events.recruitment.closed": "Набор закрыт",
+
+  "signup.title": "Запись на мероприятие",
+  "signup.yourFullName": "Ваше ФИО",
+  "signup.participantFullName": "ФИО участника",
+  "signup.yourGroup": "Ваша группа",
+  "signup.group": "Группа",
+  "signup.fillAllFields": "Пожалуйста, заполните все поля.",
+  "signup.saving": "Запись...",
+  "signup.submit": "Записаться",
+  "signup.error": "Ошибка записи",
+
+  "invite.loadUsersError": "Не удалось загрузить список пользователей",
+  "invite.studentsNotFound": "Студенты с такими данными не найдены.",
+  "invite.participates": "Участвует",
+  "invite.invited": "Приглашён",
+  "invite.invite": "Пригласить",
+  "invite.errorSend": "Не удалось отправить приглашение",
+  "invite.sentTo": "Приглашение отправлено {{firstName}} {{lastName}} {{middleName}}",
+
+  "notification.cannotDetectEventOrCurator": "Не удалось определить мероприятие или куратора.",
+  "notification.loadingReport": "Загрузка отчёта для мероприятия #{{id}}...",
+  "notification.loadingMaterials": "Загрузка материалов для мероприятия \"{{name}}\"...",
+  "notification.errorLoadEvents": "Не удалось загрузить мероприятия.",
+  "notification.errorLoadProfile": "Не удалось загрузить профиль.",
+  "notification.errorLoadRegistrations": "Не удалось загрузить записи.",
+  "notification.errorLoadRegistrationsCounts": "Не удалось загрузить количество регистраций.",
+
+  "notifications.deleteAll": "Удалить все уведомления",
+  "notifications.cleared": "Все уведомления удалены",
+  "notifications.loadError": "Не удалось загрузить уведомления",
+  "notifications.deleteAllError": "Не удалось удалить уведомления",
+
+  "review.export.noData": "Нет данных для экспорта.",
+  "review.export.error.createFile": "Ошибка при создании файла.",
+  "review.export.selected.notFound": "Не найдены выбранные заявки для экспорта.",
+
+  "createEvent.validation.eventName.required": "Пожалуйста, введите название мероприятия.",
+  "createEvent.validation.leader.required": "Пожалуйста, укажите руководителя.",
+  "createEvent.validation.organizer.required": "Пожалуйста, укажите организатора.",
+  "createEvent.validation.location.required": "Пожалуйста, укажите место проведения.",
+  "createEvent.validation.status.required": "Пожалуйста, выберите статус мероприятия.",
+  "createEvent.validation.date.required": "Пожалуйста, укажите дату проведения.",
+  "createEvent.validation.date.past": "Дата проведения не может быть в прошлом.",
+  "createEvent.validation.date.yearTooBig": "Год проведения не может быть больше 2100.",
+  "createEvent.validation.maxParticipants.required": "Пожалуйста, укажите макс. число участников.",
+  "createEvent.validation.maxParticipants.positive": "Макс. число участников должно быть положительным.",
+  "createEvent.validation.teamSize.required": "Пожалуйста, укажите число участников в команде.",
+  "createEvent.validation.teamSize.positive": "Число участников в команде должно быть положительным.",
+  "createEvent.validation.teamSize.tooBig": "Размер команды не может превышать макс. число участников.",
+  "createEvent.validation.image.required": "Пожалуйста, загрузите изображение для обложки мероприятия.",
+
+  "newRequest.validation.eventName.required": "Пожалуйста, введите название мероприятия.",
+  "newRequest.validation.leader.required": "Пожалуйста, укажите руководителя.",
+  "newRequest.validation.organizer.required": "Пожалуйста, укажите организатора.",
+  "newRequest.validation.location.required": "Пожалуйста, укажите место проведения.",
+  "newRequest.validation.status.required": "Пожалуйста, выберите статус мероприятия.",
+  "newRequest.validation.date.required": "Пожалуйста, укажите дату проведения.",
+  "newRequest.validation.date.yearTooSmall": "Год проведения не может быть раньше 1900.",
+  "newRequest.validation.date.yearTooBig": "Год проведения не может быть больше 2100.",
+  "newRequest.validation.link.invalid": "Пожалуйста, введите корректную ссылку на ресурс мероприятия."
+
 
 }

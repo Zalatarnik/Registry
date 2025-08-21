@@ -50,7 +50,6 @@
   }
 }
 
-/* анимации для нового модального окна */
 @keyframes events-modal-fade-in {
   from {
     opacity: 0;
@@ -154,6 +153,28 @@
   to {
     opacity: 0;
     transform: scale(0.95);
+  }
+}
+
+@keyframes events-search-results-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes events-search-results-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 }
 
@@ -514,6 +535,7 @@
   background-size: cover;
   background-position: center;
   z-index: 1;
+  object-fit: cover;
 }
 
 .events-page-scope .registration-status-badge,
@@ -928,6 +950,7 @@
   border-bottom: 1px solid #e9ecef;
   justify-content: space-between;
   align-items: center;
+  cursor: grab;
 }
 
 .events-page-scope .chat-title-wrapper h2 {
@@ -985,6 +1008,7 @@
   flex-direction: column;
   flex-grow: 1;
   min-height: 0;
+  position: relative;
 }
 
 /* внунтри модального окна */
@@ -995,6 +1019,7 @@
 }
 .events-page-scope .signup-form-grid {
   grid-template-columns: 2.5fr 1fr;
+  position: relative;
 }
 
 .events-page-scope .form-field {
@@ -1062,8 +1087,6 @@
 }
 
 .events-page-scope .participants-list {
-  flex-grow: 1;
-  overflow-y: auto;
   min-height: 0;
 }
 
@@ -1074,6 +1097,17 @@
   border: 1px solid #e9ecef;
   border-radius: 8px;
   background-color: rgba(248, 249, 250, 0.7);
+}
+
+.events-page-scope .participant-avatar {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .events-page-scope .remove-participant-btn {
@@ -1108,12 +1142,12 @@
 .events-page-scope .form-actions-container {
   display: flex;
   gap: 12px;
-  margin-top: auto;
-  padding: 8px 24px 24px;
-  border-top: none;
+  padding: 16px 24px;
   justify-content: flex-end;
-  flex-shrink: 0;
   background-color: transparent;
+  flex-shrink: 0;
+  border-top: none;
+  z-index: 10;
 }
 
 .events-page-scope .participant-actions {
@@ -1213,6 +1247,20 @@
 }
 
 /* стили модального окна записавшихся */
+.events-page-scope .registration-modal-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.events-page-scope .registration-modal-icons .icon-item {
+    color: #495057;
+}
+
+.events-page-scope .registration-modal-icons .icon-item svg {
+    fill: #495057;
+}
+
 .events-page-scope .no-registrations {
   padding: 40px 20px;
   color: #6c757d;
@@ -1230,13 +1278,52 @@
   margin-top: 0;
 }
 
+.events-page-scope .submission-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #b84900;
+  padding-right: 8px;
+}
+
 .events-page-scope .submission-group h5 {
   margin: 0;
   padding: 12px 16px;
   color: #f0e4d9;
-  background-color: #b84900;
+  background-color: transparent;
   font-size: 16px;
   font-weight: 700;
+  flex-grow: 1;
+}
+
+.events-page-scope .delete-group-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.events-page-scope .delete-group-btn:hover {
+    color: #fff;
+}
+
+.events-page-scope .delete-group-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.events-page-scope .delete-group-btn:hover svg {
+    transform: scale(1.2);
 }
 
 .events-page-scope .submission-group ul {
@@ -1260,104 +1347,667 @@
   font-size: 13px;
 }
 
-/* темная тема */
-body[data-theme='dark'] .events-page-scope {
-
-  --bg-main        : #212529;
-  --bg-panel       : #181a1b;
-  --text-primary   : #ffffff;
-  --text-muted     : #9ca3af;
-  --border-light   : rgba(255,255,255,.15);
-
-    .events-container1  {
-     background: var(--bg-main); 
-    }
-
-  /* контейнер и заголовок */
-  .events-container  {
-    background: var(--bg-main); 
-    background: transparent;
-    box-shadow: none;
-    border: 0;      
-    }
-  .events-container h1 { 
-    color: var(--text-primary); 
-  }
-
-  /* строка поиска */
-  .search-bar-wrapper .interactive-button{
-    background : var(--bg-panel);
-    color      : var(--text-muted);
-  }
-  .search-bar-wrapper input{
-    color            : var(--text-primary);
-  }
-  .search-bar-wrapper input::placeholder{
-    color            : var(--text-muted);
-  }
-
-  /* кнопка Все */
-  .interactive-button.is-active-filter   {
-    background : #5a6268;
-    color      : #fff;
-  }
-
-  /* для вида куратора фон */
-  .events-container .page-content        { background: var(--bg-panel); }
-
-  /* карточка */
-  .card-content-wrapper                  { background: var(--bg-panel); }
-  .header-content h3                    { color: var(--text-primary); }
-  .header-content .card-date            { color: var(--text-muted); }
-  .event-divider                         { background: var(--border-light); }
-
-  /* раскрытая часть карточки */
-  .card-details-wrapper                  { background: var(--bg-panel); }
-
-  .details-body,
-  .details-body .detail-item,
-  .details-body .detail-label{
-    color: var(--text-primary, #ffffff);
-  }
-
-  .details-body .detail-label{
-     opacity: .8;
-  }
-
-  .details-actions{
-    background : rgba(24,24,27,.95);  /* почти #181a1b */
-    border-top : 1px solid var(--border-light, rgba(255,255,255,.15));
-  }
-  .interactive-button.btn-style-neutral  { background: var(--bg-panel); color: var(--text-primary); }
-  .interactive-button.btn-style-list     { background: rgba(0,123,255,.18); color:#7db7ff; }
-  .interactive-button.btn-style-delete   { background: rgba(231,76,60,.18); color:#ff7b7b; }
-  .interactive-button.btn-style-register { background: rgba(40,167,69,.18); color:#66e28b; }
-
-  .student-view-container::before{
-    background: linear-gradient(to right, var(--bg-main) 2%, transparent);
-  }
-  .student-view-container::after{
-    background: linear-gradient(to left , var(--bg-main) 2%, transparent);
-  }
-  .btn-style-register{
-    background : #28a745;
-    color      : #ffffff;
-  }
-  .btn-style-register::before{
-    background : #1e7e34;
-  }
-  .btn-style-register:hover span{
-    color: #fff;
-  }
-
-  .details-container                     { background: rgba(24,24,27,.95); }
-  .details-body                          { color: var(--text-primary); }
-  .detail-description                    { border-bottom-color: var(--accent, #d35400); }
-
-  .detail-description {
-    color      : #ffffff;
+.events-page-scope .registration-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 60%;
+  margin-left: auto;
 }
 
-  /* скроллбар внутри карточек */
-  ::-webkit-scrollbar-thumb              { background: #555; }
+/* стили для модального окна приглашения */
+.events-page-scope .invite-modal .edit-modal-body {
+  padding: 16px 0;
+}
+.events-page-scope .invite-modal .filter-container {
+  padding: 8px 16px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.invite-users-list-container {
+  position: relative;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.invite-users-list-container .list-glider {
+  width: 100%;
+}
+.invite-user-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 24px;
+  height: 70px;
+  align-items: center;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.invite-user-card-main-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-grow: 1;
+}
+
+.invite-user-card .header-content h3,
+.invite-user-card .header-content .card-subtitle {
+  transition: color 0.3s ease;
+}
+.invite-user-card.is-active .header-content h3,
+.invite-user-card.is-active .header-content .card-subtitle {
+  color: #ffffff;
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.invite-user-card .header-content {
+  flex-grow: 1;
+}
+.invite-user-card .header-content h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.invite-user-card .header-content .card-subtitle {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.invite-user-card-actions .interactive-button {
+  padding: 0 12px;
+  height: 36px;
+  font-size: 13px;
+  width: 130px;
+  height: 40px;
+}
+
+.invite-user-divider {
+  height: 1px;
+  margin: 0 24px;
+  background-color: #e9ecef;
+}
+
+.no-results-message {
+  padding: 40px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.events-page-scope .invite-modal .search-bar-wrapper {
+  flex-grow: 1;
+}
+
+.events-page-scope .confirmation-modal-content {
+  position: fixed;
+  width: 380px;
+  z-index: 2000;
+  background-color: rgba(248, 249, 250, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+  transform-origin: top left;
+  animation: confirmation-pop-in 0.2s ease-out forwards;
+}
+
+.events-page-scope .confirmation-modal-content.is-closing {
+  animation: confirmation-pop-out 0.2s ease-in forwards;
+}
+
+.events-page-scope .confirmation-modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #212529;
+}
+
+.events-page-scope .confirmation-modal-body p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  color: #495057;
+}
+
+.events-page-scope .confirmation-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.events-page-scope .confirmation-modal-button {
+  position: relative;
+  display: flex;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 0px;
+  overflow: hidden;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.events-page-scope .confirmation-modal-button::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  z-index: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease-out;
+}
+
+.events-page-scope .confirmation-modal-button:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.events-page-scope .confirmation-modal-button span {
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.events-page-scope .confirmation-modal-button:hover span {
+  color: #fff !important;
+}
+
+.events-page-scope .confirmation-modal-button.neutral {
+  background-color: #f0f2f5;
+  color: #495057;
+}
+
+.events-page-scope .confirmation-modal-button.neutral::before {
+  background-color: #6c757d;
+}
+
+.events-page-scope .confirmation-modal-button.reject {
+  background-color: #fdeaea;
+  color: #9b1c1c;
+}
+
+.events-page-scope .confirmation-modal-button.reject::before {
+  background-color: #dc3545;
+}
+
+/* стили для поиска в модальном окне */
+.participant-search-container {
+  position: relative;
+}
+
+.user-search-results-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: rgba(248, 249, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-top: -8px;
+  overflow: hidden;
+  border-radius: 8px;
+  animation: events-search-results-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.user-search-results-container.is-closing {
+  animation: events-search-results-out 0.3s ease-in forwards;
+}
+
+.user-search-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.user-search-results-container .user-search-item:not(:last-child) {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.user-search-item img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+
+.user-search-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-search-info span,
+.user-search-info small {
+  transition: color 0.3s ease;
+}
+
+.user-search-item.is-active .user-search-info span,
+.user-search-item.is-active .user-search-info small {
+  color: #fff;
+}
+
+
+.user-search-info span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.user-search-info small {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+body[data-theme='dark'] .events-page-scope .events-container h1{
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.25),
+    0 0 18px rgba(255,255,255,.35),
+    0 0 36px rgba(255,255,255,.18);
+}
+
+/* Контейнер и тексты */
+body[data-theme='dark'] .events-page-scope .events-container .page-content{
+  background: var(--surface);
+  color: var(--text);
+}
+body[data-theme='dark'] .events-page-scope .header-content h3{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .header-content .card-date,
+body[data-theme='dark'] .events-page-scope .detail-label{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .card-details-wrapper{ background: var(--surface); }
+body[data-theme='dark'] .events-page-scope .column-details{ border-left:2px solid rgba(255,255,255,.15); }
+
+/* Поиск — нормальный плейсхолдер, без отбеливания на hover */
+body[data-theme='dark'] .events-page-scope .search-bar-wrapper input{
+  color: var(--text); caret-color: var(--text);
+}
+body[data-theme='dark'] .events-page-scope .search-bar-wrapper input::placeholder{
+  color: var(--text-soft);
+}
+body[data-theme='dark'] .events-page-scope .search-bar-wrapper .interactive-button:hover input::placeholder{
+  color: var(--text-soft);
+}
+
+/* Акцент глайдера */
+body[data-theme='dark'] .events-page-scope .list-glider{
+  background: var(--accent);
+}
+
+/* Студенческий слайдер — затемнённые края и панели */
+body[data-theme='dark'] .events-page-scope .student-view-container::before{
+  background: linear-gradient(to right, #0d0d0d 2%, transparent);
+}
+body[data-theme='dark'] .events-page-scope .student-view-container::after{
+  background: linear-gradient(to left, #0d0d0d 2%, transparent);
+}
+body[data-theme='dark'] .events-page-scope .student-card-inner{
+  background: var(--surface-soft);
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+body[data-theme='dark'] .events-page-scope .details-container{
+  background: rgba(24,24,27,.92);
+}
+body[data-theme='dark'] .events-page-scope .details-header{
+  background: var(--surface);
+}
+body[data-theme='dark'] .events-page-scope .details-title-section h4{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .details-title-section .card-date{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .details-icons .icon-item,
+body[data-theme='dark'] .events-page-scope .details-icons .icon-item svg{
+  color: var(--text-soft); fill: var(--text-soft);
+}
+body[data-theme='dark'] .events-page-scope .details-body{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .details-body .detail-description{
+  color: var(--text); border-bottom-color: var(--accent);
+}
+body[data-theme='dark'] .events-page-scope .details-actions{
+  background: rgba(24,24,27,.85);
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+
+/* Кнопки (варианты) в дарке */
+body[data-theme='dark'] .events-page-scope .btn-style-neutral{
+  color: var(--text); background: var(--surface-soft);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-register{
+  color:#98e6b8; background: rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-list{
+  color:#8ab5ff; background: rgba(0,123,255,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-delete{
+  color:#ff8f8f; background: rgba(231,76,60,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-registered-filter{
+  color:#98e6b8; background: rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-unregistered-filter{
+  color: var(--text); background: rgba(108,117,125,.18);
+}
+
+/* Инпуты */
+body[data-theme='dark'] .events-page-scope .form-field label{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .form-input{ color: var(--text); background: transparent; }
+body[data-theme='dark'] .events-page-scope .form-input:disabled{
+  color:#adb5bd; background: transparent;
+}
+body[data-theme='dark'] .events-page-scope .input-wrapper::before{ background:#4c4f52; }
+body[data-theme='dark'] .events-page-scope .input-wrapper::after{ background: var(--accent); }
+
+/* Участники/приглашения */
+body[data-theme='dark'] .events-page-scope .participants-list .participant-entry{
+  background: var(--surface-soft); border:1px solid rgba(255,255,255,.12);
+}
+body[data-theme='dark'] .events-page-scope .invite-user-divider{ background: rgba(255,255,255,.12); }
+body[data-theme='dark'] .events-page-scope .invite-user-card .header-content h3{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .invite-user-card .header-content .card-subtitle{ color: var(--text-soft); }
+
+/* Модалки */
+body[data-theme='dark'] .events-page-scope .modal-overlay{
+  background: rgba(0,0,0,.65);
+}
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .events-page-scope .chat-header{
+  border-bottom:1px solid rgba(255,255,255,.15);
+}
+body[data-theme='dark'] .events-page-scope .chat-title-wrapper h2{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .chat-title-wrapper p{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .chat-close-btn{ color:#9ca3af; }
+body[data-theme='dark'] .events-page-scope .chat-close-btn:hover{ color: var(--accent); }
+
+/* Модалка подтверждения */
+body[data-theme='dark'] .events-page-scope .confirmation-modal-content{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .events-page-scope .confirmation-modal-header h2{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .confirmation-modal-body p{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.neutral{
+  background: var(--surface-soft); color: var(--text);
+}
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.neutral::before{ background:#6c757d; }
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.reject{
+  background: rgba(220,53,69,.16); color:#ff9090;
+}
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.reject::before{ background:#dc3545; }
+
+/* Поиск участников — дропдаун */
+body[data-theme='dark'] .events-page-scope .user-search-results-container{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 10px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .events-page-scope .user-search-item{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .user-search-info span{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .user-search-info small{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .user-search-results-container .user-search-item:not(:last-child){
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+/* Группы заявок */
+body[data-theme='dark'] .events-page-scope .submission-group{
+  background: rgba(255,255,255,.04);
+}
+body[data-theme='dark'] .events-page-scope .submission-group h5{ color:#f0e4d9; }
+body[data-theme='dark'] .events-page-scope .submission-group li{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .submission-group li span{ color: var(--text-soft); }
+
+/* Дарк-скроллы (такая же толщина, как в светлой) */
+body[data-theme='dark'] .events-page-scope .events-container .page-content,
+body[data-theme='dark'] .events-page-scope .edit-modal-body,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body,
+body[data-theme='dark'] .events-page-scope .details-body,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container,
+body[data-theme='dark'] .events-page-scope .user-search-results-container{
+  scrollbar-width: auto;
+  scrollbar-color:#6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .events-page-scope .events-container .page-content::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .edit-modal-body::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .details-body::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .user-search-results-container::-webkit-scrollbar{
+  width:14px;
+}
+body[data-theme='dark'] .events-page-scope .events-container .page-content::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .edit-modal-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .details-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .user-search-results-container::-webkit-scrollbar-track{
+  background:#1f1f20; border-left:1px solid #2a2a2c;
+}
+body[data-theme='dark'] .events-page-scope .events-container .page-content::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .edit-modal-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .details-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .user-search-results-container::-webkit-scrollbar-thumb{
+  background:#6b6d70; border-radius:8px; border:2px solid #2a2a2c;
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn,
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal .form-actions-container .form-submit-btn,
+body[data-theme='dark'] .events-page-scope .interactive-button[data-action="invite"]{
+  background: var(--accent);
+  color: #fff;
+  outline: 1px solid rgba(211,84,0,.55);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.18),
+    0 0 26px 6px rgba(211,84,0,.60);
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn:hover,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn:hover,
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal .form-actions-container .form-submit-btn:hover,
+body[data-theme='dark'] .events-page-scope .interactive-button[data-action="invite"]:hover{
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.24),
+    0 0 36px 10px rgba(211,84,0,.80);
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn:focus-visible,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn:focus-visible,
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal .form-actions-container .form-submit-btn:focus-visible,
+body[data-theme='dark'] .events-page-scope .interactive-button[data-action="invite"]:focus-visible{
+  outline: 2px solid rgba(211,84,0,.8);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.28),
+    0 0 44px 12px rgba(211,84,0,.85);
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn:disabled,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn:disabled{
+  opacity: .75;
+  box-shadow: none;
+  outline: none;
+}
+
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input{
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input:-webkit-autofill,
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input:-webkit-autofill:hover,
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input:-webkit-autofill:focus{
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit;
+}
+
+body[data-theme='dark'] .events-page-scope .student-view-container::before{
+  background: linear-gradient(to right, var(--surface) 0%, rgba(32,33,36,0) 100%);
+}
+
+body[data-theme='dark'] .events-page-scope .student-view-container::after{
+  background: linear-gradient(to left,  var(--surface) 0%, rgba(32,33,36,0) 100%);
+}
+
+
+.events-page-scope .interactive-button::before{
+  top: var(--mouse-y, 50%);
+  left: var(--mouse-x, 50%);
+}
+
+
+.content-area:has(.events-page-scope){ overflow: visible !important; }
+
+
+.events-page-scope .modal-overlay{ z-index:20000 !important; }
+.events-page-scope .edit-modal-content.signup-modal{ z-index:20001 !important; }
+.events-page-scope .confirmation-modal-content{ z-index:20002 !important; }
+.events-page-scope .user-search-results-container{ z-index:20003 !important; }
+body.modal-open .header-buttons-container{ pointer-events:none !important; opacity:.15; }
+
+
+.events-page-scope .card-content-wrapper{ overflow:hidden; }
+
+@media (max-width: 900px){
+  .events-page-scope .curator-card-body-grid{
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 12px;
+  }
+  .events-page-scope .column-details{ border-left:none; padding-left:0; }
+}
+@media (max-width: 420px){
+  .events-page-scope .curator-card-body-grid{ grid-template-columns:1fr; }
+}
+
+@media (max-width:640px){
+
+  /* контейнер/скролл/отступы */
+  .events-page-scope .events-container{
+    height:auto !important; max-height:none !important;
+    min-height:100%; padding:12px !important;
+  }
+  .events-page-scope .events-container .page-content{
+    height:auto !important; max-height:70svh !important;
+    overflow-y:auto !important; -webkit-overflow-scrolling:touch;
+    padding:clamp(12px,4vw,16px) !important;
+  }
+  /* на мобилке внешний контейнер можно скроллить */
+  .content-area:has(.events-page-scope){ overflow:auto !important; padding-bottom:0 !important; }
+
+  /* фильтры/поиск */
+  .events-page-scope .events-container .filter-container{ flex-wrap:wrap; gap:10px; padding:0; }
+  .events-page-scope .events-container .search-bar-wrapper{ flex:1 1 100%; }
+  .events-page-scope .events-container .filter-buttons{ flex:1 1 100%; flex-wrap:wrap; justify-content:flex-start; }
+
+  /* студенческая карусель */
+  .events-page-scope .student-view-container{
+    height:auto !important; min-height:0 !important;
+    overflow:visible !important; padding-bottom:0 !important;
+  }
+  .events-page-scope .student-view-container::before,
+  .events-page-scope .student-view-container::after{ display:none !important; }
+
+  .events-page-scope .events-carousel{
+    position:relative;
+    transform:none !important; left:0 !important; will-change:auto !important;
+    overflow-x:auto !important; overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory; touch-action:pan-x; overscroll-behavior-x:contain;
+    padding:0 12px 8px !important; /* первый слайд не подрезаем */
+  }
+  .events-page-scope .carousel-item-wrapper{ scroll-snap-align:center; padding:0 8px !important; }
+
+  .events-page-scope .event-card-student{ --card-height: clamp(240px, 70vw, 320px); }
+  .events-page-scope .event-card-student.is-detailed-view{ --card-height: clamp(260px, 74vw, 340px); }
+
+  /* панель деталей/кнопки */
+  .events-page-scope .event-card-student.is-detailed-view .details-container{
+    left:0 !important; right:0 !important; width:100% !important;
+  }
+  .events-page-scope .details-actions{ grid-template-columns:1fr; gap:10px; }
+  .events-page-scope .details-actions .interactive-button{ width:100%; }
+
+  /* карточка: шапка/кнопки в две колонки */
+  .events-page-scope .card-content-wrapper{ padding:0 12px; }
+  .events-page-scope .card-header{ gap:10px; flex-wrap:wrap; align-items:flex-start; }
+  .events-page-scope .card-header-right{
+    margin-left:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;
+  }
+  .events-page-scope .card-header-right .interactive-button{ width:100%; }
+
+  /* модалки */
+  .events-page-scope .edit-modal-content.signup-modal{
+    position:fixed !important; top:50% !important; left:50% !important;
+    transform:translate(-50%,-50%) !important;
+    width:min(92vw,420px) !important; height:auto !important; max-height:min(80svh,560px) !important;
+    margin:0 !important; overflow:hidden;
+  }
+  .events-page-scope .edit-modal-content.signup-modal.invite-modal{
+    width:min(92vw,420px) !important; height:auto !important; max-height:min(80svh,560px) !important;
+  }
+  .events-page-scope .edit-modal-body,
+  .events-page-scope .registrations-modal-body{ overflow-y:auto !important; }
+  .events-page-scope .signup-form-grid{ grid-template-columns:1fr !important; }
+  .events-page-scope .registration-modal-actions{ grid-template-columns:1fr; width:100%; margin-left:0; }
+  .events-page-scope .user-search-results-container{ max-height:50svh; overflow-y:auto; }
+
+  .events-page-scope .event-card.is-expanded .card-details-wrapper{ max-height:1000px; }
+
+  .header-buttons-container:has(+ .content-area .events-page-scope .modal-overlay){
+    pointer-events:none !important; opacity:.15;
+  }
+
+  .events-page-scope .events-carousel::after{
+    content:"Свайпните →";
+    position:absolute; right:10px; bottom:8px;
+    font:700 13px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    color:rgba(255,255,255,.9); background:rgba(0,0,0,.45);
+    padding:6px 10px; border-radius:12px; pointer-events:none;
+    animation: swipeHintOut 3.2s .8s forwards;
+  }
+}
+
+@media (max-width:640px) and (pointer:coarse){
+  .events-page-scope .events-carousel::-webkit-scrollbar{ display:none; }
+  .events-page-scope .events-carousel{ scrollbar-width:none; }
+}
+
+@media (max-width:640px) and (pointer:fine){
+  .events-page-scope .events-carousel{
+    overflow-x:hidden !important; scroll-snap-type:none !important; touch-action:auto;
+  }
+}
+
+@keyframes swipeHintOut{
+  0%{opacity:.9; transform:translateX(0)}
+  60%{opacity:.9; transform:translateX(8px)}
+  100%{opacity:0; transform:translateX(20px)}
 }
