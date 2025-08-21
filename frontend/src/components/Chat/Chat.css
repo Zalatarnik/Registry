@@ -46,11 +46,6 @@
     width: 100%;
     height: 100%;
     z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(33, 37, 41, 0.6);
-    backdrop-filter: blur(5px);
     animation: fadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
@@ -60,17 +55,19 @@
 
 /* контейнер всплывающего окна чата */
 .chat-popup-container {
+    position: absolute;
     display: flex;
     width: 90%;
-    max-width: 650px;
+    max-width: 380px;
     height: 80vh;
-    max-height: 700px;
+    max-height: 650px;
     overflow: hidden;
-    background-color: #fff;
+    background-color: #f8f9fa;
     border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
     flex-direction: column;
     animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    transition: top 0.3s ease-out, left 0.3s ease-out;
 }
 
 .chat-popup-container.closing {
@@ -81,10 +78,10 @@
 .chat-popup-header {
     display: flex;
     padding: 18px 25px;
-    border-bottom: 1px solid #e9ecef;
     flex-shrink: 0;
     justify-content: space-between;
     align-items: center;
+    cursor: grab;
 }
 
 .chat-popup-header h3 {
@@ -118,6 +115,109 @@
     fill: #495057;
 }
 
+/* Вкладки кураторов */
+.chat-curator-tabs {
+    display: flex;
+    flex-shrink: 0;
+    gap: 20px;
+    padding: 12px 25px;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #e9ecef;
+    overflow-x: auto;
+    /* Скрытие скроллбара */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Скрытие скроллбара для Webkit-браузеров */
+.chat-curator-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.curator-tab-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 44px;
+    height: 44px;
+    padding: 2px;
+    box-sizing: border-box;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.4s ease, border-radius 0.2s ease;
+}
+
+.curator-tab-button.active {
+    width: 190px;
+    border-radius: 44px;
+}
+
+.curator-tab-button.active:not(.selected) {
+    background-color: #d35400;
+}
+
+.curator-tab-button.selected {
+    background-color: #b84a00;
+}
+
+.curator-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: none;
+    transition: transform 0.3s ease;
+}
+
+.curator-tab-button .curator-name-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    opacity: 0;
+    transition: opacity 0.3s ease-out 0.15s, color 0.3s ease;
+}
+
+.curator-tab-button.active .curator-name-label {
+    opacity: 1;
+    color: #fff;
+}
+
+.student-info-tab {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.student-info-label {
+    font-size: 14px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.student-info-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #d35400;
+    padding: 2px 15px 2px 2px;
+    border-radius: 44px;
+}
+
+.student-info-card .curator-name-label.active {
+    opacity: 1;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
 /* область для сообщений */
 .chat-popup-messages {
     display: flex;
@@ -126,6 +226,7 @@
     padding: 25px;
     overflow-y: auto;
     flex-direction: column;
+    background-color: #ffffff;
 }
 
 .chat-popup-messages::-webkit-scrollbar {
@@ -187,6 +288,10 @@
 
 /* эффект затемнения при наведении */
 .message-bubble:hover {
+    filter: brightness(92%);
+}
+
+.my-message .message-bubble:hover {
     filter: brightness(92%);
 }
 
@@ -264,8 +369,6 @@
     display: flex;
     gap: 15px;
     padding: 15px 25px;
-    border-top: 1px solid #e9ecef;
-    background-color: #fff;
     align-items: center;
 }
 
