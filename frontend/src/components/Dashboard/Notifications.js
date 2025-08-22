@@ -16,9 +16,11 @@ import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
 
-const useNotification = () => ({
-    addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
-});
+const useNotification = () => {
+    return useMemo(() => ({
+        addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
+    }), []);
+};
 
 const EASING_FACTOR = 0.15;
 const DEFAULT_RADIUS = 0;
@@ -592,13 +594,32 @@ const NotificationCard = memo(({ invite, isActive, onCardClick, onMouseEnter, in
         callback(...args);
     };
 
+    let title = '';
+    let subtitle = '';
+
+    switch (invite.type) {
+        case 'message':
+            title = 'Новое сообщение';
+            subtitle = `От: <strong>${invite.sender}</strong>`;
+            break;
+        case 'expulsion':
+            title = 'Вас исключили из мероприятия';
+            subtitle = `<strong>${invite.event.eventName}</strong>`;
+            break;
+        case 'invitation':
+        default:
+            title = invite.event.eventName;
+            subtitle = `От: <strong>${invite.inviter}</strong>`;
+            break;
+    }
+
     return (
         <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter} onClick={(e) => handleAction(e, onCardClick, invite)}>
             <div className="card-content-wrapper">
                 <div className="notification-card-header">
                     <div className="notification-item-info">
-                        <h5>{invite.event.eventName}</h5>
-                        <p>От: <strong>{invite.inviter}</strong></p>
+                        <h5>{title}</h5>
+                        <p dangerouslySetInnerHTML={{ __html: subtitle }} />
                     </div>
                     <div className="notification-card-actions">
                         <button
@@ -668,7 +689,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
             credentials: "include"
         });
         const data = await res.json();
-        setInvitations(data.map(n => {
+        const fetchedInvitations = data.map(n => {
             const ev = n.Event || {};
             const normalizedEvent = {
                 ...ev,
@@ -687,18 +708,52 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
 
             return {
                 id: n.id,
+                type: 'invitation',
                 inviter: inviterName,
                 inviterGroup,
                 event: normalizedEvent,
                 message: n.message,
             };
-            }));
+            });
+            
+            const mockNotifications = [
+                {
+                    id: 'mock-msg-1',
+                    type: 'message',
+                    sender: 'Имя Фамилия',
+                    event: {
+                        id: 'mock-event-msg-1',
+                        eventName: 'test',
+                        eventDate: '2025-09-10T12:00:00Z',
+                        max_participants: 20, max_group_size: 4,
+                        description: 'test',
+                        leader: 'test', organizer: 'test', location: 'test',
+                        eventStatus: 'test', imageUrl: defaultEventImage
+                    },
+                },
+                {
+                    id: 'mock-exp-1',
+                    type: 'expulsion',
+                    event: {
+                        id: 'mock-event-exp-1',
+                        eventName: 'test',
+                        eventDate: '2025-08-30T09:00:00Z',
+                        max_participants: 100, max_group_size: 5,
+                        description: 'test',
+                        leader: 'test', organizer: 'test', location: 'test',
+                        eventStatus: 'Завершен', imageUrl: defaultEventImage
+                    },
+                }
+            ];
+
+            setInvitations([...fetchedInvitations, ...mockNotifications]);
+            
         } catch (err) {
-        addNotification("Ошибка загрузки уведомлений", "error");
+            addNotification("Ошибка загрузки уведомлений", "error");
         }
     };
     fetchInvites();
-    }, [isOpen, userLogin]);
+    }, [isOpen, userLogin, addNotification]);
 
     const handleClosePanel = useCallback(() => {
         setIsClosing(true);
@@ -757,7 +812,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     };
 
     load();
-    }, [isOpen, userLogin]);
+    }, [isOpen, userLogin, addNotification]);
 
     const gliderTargetId = clickedInviteId || hoveredInviteId;
 
