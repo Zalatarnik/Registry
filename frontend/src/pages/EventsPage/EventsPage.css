@@ -1619,3 +1619,395 @@
   font-size: 12px;
   color: #6c757d;
 }
+
+body[data-theme='dark'] .events-page-scope .events-container h1{
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.25),
+    0 0 18px rgba(255,255,255,.35),
+    0 0 36px rgba(255,255,255,.18);
+}
+
+/* Контейнер и тексты */
+body[data-theme='dark'] .events-page-scope .events-container .page-content{
+  background: var(--surface);
+  color: var(--text);
+}
+body[data-theme='dark'] .events-page-scope .header-content h3{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .header-content .card-date,
+body[data-theme='dark'] .events-page-scope .detail-label{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .card-details-wrapper{ background: var(--surface); }
+body[data-theme='dark'] .events-page-scope .column-details{ border-left:2px solid rgba(255,255,255,.15); }
+
+/* Поиск — нормальный плейсхолдер, без отбеливания на hover */
+body[data-theme='dark'] .events-page-scope .search-bar-wrapper input{
+  color: var(--text); caret-color: var(--text);
+}
+body[data-theme='dark'] .events-page-scope .search-bar-wrapper input::placeholder{
+  color: var(--text-soft);
+}
+body[data-theme='dark'] .events-page-scope .search-bar-wrapper .interactive-button:hover input::placeholder{
+  color: var(--text-soft);
+}
+
+/* Акцент глайдера */
+body[data-theme='dark'] .events-page-scope .list-glider{
+  background: var(--accent);
+}
+
+/* Студенческий слайдер — затемнённые края и панели */
+body[data-theme='dark'] .events-page-scope .student-view-container::before{
+  background: linear-gradient(to right, #0d0d0d 2%, transparent);
+}
+body[data-theme='dark'] .events-page-scope .student-view-container::after{
+  background: linear-gradient(to left, #0d0d0d 2%, transparent);
+}
+body[data-theme='dark'] .events-page-scope .student-card-inner{
+  background: var(--surface-soft);
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+body[data-theme='dark'] .events-page-scope .details-container{
+  background: rgba(24,24,27,.92);
+}
+body[data-theme='dark'] .events-page-scope .details-header{
+  background: var(--surface);
+}
+body[data-theme='dark'] .events-page-scope .details-title-section h4{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .details-title-section .card-date{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .details-icons .icon-item,
+body[data-theme='dark'] .events-page-scope .details-icons .icon-item svg{
+  color: var(--text-soft); fill: var(--text-soft);
+}
+body[data-theme='dark'] .events-page-scope .details-body{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .details-body .detail-description{
+  color: var(--text); border-bottom-color: var(--accent);
+}
+body[data-theme='dark'] .events-page-scope .details-actions{
+  background: rgba(24,24,27,.85);
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+
+/* Кнопки (варианты) в дарке */
+body[data-theme='dark'] .events-page-scope .btn-style-neutral{
+  color: var(--text); background: var(--surface-soft);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-register{
+  color:#98e6b8; background: rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-list{
+  color:#8ab5ff; background: rgba(0,123,255,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-delete{
+  color:#ff8f8f; background: rgba(231,76,60,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-registered-filter{
+  color:#98e6b8; background: rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .events-page-scope .btn-style-unregistered-filter{
+  color: var(--text); background: rgba(108,117,125,.18);
+}
+
+/* Инпуты */
+body[data-theme='dark'] .events-page-scope .form-field label{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .form-input{ color: var(--text); background: transparent; }
+body[data-theme='dark'] .events-page-scope .form-input:disabled{
+  color:#adb5bd; background: transparent;
+}
+body[data-theme='dark'] .events-page-scope .input-wrapper::before{ background:#4c4f52; }
+body[data-theme='dark'] .events-page-scope .input-wrapper::after{ background: var(--accent); }
+
+/* Участники/приглашения */
+body[data-theme='dark'] .events-page-scope .participants-list .participant-entry{
+  background: var(--surface-soft); border:1px solid rgba(255,255,255,.12);
+}
+body[data-theme='dark'] .events-page-scope .invite-user-divider{ background: rgba(255,255,255,.12); }
+body[data-theme='dark'] .events-page-scope .invite-user-card .header-content h3{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .invite-user-card .header-content .card-subtitle{ color: var(--text-soft); }
+
+/* Модалки */
+body[data-theme='dark'] .events-page-scope .modal-overlay{
+  background: rgba(0,0,0,.65);
+}
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .events-page-scope .chat-header{
+  border-bottom:1px solid rgba(255,255,255,.15);
+}
+body[data-theme='dark'] .events-page-scope .chat-title-wrapper h2{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .chat-title-wrapper p{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .chat-close-btn{ color:#9ca3af; }
+body[data-theme='dark'] .events-page-scope .chat-close-btn:hover{ color: var(--accent); }
+
+/* Модалка подтверждения */
+body[data-theme='dark'] .events-page-scope .confirmation-modal-content{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .events-page-scope .confirmation-modal-header h2{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .confirmation-modal-body p{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.neutral{
+  background: var(--surface-soft); color: var(--text);
+}
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.neutral::before{ background:#6c757d; }
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.reject{
+  background: rgba(220,53,69,.16); color:#ff9090;
+}
+body[data-theme='dark'] .events-page-scope .confirmation-modal-button.reject::before{ background:#dc3545; }
+
+/* Поиск участников — дропдаун */
+body[data-theme='dark'] .events-page-scope .user-search-results-container{
+  background: rgba(24,24,27,.92);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 10px 40px rgba(0,0,0,.6);
+}
+body[data-theme='dark'] .events-page-scope .user-search-item{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .user-search-info span{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .user-search-info small{ color: var(--text-soft); }
+body[data-theme='dark'] .events-page-scope .user-search-results-container .user-search-item:not(:last-child){
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+/* Группы заявок */
+body[data-theme='dark'] .events-page-scope .submission-group{
+  background: rgba(255,255,255,.04);
+}
+body[data-theme='dark'] .events-page-scope .submission-group h5{ color:#f0e4d9; }
+body[data-theme='dark'] .events-page-scope .submission-group li{ color: var(--text); }
+body[data-theme='dark'] .events-page-scope .submission-group li span{ color: var(--text-soft); }
+
+/* Дарк-скроллы (такая же толщина, как в светлой) */
+body[data-theme='dark'] .events-page-scope .events-container .page-content,
+body[data-theme='dark'] .events-page-scope .edit-modal-body,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body,
+body[data-theme='dark'] .events-page-scope .details-body,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container,
+body[data-theme='dark'] .events-page-scope .user-search-results-container{
+  scrollbar-width: auto;
+  scrollbar-color:#6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .events-page-scope .events-container .page-content::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .edit-modal-body::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .details-body::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container::-webkit-scrollbar,
+body[data-theme='dark'] .events-page-scope .user-search-results-container::-webkit-scrollbar{
+  width:14px;
+}
+body[data-theme='dark'] .events-page-scope .events-container .page-content::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .edit-modal-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .details-body::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container::-webkit-scrollbar-track,
+body[data-theme='dark'] .events-page-scope .user-search-results-container::-webkit-scrollbar-track{
+  background:#1f1f20; border-left:1px solid #2a2a2c;
+}
+body[data-theme='dark'] .events-page-scope .events-container .page-content::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .edit-modal-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .registrations-modal-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .details-body::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .invite-users-list-container::-webkit-scrollbar-thumb,
+body[data-theme='dark'] .events-page-scope .user-search-results-container::-webkit-scrollbar-thumb{
+  background:#6b6d70; border-radius:8px; border:2px solid #2a2a2c;
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn,
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal .form-actions-container .form-submit-btn,
+body[data-theme='dark'] .events-page-scope .interactive-button[data-action="invite"]{
+  background: var(--accent);
+  color: #fff;
+  outline: 1px solid rgba(211,84,0,.55);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.18),
+    0 0 26px 6px rgba(211,84,0,.60);
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn:hover,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn:hover,
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal .form-actions-container .form-submit-btn:hover,
+body[data-theme='dark'] .events-page-scope .interactive-button[data-action="invite"]:hover{
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.24),
+    0 0 36px 10px rgba(211,84,0,.80);
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn:focus-visible,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn:focus-visible,
+body[data-theme='dark'] .events-page-scope .edit-modal-content.signup-modal .form-actions-container .form-submit-btn:focus-visible,
+body[data-theme='dark'] .events-page-scope .interactive-button[data-action="invite"]:focus-visible{
+  outline: 2px solid rgba(211,84,0,.8);
+  box-shadow:
+    inset 0 0 0 1000px rgba(211,84,0,.28),
+    0 0 44px 12px rgba(211,84,0,.85);
+}
+
+body[data-theme='dark'] .events-page-scope .registration-modal-actions .form-submit-btn:disabled,
+body[data-theme='dark'] .events-page-scope .invite-modal .form-submit-btn:disabled{
+  opacity: .75;
+  box-shadow: none;
+  outline: none;
+}
+
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input{
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input:-webkit-autofill,
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input:-webkit-autofill:hover,
+body[data-theme='dark'] .events-page-scope .invite-modal
+  .search-bar-wrapper input:-webkit-autofill:focus{
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit;
+}
+
+body[data-theme='dark'] .events-page-scope .student-view-container::before{
+  background: linear-gradient(to right, var(--surface) 0%, rgba(32,33,36,0) 100%);
+}
+
+body[data-theme='dark'] .events-page-scope .student-view-container::after{
+  background: linear-gradient(to left,  var(--surface) 0%, rgba(32,33,36,0) 100%);
+}
+
+
+.events-page-scope .interactive-button::before{
+  top: var(--mouse-y, 50%);
+  left: var(--mouse-x, 50%);
+}
+
+
+.content-area:has(.events-page-scope){ overflow: visible !important; }
+
+
+.events-page-scope .modal-overlay{ z-index:20000 !important; }
+.events-page-scope .edit-modal-content.signup-modal{ z-index:20001 !important; }
+.events-page-scope .confirmation-modal-content{ z-index:20002 !important; }
+.events-page-scope .user-search-results-container{ z-index:20003 !important; }
+body.modal-open .header-buttons-container{ pointer-events:none !important; opacity:.15; }
+
+
+.events-page-scope .card-content-wrapper{ overflow:hidden; }
+
+@media (max-width: 900px){
+  .events-page-scope .curator-card-body-grid{
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 12px;
+  }
+  .events-page-scope .column-details{ border-left:none; padding-left:0; }
+}
+@media (max-width: 420px){
+  .events-page-scope .curator-card-body-grid{ grid-template-columns:1fr; }
+}
+
+@media (max-width:640px){
+
+  /* контейнер/скролл/отступы */
+  .events-page-scope .events-container{
+    height:auto !important; max-height:none !important;
+    min-height:100%; padding:12px !important;
+  }
+  .events-page-scope .events-container .page-content{
+    height:auto !important; max-height:70svh !important;
+    overflow-y:auto !important; -webkit-overflow-scrolling:touch;
+    padding:clamp(12px,4vw,16px) !important;
+  }
+  /* на мобилке внешний контейнер можно скроллить */
+  .content-area:has(.events-page-scope){ overflow:auto !important; padding-bottom:0 !important; }
+
+  /* фильтры/поиск */
+  .events-page-scope .events-container .filter-container{ flex-wrap:wrap; gap:10px; padding:0; }
+  .events-page-scope .events-container .search-bar-wrapper{ flex:1 1 100%; }
+  .events-page-scope .events-container .filter-buttons{ flex:1 1 100%; flex-wrap:wrap; justify-content:flex-start; }
+
+  /* студенческая карусель */
+  .events-page-scope .student-view-container{
+    height:auto !important; min-height:0 !important;
+    overflow:visible !important; padding-bottom:0 !important;
+  }
+  .events-page-scope .student-view-container::before,
+  .events-page-scope .student-view-container::after{ display:none !important; }
+
+  .events-page-scope .events-carousel{
+    position:relative;
+    transform:none !important; left:0 !important; will-change:auto !important;
+    overflow-x:auto !important; overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory; touch-action:pan-x; overscroll-behavior-x:contain;
+    padding:0 12px 8px !important; /* первый слайд не подрезаем */
+  }
+  .events-page-scope .carousel-item-wrapper{ scroll-snap-align:center; padding:0 8px !important; }
+
+  .events-page-scope .event-card-student{ --card-height: clamp(240px, 70vw, 320px); }
+  .events-page-scope .event-card-student.is-detailed-view{ --card-height: clamp(260px, 74vw, 340px); }
+
+  /* панель деталей/кнопки */
+  .events-page-scope .event-card-student.is-detailed-view .details-container{
+    left:0 !important; right:0 !important; width:100% !important;
+  }
+  .events-page-scope .details-actions{ grid-template-columns:1fr; gap:10px; }
+  .events-page-scope .details-actions .interactive-button{ width:100%; }
+
+  /* карточка: шапка/кнопки в две колонки */
+  .events-page-scope .card-content-wrapper{ padding:0 12px; }
+  .events-page-scope .card-header{ gap:10px; flex-wrap:wrap; align-items:flex-start; }
+  .events-page-scope .card-header-right{
+    margin-left:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;
+  }
+  .events-page-scope .card-header-right .interactive-button{ width:100%; }
+
+  /* модалки */
+  .events-page-scope .edit-modal-content.signup-modal{
+    position:fixed !important; top:50% !important; left:50% !important;
+    transform:translate(-50%,-50%) !important;
+    width:min(92vw,420px) !important; height:auto !important; max-height:min(80svh,560px) !important;
+    margin:0 !important; overflow:hidden;
+  }
+  .events-page-scope .edit-modal-content.signup-modal.invite-modal{
+    width:min(92vw,420px) !important; height:auto !important; max-height:min(80svh,560px) !important;
+  }
+  .events-page-scope .edit-modal-body,
+  .events-page-scope .registrations-modal-body{ overflow-y:auto !important; }
+  .events-page-scope .signup-form-grid{ grid-template-columns:1fr !important; }
+  .events-page-scope .registration-modal-actions{ grid-template-columns:1fr; width:100%; margin-left:0; }
+  .events-page-scope .user-search-results-container{ max-height:50svh; overflow-y:auto; }
+
+  .events-page-scope .event-card.is-expanded .card-details-wrapper{ max-height:1000px; }
+
+  .header-buttons-container:has(+ .content-area .events-page-scope .modal-overlay){
+    pointer-events:none !important; opacity:.15;
+  }
+
+  .events-page-scope .events-carousel::after{
+    content:"Свайпните →";
+    position:absolute; right:10px; bottom:8px;
+    font:700 13px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    color:rgba(255,255,255,.9); background:rgba(0,0,0,.45);
+    padding:6px 10px; border-radius:12px; pointer-events:none;
+    animation: swipeHintOut 3.2s .8s forwards;
+  }
+}
+
+@media (max-width:640px) and (pointer:coarse){
+  .events-page-scope .events-carousel::-webkit-scrollbar{ display:none; }
+  .events-page-scope .events-carousel{ scrollbar-width:none; }
+}
+
+@media (max-width:640px) and (pointer:fine){
+  .events-page-scope .events-carousel{
+    overflow-x:hidden !important; scroll-snap-type:none !important; touch-action:auto;
+  }
+}
+
+@keyframes swipeHintOut{
+  0%{opacity:.9; transform:translateX(0)}
+  60%{opacity:.9; transform:translateX(8px)}
+  100%{opacity:0; transform:translateX(20px)}
+}

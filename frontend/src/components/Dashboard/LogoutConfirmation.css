@@ -1,177 +1,144 @@
+/* анимации появления/ухода модалки выхода */
 @keyframes logout-modal-slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
-    }
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)      scale(1); }
 }
-
 @keyframes logout-modal-slide-out {
-    from {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px) scale(0.98);
-    }
+  from { opacity: 1; transform: translateX(-50%) translateY(0)      scale(1); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(-10px)  scale(0.98); }
 }
 
-.logout-modal-container {
-    position: fixed;
-    width: 380px;
-    z-index: 2000;
-    background-color: rgba(248, 249, 250, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-    border-radius: 16px;
-    padding: 20px;
-    box-sizing: border-box;
-    transform-origin: top center;
-    transform: translateX(-50%);
-    animation: logout-modal-slide-in 0.25s ease-out forwards;
+/* контейнер модалки выхода (светлая тема по умолчанию) */
+.logout-modal-container{
+  position: fixed;
+  width: 380px;
+  z-index: 2000;
+  padding: 20px;
+  box-sizing: border-box;
+
+  background: rgba(248, 249, 250, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+  border-radius: 16px;
+
+  transform-origin: top center;
+  transform: translateX(-50%);
+  animation: logout-modal-slide-in .25s ease-out forwards;
+}
+.logout-modal-container.is-closing{ animation: logout-modal-slide-out .25s ease-in forwards; }
+
+/* заголовок и текст */
+.logout-modal-header h2{
+  margin: 0 0 12px 0;
+  font-size: 18px; font-weight: 600; color: #212529;
+}
+.logout-modal-body p{
+  margin: 0 0 20px 0;
+  font-size: 15px; line-height: 1.6; color: #495057;
 }
 
-.logout-modal-container.is-closing {
-    animation: logout-modal-slide-out 0.25s ease-in forwards;
+/* подвал и кнопки */
+.logout-modal-footer{ display: flex; justify-content: flex-end; gap: 12px; }
+
+.logout-modal-button{
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  height: 40px; padding: 0 16px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+
+  border: 1px solid transparent; border-radius: 0;
+  background: transparent; overflow: hidden;
+  transition: background-color .3s, color .3s, border-color .3s;
 }
 
-.logout-modal-header h2 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0 0 12px 0;
-    color: #212529;
+/* круглая вспышка под курсором (переменные --mouse-x/--mouse-y выставляет JS) */
+.logout-modal-button::before{
+  content: "";
+  position: absolute; z-index: 0;
+  top: var(--mouse-y); left: var(--mouse-x);
+  width: 300px; height: 300px; border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform .4s ease-out, opacity .2s;
 }
+.logout-modal-button:hover::before{ transform: translate(-50%, -50%) scale(1); opacity: .85; }
+.logout-modal-button span{ position: relative; z-index: 1; transition: color .3s; }
+.logout-modal-button:hover span{ color: #fff !important; }
 
-.logout-modal-body p {
-    font-size: 15px;
-    line-height: 1.6;
-    margin: 0 0 20px 0;
-    color: #495057;
+/* варианты кнопок (светлая тема) */
+.logout-modal-button.neutral{
+  background: #f0f2f5; color: #495057;
 }
+.logout-modal-button.neutral::before{ background: #6c757d; }
 
-.logout-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+.logout-modal-button.reject{
+  background: #fdeaea; color: #9b1c1c;
 }
+.logout-modal-button.reject::before{ background: #dc3545; }
 
-.logout-modal-button {
-    position: relative;
-    display: flex;
-    height: 40px;
-    padding: 0 16px;
-    border-radius: 0px;
-    overflow: hidden;
-    box-sizing: border-box;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-}
-
-.logout-modal-button::before {
-    content: '';
-    position: absolute;
-    top: var(--mouse-y);
-    left: var(--mouse-x);
-    z-index: 0;
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    transition: transform 0.4s ease-out;
-}
-
-.logout-modal-button:hover::before {
-    transform: translate(-50%, -50%) scale(1);
-}
-
-.logout-modal-button span {
-    position: relative;
-    z-index: 1;
-    transition: color 0.3s ease;
-}
-
-.logout-modal-button:hover span {
-    color: #fff !important;
-}
-
-.logout-modal-button.neutral {
-    background-color: #f0f2f5;
-    color: #495057;
-}
-
-.logout-modal-button.neutral::before {
-    background-color: #6c757d;
-}
-
-.logout-modal-button.reject {
-    background-color: #fdeaea;
-    color: #9b1c1c;
-}
-
-.logout-modal-button.reject::before {
-    background-color: #dc3545;
-}
-
+/* анимации появления/ухода боковой инфо-модалки */
 @keyframes info-modal-slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(-100%) translateY(-10px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-100%) translateY(0) scale(1);
-    }
+  from { opacity: 0; transform: translateX(-100%) translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(-100%) translateY(0)      scale(1); }
 }
-
 @keyframes info-modal-slide-out {
-    from {
-        opacity: 1;
-        transform: translateX(-100%) translateY(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(-100%) translateY(-10px) scale(0.98);
-    }
+  from { opacity: 1; transform: translateX(-100%) translateY(0)      scale(1); }
+  to   { opacity: 0; transform: translateX(-100%) translateY(-10px)  scale(0.98); }
 }
 
-.info-modal-container {
-    position: fixed;
-    width: 320px;
-    z-index: 2000;
-    background-color: rgba(248, 249, 250, 0.8);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-    border-radius: 14px;
-    padding: 16px;
-    box-sizing: border-box;
-    transform-origin: top right;
-    animation: info-modal-slide-in 0.25s ease-out forwards;
+/* контейнер инфо-модалки (светлая тема) */
+.info-modal-container{
+  position: fixed;
+  width: 320px;
+  z-index: 2000;
+  padding: 16px;
+  box-sizing: border-box;
+
+  background: rgba(248, 249, 250, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+  border-radius: 14px;
+
+  transform-origin: top right;
+  animation: info-modal-slide-in .25s ease-out forwards;
+}
+.info-modal-container.is-closing{ animation: info-modal-slide-out .25s ease-in forwards; }
+
+/* наследуемые элементы внутри инфо-модалки */
+.info-modal-container .logout-modal-header h2{ font-size: 17px; margin-bottom: 10px; }
+.info-modal-container .logout-modal-body  p{ font-size: 14px; line-height: 1.5; margin-bottom: 0; }
+
+/* тёмная тема */
+body[data-theme='dark'] .logout-modal-container{
+  background: rgba(26,26,26,.92);
+  border-color: rgba(255,255,255,.12);
+  color: var(--text);
+}
+body[data-theme='dark'] .logout-modal-header h2{ color: var(--text); }
+body[data-theme='dark'] .logout-modal-body  p{ color: var(--text-soft); }
+
+body[data-theme='dark'] .info-modal-container{
+  background: rgba(26,26,26,.90);
+  border-color: rgba(255,255,255,.12);
+  color: var(--text);
 }
 
-.info-modal-container.is-closing {
-    animation: info-modal-slide-out 0.25s ease-in forwards;
+/* тёмная тема: кнопки */
+body[data-theme='dark'] .logout-modal-button.neutral{
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: transparent;
 }
+body[data-theme='dark'] .logout-modal-button.neutral::before{ background: #6c757d; }
 
-.info-modal-container .logout-modal-header h2 {
-    font-size: 17px;
-    margin-bottom: 10px;
+body[data-theme='dark'] .logout-modal-button.reject{
+  background: #7b1c1c;
+  color: #fff;
 }
+body[data-theme='dark'] .logout-modal-button.reject::before{ background: #b02a37; }
 
-.info-modal-container .logout-modal-body p {
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 0;
-}

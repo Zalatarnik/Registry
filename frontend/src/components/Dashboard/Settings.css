@@ -156,3 +156,56 @@
     box-shadow: 0 2px 8px rgba(211, 84, 0, 0.3);
     transition: transform 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
 }
+
+body[data-theme='dark'] .settings-component-scope  {
+
+      .info-modal-header{
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .settings-modal{
+    background : rgba(24,24,27,.92);
+    color      : var(--text-primary,#f1f3f4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.05);
+  }
+
+  /* заголовок и разделители */
+  .info-modal-header{
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .info-modal-header h2{
+    color: var(--text-primary,#fff);
+  }
+  .settings-divider{
+    background: rgba(255,255,255,.08);
+  }
+
+  /* подписи слева */
+  .settings-label{
+    color: var(--text-muted,#adb5bd);
+  }
+
+  .chat-close-btn{
+    color: #adb5bd;
+  }
+  .chat-close-btn:hover{
+    color: var(--accent,#e88b4d);
+  }
+
+  /* переключатель темы */
+  .glider-toggle{
+    background : #2b2d30;
+    border-color: rgba(255,255,255,.15);
+  }
+  .glider-toggle-button{
+    color: var(--text-muted,#adb5bd);
+  }
+  .glider-toggle-button.selected{
+    box-shadow: inset 0 0 0 1000px rgba(255,255,255,.06);
+    color: var(--text-primary,#fff);
+  }
+  .glider-toggle-glider{
+    background: var(--accent,#d35400);
+    box-shadow: 0 2px 6px rgba(211,84,0,.35);
+  }
+}

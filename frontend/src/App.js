@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { NotificationProvider, useNotification } from './notification/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 import LoginPage from './components/LoginPage/LoginPage';
 import Dashboard from './components/Dashboard/Dashboard';
 import localLogo from './images/logo.png';
+import { useTranslation } from './components/common/useTranslation';
+
 
 function AppContent() {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [isHidingLogin, setIsHidingLogin] = useState(false);
   const [activePage, setActivePage] = useState('profile');
@@ -53,12 +57,12 @@ const handleLoginSuccess = async (login, password) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || 'Ошибка входа');
+      throw new Error(errorData.detail || t('login.error'));
     }
     const data = await response.json();
     const user = { login: data.login, role: data.role };
 
-    addNotification(`Добро пожаловать! Вы вошли как ${user.role === 'student' ? 'студент' : 'куратор'}.`);
+    addNotification(user.role === 'student' ? t('login.success.student') : t('login.success.curator'));
 
     setIsHidingLogin(true);
     setTimeout(() => {
@@ -73,15 +77,20 @@ const handleLoginSuccess = async (login, password) => {
 };
 
   // Выход
-  const handleLogout = async () => {
+const handleLogout = async () => {
+  try {
     await fetch('http://localhost:8000/api/logout', {
       method: 'POST',
       credentials: 'include',
     });
-
-    setActivePage(null);
+  } catch (e) {
+    console.warn('logout fail:', e);
+  } finally {
+    // чистим локальный стейт
     setUser(null);
-  };
+    setActivePage(null);
+  }
+};
 
   const isLogoHidden = user && activePage;
 
@@ -89,7 +98,7 @@ const handleLoginSuccess = async (login, password) => {
     <div className="App">
       <div className={`background-triangle ${user ? 'is-visible' : ''} ${user && !activePage ? 'is-enlarged' : ''}`}></div>
       <div className={`background-shape-right ${user && !activePage ? 'is-visible' : ''}`}></div>
-      <img src={localLogo} alt="Логотип" className={`app-logo ${isLogoHidden ? 'is-hidden' : ''} ${user && !activePage ? 'is-enlarged' : ''}`} />
+      <img src={localLogo} alt={t('common.logoAlt')}  className={`app-logo ${isLogoHidden ? 'is-hidden' : ''} ${user && !activePage ? 'is-enlarged' : ''}`} />
 
       {!user ? (
         <div className={`login-page-container ${isHidingLogin ? 'is-hiding' : ''}`}>
@@ -110,8 +119,10 @@ const handleLoginSuccess = async (login, password) => {
 
 export default function App() {
   return (
-    <NotificationProvider>
-      <AppContent />
-    </NotificationProvider>
+    <ThemeProvider>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }

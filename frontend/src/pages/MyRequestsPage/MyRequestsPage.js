@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { useNotification } from '../../notification/NotificationContext';
 import './MyRequestsPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
 import ChatView from '../../components/Chat/Chat';
 import ConfirmationModal from '../../pages/ConfirmationModal';
+import { useTranslation } from '../../components/common/useTranslation';
 
 // иконки
 import { ReactComponent as ChatIcon } from '../../icons/chat-icon.svg';
@@ -92,30 +93,6 @@ const handleButtonLeave = (e) => {
 };
 
 
-// Открытие вложеных файлов в заметку
-const downloadAllFilesAsZip = (request) => {
-    const files = request.files || [];
-
-    if (files.length === 0) {
-        alert("Нет файлов для скачивания.");
-        return;
-    }
-
-    if (files.length === 1) {
-        // Один файл — просто открыть в новой вкладке
-        const fileUrl = `http://localhost:8000${files[0].url}`;
-        window.open(fileUrl, '_blank');
-    } else {
-        // Несколько файлов — скачать архив
-        const zipUrl = `http://localhost:8000/api/requests/${request.id}/files-zip`;
-        const link = document.createElement('a');
-        link.href = zipUrl;
-        link.setAttribute('download', `request_${request.id}_files.zip`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-};
 
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -128,19 +105,20 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [ref]);
     const handleSelect = (option) => {
-        onChange(option);
+        onChange(option.value);
         setIsOpen(false);
     };
+    const selected = options.find(o => o.value === value);
     return (
         <div ref={ref} className={`custom-select-container ${isOpen ? 'is-open' : ''}`}>
             <div className="form-input custom-select-value" onClick={() => setIsOpen(!isOpen)}>
-                {value || <span style={{ opacity: 0.6 }}>{placeholder}</span>}
+                {selected ? selected.label : <span style={{ opacity: 0.6 }}>{placeholder}</span>}
                 <DownIcon />
             </div>
             <div className="custom-select-options">
-                {options.map(option => (
-                    <div key={option} className={`custom-select-option ${value === option ? 'is-selected' : ''}`} onClick={() => handleSelect(option)}>
-                        {option}
+                {options.map(opt => (
+                    <div key={opt.value} className={`custom-select-option ${value === opt.value ? 'is-selected' : ''}`} onClick={() => handleSelect(opt)}>
+                        {opt.label}
                     </div>
                 ))}
             </div>
@@ -149,6 +127,7 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
 };
 
 const FileUploadArea = ({ files, setFiles }) => {
+    const { t } = useTranslation(); 
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef(null);
     const handleFileChange = (selectedFiles) => {
@@ -181,7 +160,7 @@ const FileUploadArea = ({ files, setFiles }) => {
                 {files.length === 0 ? (
                     <>
                         <UploadIcon className="file-upload-icon" />
-                        <p className="file-upload-text">Перетащите файлы сюда или <span>выберите их</span></p>
+                        <p className="file-upload-text">{t('newRequest.upload.title')} <span>{t('newRequest.upload.browse')}</span></p>
                     </>
                 ) : (
                     <div className="file-list-inside">
@@ -199,8 +178,75 @@ const FileUploadArea = ({ files, setFiles }) => {
     );
 };
 
+// ключи статусов запросов
+export const STATUS_KEYS = {
+  ALL: 'all',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  PENDING: 'pending',
+};
+
+// нормализация статусов запросов
+const toStatusKey = (s = '') => {
+  const raw = String(s).trim();
+  const map = {
+    'Одобрено': STATUS_KEYS.APPROVED,
+    'Отклонено': STATUS_KEYS.REJECTED,
+    'На рассмотрении': STATUS_KEYS.PENDING,
+    'Approved': STATUS_KEYS.APPROVED,
+    'Rejected': STATUS_KEYS.REJECTED,
+    'Pending': STATUS_KEYS.PENDING,
+    'approved': STATUS_KEYS.APPROVED,
+    'rejected': STATUS_KEYS.REJECTED,
+    'pending': STATUS_KEYS.PENDING,
+  };
+  return map[raw] ?? raw;
+};
+
+// стили кнопок статуса
+const statusStyleMap = {
+  [STATUS_KEYS.ALL]:      'btn-style-neutral',
+  [STATUS_KEYS.PENDING]:  'btn-style-pending',
+  [STATUS_KEYS.APPROVED]: 'btn-style-approved',
+  [STATUS_KEYS.REJECTED]: 'btn-style-rejected',
+};
+
+const toEventStatusKey = (s = '') => {
+  const raw = String(s).trim();
+  const map = {
+    // ru
+    'Международный':   'international',
+    'Всероссийский':   'allRussian',
+    'Городской':       'city',
+    'Региональный':    'regional',
+    'Внутривузовский': 'university',
+    // en
+    'International': 'international',
+    'All-Russian':   'allRussian',
+    'All Russian':   'allRussian',
+    'City':          'city',
+    'Regional':      'regional',
+    'University':    'university',
+  };
+  return map[raw] ?? raw;
+};
+
+const getEventStatusLabel = (raw, t) => {
+  const key = toEventStatusKey(raw);
+  const dictKey = `createEvent.status.${key}`;
+  try { return t(dictKey); } catch { return raw; }
+};
+
 const EditRequestModal = ({ request, onClose, onSave, position }) => {
+    const { t } = useTranslation(); 
     const { addNotification } = useNotification();
+    const STATUS_OPTIONS = [
+        { value: 'international', label: t('createEvent.status.international') },
+        { value: 'allRussian',    label: t('createEvent.status.allRussian')   },
+        { value: 'city',          label: t('createEvent.status.city')         },
+        { value: 'regional',      label: t('createEvent.status.regional')     },
+        { value: 'university',    label: t('createEvent.status.university')   },
+    ];
     const [isClosing, setIsClosing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [files, setFiles] = useState(request.files || []);
@@ -227,7 +273,7 @@ const EditRequestModal = ({ request, onClose, onSave, position }) => {
         const requiredFields = ['eventName', 'leader', 'organizer', 'location', 'eventStatus', 'eventDate'];
         for (const key of requiredFields) {
             if (!formData[key]) {
-                addNotification("Пожалуйста, заполните все обязательные поля.", "error");
+                addNotification(t('newRequest.notification.missingFields'), 'error');
                 return;
             }
         }
@@ -241,26 +287,23 @@ const EditRequestModal = ({ request, onClose, onSave, position }) => {
         <div className={`my-requests-scope modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
             <div className={`edit-modal-content ${isClosing ? 'is-closing' : ''}`} onMouseDown={e => e.stopPropagation()} style={position || {}}>
                 <div className="chat-header">
-                    <div className="chat-title-wrapper"><h2>Редактирование заявки</h2></div>
+                    <div className="chat-title-wrapper"><h2>{t('editRequest.title')}</h2></div>
+                    <button onClick={handleClose} className="chat-close-btn" title={t('myRequests.modal.close')}><CloseIcon /></button>
                 </div>
                 <div className="edit-modal-body">
                     <form onSubmit={handleSubmit} className="edit-form-inside-modal">
                         <div className="form-grid">
-                            <FormField label="Название мероприятия"><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
-                            <FormField label="Руководитель"><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
-                            <FormField label="Организатор"><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
-                            <FormField label="Место проведения"><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
-                            <FormField label="Статус мероприятия"><CustomSelect options={['Международный', 'Всероссийский', 'Городской', 'Региональный', 'Внутривузовский']} value={formData.eventStatus} onChange={(value) => handleInputChange('eventStatus', value)} placeholder="Выберите статус" /></FormField>
-                            <FormField label="Дата проведения"><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
-                            <div className="form-field-full-width form-grid-two-col-special">
-                                <FormField label="Описание"><textarea className="form-input" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} /></FormField>
-                                <FormField label="Ссылка на ресурс"><input className="form-input" type="text" value={formData.link} onChange={(e) => handleInputChange('link', e.target.value)} /></FormField>
-                            </div>
-                            <div className="form-field-full-width"><FileUploadArea files={files} setFiles={setFiles} /></div>
+                            <FormField label={t('createEvent.field.eventName')}><input className="form-input" type="text" value={formData.eventName} onChange={(e) => handleInputChange('eventName', e.target.value)} required /></FormField>
+                            <FormField label={t('createEvent.field.leader')}><input className="form-input" type="text" value={formData.leader} onChange={(e) => handleInputChange('leader', e.target.value)} required /></FormField>
+                            <FormField label={t('createEvent.field.organizer')}><input className="form-input" type="text" value={formData.organizer} onChange={(e) => handleInputChange('organizer', e.target.value)} required /></FormField>
+                            <FormField label={t('createEvent.field.location')}><input className="form-input" type="text" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} required /></FormField>
+                            <FormField label={t('createEvent.field.status')}><CustomSelect options={STATUS_OPTIONS} value={formData.eventStatus} onChange={(val) => handleInputChange('eventStatus', val)} placeholder={t('createEvent.field.status.placeholder')} /></FormField>
+                            <FormField label={t('createEvent.field.date')}><input className="form-input" type="date" value={formData.eventDate} onChange={(e) => handleInputChange('eventDate', e.target.value)} required /></FormField>
+                            <FileUploadArea files={files} setFiles={setFiles} />
                         </div>
                         <div className="form-actions-container">
-                            <button type="button" className="form-secondary-btn" onClick={handleClose} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>Отмена</span></button>
-                            <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}</span></button>
+                            <button type="button" className="form-secondary-btn" onClick={handleClose} disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{t('logout.cancel')}</span></button>
+                            <button type="submit" className="form-submit-btn" disabled={isSubmitting} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{isSubmitting ? `${t('profile.saveChanges')}...` : t('profile.saveChanges')}</span></button>
                         </div>
                     </form>
                 </div>
@@ -271,12 +314,13 @@ const EditRequestModal = ({ request, onClose, onSave, position }) => {
 };
 
 const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseEnter, onDelete, onDownload, onEdit, onOpenChat, innerRef }) => {
+    const { t } = useTranslation();
     const cardClassName = ['request-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const handleActionClick = (e, callback, ...args) => {
         e.stopPropagation();
-        if (typeof callback === 'function') callback(...args);
+        if (typeof callback === 'function') callback(e, ...args);
     };
-    const statusStyleMap = { 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
+
     const [areButtonsRendered, setAreButtonsRendered] = useState(false);
     const [animationClass, setAnimationClass] = useState('');
     const prevIsExpanded = useRef(isExpanded);
@@ -301,12 +345,12 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
     }, [isExpanded]);
 
     const formatFileText = (count) => {
-        if (count % 10 === 1 && count % 100 !== 11) {
-            return `${count} файл`;
-        } else if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
-            return `${count} файла`;
-        }
-        return `${count} файлов`;
+    if (count % 10 === 1 && count % 100 !== 11) {
+        return t('review.card.file.one', { n: count });
+    } else if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
+        return t('review.card.file.few', { n: count });
+    }
+    return t('review.card.file.many', { n: count });
     };
 
     return (
@@ -320,14 +364,14 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                     <div className="card-header-right">
                         {areButtonsRendered && (
                             <>
-                                {request.status === 'На рассмотрении' &&
-                                    <button className={`interactive-button is-icon btn-style-neutral ${animationClass}`} title="Редактировать" onClick={(e) => handleActionClick(e, onEdit, e, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
+                                {request.status === 'pending' &&
+                                    <button className={`interactive-button is-icon btn-style-neutral ${animationClass}`} title={t('myRequests.action.edit')} onClick={(e) => handleActionClick(e, onEdit, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><EditIcon /></span></button>
                                 }
-                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title="Отменить заявку" onClick={(e) => handleActionClick(e, onDelete, request, e)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
+                                <button className={`interactive-button is-icon btn-style-rejected ${animationClass}`} title={t('myRequests.action.delete')} onClick={(e) => handleActionClick(e, onDelete, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><RemoveIcon /></span></button>
                             </>
                         )}
-                        <button className="interactive-button is-icon btn-style-chat" title="Открыть чат" onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
-                        <button className={`interactive-button is-status-button ${statusStyleMap[request.status]}`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span>{request.status}</span></button>
+                        <button className="interactive-button is-icon btn-style-chat" title={t('review.chat.open')} onClick={(e) => handleActionClick(e, onOpenChat, request)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><ChatIcon /></span></button>
+                        <button className={`interactive-button is-status-button ${statusStyleMap[request.status]}`} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}><span><span>{t(`request.status.${request.status}`)}</span></span></button>
                     </div>
                 </div>
             </div>
@@ -338,45 +382,43 @@ const RequestCard = memo(({ request, isActive, isExpanded, onCardClick, onMouseE
                             <div
                                 className="m-stack-download"
                                 onClick={(e) => handleActionClick(e, onDownload, request)}
-                                title="Скачать прикрепленные файлы"
+                                title={t('review.download.start', { n: request.files.length })}
                             >
                                 <DownloadIcon className="stack-download-icon" />
                                 <div className="stack-label">{formatFileText(request.files.length)}</div>
                             </div>
                         ) : (
                             <div className="m-stack-download is-empty">
-                                <DownloadIcon className="stack-download-icon" />
-                                <div className="stack-label">Нет файлов</div>
+                                 <DownloadIcon className="stack-download-icon" />
+                                <div className="stack-label">{t('review.card.noFiles')}</div>
                             </div>
                         )}
                     </div>
                     <div className="card-body-column column-description">
                         <div className="detail-item">
-                            <span className="detail-label">Описание:</span>
-                            {request.description || 'Описание для этой заявки еще не добавлено.'}
+                            <span className="detail-label">{t('events.description')}:</span>
+                            {request.description}
                         </div>
                         <div className="detail-item detail-item-link">
-                            <span className="detail-label">Ссылка на ресурс:</span>
-                            {request.link ? (
-                                <a href={request.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                    {request.link}
+                            <span className="detail-label">{t('newRequest.link')}:</span>
+                            {request.resource_link ? (
+                                <a href={request.resource_link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                    {request.resource_link}
                                 </a>
-                            ) : 'Ссылка не указана.'}
+                            ) : t('review.card.noLink')}
                         </div>
                     </div>
                     <div className="card-body-column column-details">
-                        <div className="detail-item"><span className="detail-label">Руководитель:</span> {request.leader}</div>
-                        <div className="detail-item"><span className="detail-label">Организатор:</span> {request.organizer}</div>
-                        <div className="detail-item"><span className="detail-label">Место:</span> {request.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {request.eventStatus}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.leader')}:</span> {request.leader}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.organizer')}:</span> {request.organizer}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.location')}:</span> {request.location}</div>
+                        <div className="detail-item"><span className="detail-label">{t('events.status')}:</span> {getEventStatusLabel(request.eventStatus, t)}</div>
                     </div>
                 </div>
             </div>
         </div>
     );
 });
-
-const statusStyleMap = { 'Все': 'btn-style-neutral', 'Одобрено': 'btn-style-approved', 'Отклонено': 'btn-style-rejected', 'На рассмотрении': 'btn-style-pending' };
 
 const FormField = ({ label, children }) => (
   <div className="form-field">
@@ -385,7 +427,9 @@ const FormField = ({ label, children }) => (
   </div>
 );
 
+
 export default function MyRequestsPage({ userLogin }) {
+    const { t } = useTranslation();
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const { addNotification } = useNotification();
@@ -394,7 +438,7 @@ export default function MyRequestsPage({ userLogin }) {
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState('Все');
+    const [activeFilter, setActiveFilter] = useState(STATUS_KEYS.ALL);
     const inputRef = useRef(null);
     const [activeChatRequest, setActiveChatRequest] = useState(null);
     const [editingRequest, setEditingRequest] = useState(null);
@@ -409,14 +453,13 @@ export default function MyRequestsPage({ userLogin }) {
             setIsLoading(true);
             try {
                 const response = await fetch(`http://localhost:8000/api/requests/student/${userLogin}`);
-                if (!response.ok) {
-                    throw new Error('Не удалось загрузить заявки');
-                }
+                if (!response.ok) throw new Error(t('review.error.load'));
                 const data = await response.json();
                 const processedData = data.map(req => ({
                     ...req,
-                    description: req.description || "Тут будет описание, возможно, когда-нибудь",
-                    link: req.link || ""
+                    description: req.description,
+                    resource_link: (req.resource_link || '').trim(),
+                    status: toStatusKey(req.status),
                 }));
                 setRequests(processedData);
                 setIsLoading(false);
@@ -425,11 +468,11 @@ export default function MyRequestsPage({ userLogin }) {
             }
         };
         fetchRequests();
-    }, [userLogin]);
+    }, [userLogin, addNotification, t]);
 
     const filteredRequests = useMemo(() => {
         return requests
-            .filter(request => (activeFilter === 'Все' ? true : request.status === activeFilter))
+            .filter(request => (activeFilter === 'all' ? true : request.status === activeFilter))
             .filter(request => request.eventName.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [requests, searchTerm, activeFilter]);
 
@@ -460,7 +503,30 @@ export default function MyRequestsPage({ userLogin }) {
         setEditingRequest(request);
     };
 
-    const promptCancelRequest = (request, e) => {
+    // Открытие вложеных файлов в заметку
+    const downloadAllFilesAsZip = useCallback((_e, request) => {
+        const files = request.files || [];
+
+        if (files.length === 0) {
+            alert(t('review.download.noFiles'));
+            return;
+        }
+
+        if (files.length === 1) {
+            const fileUrl = `http://localhost:8000${files[0].url}`;
+            window.open(fileUrl, '_blank');
+        } else {
+            const zipUrl = `http://localhost:8000/api/requests/${request.id}/files-zip`;
+            const link = document.createElement('a');
+            link.href = zipUrl;
+            link.setAttribute('download', `request_${request.id}_files.zip`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }, [t]);
+
+    const promptCancelRequest = (e, request) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const modalWidth = 380;
         const gap = 15;
@@ -480,9 +546,9 @@ export default function MyRequestsPage({ userLogin }) {
         if (!requestToDelete) return;
         try {
             const response = await fetch(`http://localhost:8000/api/requests/${requestToDelete.id}`, { method: 'DELETE' });
-            if (!response.ok) throw new Error('Не удалось отменить заявку.');
+            if (!response.ok) throw new Error(t('request.delete.error'));
             setRequests(current => current.filter(r => r.id !== requestToDelete.id));
-            addNotification('Заявка успешно отменена!', 'success');
+            addNotification(t('request.delete.success'), 'success');
         } catch (error) {
             addNotification(error.message, 'error');
         } finally {
@@ -491,7 +557,7 @@ export default function MyRequestsPage({ userLogin }) {
         }
     };
 
-    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
+    const handleOpenChat = (_e, request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
 
     const handleSaveRequest = async (updatedData) => {
@@ -515,12 +581,12 @@ export default function MyRequestsPage({ userLogin }) {
 
             if (!response.ok) {
                 const errorResult = await response.json();
-                throw new Error(errorResult.detail || 'Не удалось обновить заявку.');
+                throw new Error(errorResult.detail || t('request.update.error'));
             }
 
             const savedRequest = await response.json();
             setRequests(prev => prev.map(r => r.id === savedRequest.id ? { ...savedRequest, description: r.description, link: r.link } : r));
-            addNotification('Заявка успешно обновлена!', 'success');
+            addNotification(t('request.update.success'), 'success');
             setEditingRequest(null);
 
         } catch (error) {
@@ -535,15 +601,15 @@ export default function MyRequestsPage({ userLogin }) {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmCancel}
                 position={deleteModalPosition}
-                title="Подтверждение отмены"
-                message={`Вы уверены, что хотите удалить заявку "${requestToDelete?.eventName || ''}"? Это действие необратимо.`}
-                confirmText="Удалить заявку"
-                cancelText="Назад"
+                title={t('confirm.title')}
+                message={t('confirm.cancelRequest')}
+                confirmText={t('common.delete')}
+                cancelText={t('common.back')}
             />
             {activeChatRequest && (<ChatView userLogin={userLogin} request={activeChatRequest} onClose={handleCloseChat} />)}
             {editingRequest && <EditRequestModal request={editingRequest} onClose={() => { setEditingRequest(null); setModalPosition(null); }} onSave={handleSaveRequest} position={modalPosition} />}
             <div className="requests-container">
-                <h1>Мои заявки</h1>
+                <h1>{t('page.title.myRequests')}</h1>
                 {isLoading ? (
                     <div className="page-loader-container"><ClockwiseLoader /></div>
                 ) : (
@@ -551,15 +617,20 @@ export default function MyRequestsPage({ userLogin }) {
                         <div className="filter-container">
                             <div className="search-bar-wrapper">
                                 <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder={t('review.search.placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
                                 </div>
                             </div>
                             <div className="filter-buttons">
-                                {Object.keys(statusStyleMap).map(status => (
-                                    <button key={status} className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${statusStyleMap[status]}`} onClick={() => setActiveFilter(status)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                        <span>{status}</span>
-                                    </button>
-                                ))}
+                            {Object.values(STATUS_KEYS).map(status => (
+                                <button
+                                key={status}
+                                className={`interactive-button ${activeFilter === status ? 'is-active-filter' : ''} ${statusStyleMap[status]}`}
+                                onClick={() => setActiveFilter(status)}
+                                onMouseMove={handleMouseMoveForEffect}
+                                onMouseLeave={handleButtonLeave}>
+                                <span>{t(`review.status.${status}`)}</span>
+                                </button>
+                            ))}
                             </div>
                         </div>
                         <div className="page-content">
@@ -584,7 +655,7 @@ export default function MyRequestsPage({ userLogin }) {
                                         </React.Fragment>
                                     ))
                                 ) : (
-                                    <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>Заявки с выбранными фильтрами не найдены.</div>
+                                    <div style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>{t('review.noRequests')}</div>
                                 )}
                             </div>
                         </div>

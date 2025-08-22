@@ -165,8 +165,57 @@
 }
 
 .support-component-scope .support-divider {
-    height: 1px;
+    height: 0px;
     margin: 8px 0;
     background-color: transparent;
     border: none;
+}
+
+body[data-theme='dark'] .support-component-scope{
+  .support-modal{
+    background: rgba(24,24,27,.92);
+    box-shadow: 0 8px 28px rgba(0,0,0,.55);
+  }
+
+  .info-modal-header{
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .info-modal-header h2{
+    color: #fff;
+  }
+
+  .chat-close-btn{ color:#adb5bd; }
+  .chat-close-btn:hover{ color:var(--accent,#d35400); }
+
+  .info-modal-body{
+    color:#e0e0e0;
+  }
+  .support-intro-text{
+    color:#b5b9be;
+  }
+
+  .support-contact-item{
+    background:#181a1b;
+    border:1px solid rgba(255,255,255,.07);
+  }
+  .support-contact-item:hover{
+    background:#1f2023;
+  }
+
+  .contact-icon-wrapper{
+    background:#2b2d30;
+    color:var(--accent,#e88b4d);
+  }
+  .support-contact-item:hover .contact-icon-wrapper{
+    background:var(--accent,#d35400);
+    color:#fff;
+  }
+
+  .contact-label { color:#868e96; }
+  .contact-value{ color:#f1f3f4; }
+  .contact-value:hover{ color:var(--accent,#e88b4d); }
+
+  .support-divider{
+    background:rgba(255,255,255,.08);
+  }
 }

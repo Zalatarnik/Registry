@@ -216,7 +216,7 @@ exports.getUserRegistrations = async (req, res) => {
       where: { userLogin: login },
       include: [{ model: Event }],
     });
-    
+
     // Извлечение id мероприятия
     const eventIds = registrations.map(reg => reg.eventId);
 
