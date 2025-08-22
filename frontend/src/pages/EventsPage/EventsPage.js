@@ -537,11 +537,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
                                         {!p.isLocked && <button type="button" className="remove-participant-btn" onClick={() => removeParticipant(index)}><RemoveIcon /></button>}
                                         <div className="form-grid signup-form-grid">
                                             <div className="participant-search-container" ref={index === activeSearchIndex ? searchContainerRef : null}>
-<<<<<<< HEAD
-                                                <FormField label={p.isLocked ? "Ваше ФИО" : "ФИО участника"}>
-=======
                                                  <FormField label={p.isLocked ? t('signup.yourFullName') : t('signup.participantFullName')}>
->>>>>>> feature_full_translations_statuses_validation
                                                     <input 
                                                         type="text" 
                                                         className="form-input" 
@@ -576,11 +572,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
                                                     </div>
                                                 )}
                                             </div>
-<<<<<<< HEAD
-                                            <FormField label={p.isLocked ? "Ваша группа" : "Группа"}>
-=======
                                             <FormField label={p.isLocked ? t('signup.yourGroup') : t('signup.group')}>
->>>>>>> feature_full_translations_statuses_validation
                                                 <input type="text" className="form-input" value={p.group} readOnly required disabled={p.isLocked || p.id} />
                                             </FormField>
                                         </div>
@@ -613,10 +605,7 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
 // модальное окно для приглашения пользователей
 const AllUsersModal = memo(forwardRef((
   { eventId, curatorLogin, onClose, position, registeredParticipants = [] }, ref ) => {
-<<<<<<< HEAD
-=======
     const { t } = useTranslation();
->>>>>>> feature_full_translations_statuses_validation
     const { addNotification } = useNotification();
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -783,11 +772,7 @@ const AllUsersModal = memo(forwardRef((
                                                             if (!resp.ok) throw new Error(data.detail || t('invite.errorSend'));
 
                                                             setInvitedLogins(prev => new Set(prev).add(user.login));
-<<<<<<< HEAD
-                                                            addNotification(`Приглашение отправлено ${user.firstName} ${user.lastName} ${user.middleName || ''}`, 'success');
-=======
                                                             addNotification(t('invite.sentTo', { firstName: user.firstName, lastName: user.lastName, middleName: user.middleName || '' }), 'success');
->>>>>>> feature_full_translations_statuses_validation
                                                             } catch (err) {
                                                             addNotification(err.message, 'error');
                                                             }
@@ -820,10 +805,7 @@ const AllUsersModal = memo(forwardRef((
 
 // всплывающее окно для просмотра списка записавшихся
 const RegistrationsModal = ({ onClose, event, registrations = [], position, onInvite, onCloseInvite, isInviteModalOpen, onDeleteGroup }) => {
-<<<<<<< HEAD
-=======
     const { t } = useTranslation();
->>>>>>> feature_full_translations_statuses_validation
     const [isClosing, setIsClosing] = useState(false);
     const modalRef = useRef(null);
     const [dynamicPosition, setDynamicPosition] = useState(position);
@@ -945,17 +927,6 @@ const RegistrationsModal = ({ onClose, event, registrations = [], position, onIn
             <div ref={modalRef} className={`edit-modal-content signup-modal ${isClosing ? 'is-closing' : ''}`} onMouseDown={(e) => e.stopPropagation()} style={dynamicPosition || {}}>
                 <div className="chat-header" onMouseDown={handleDragStart}>
                     <div className="chat-title-wrapper">
-<<<<<<< HEAD
-                        <h2>Записавшиеся на "{event.eventName}"</h2>
-                        <p>{new Date(event.eventDate).toLocaleDateString('ru-RU')}</p>
-                    </div>
-                    <div className="details-icons registration-modal-icons">
-                        <div className="icon-item" title="Макс. участников">
-                            <UsersIcon />
-                            <span>{registrations.length}/{event.maxParticipants || '∞'}</span>
-                        </div>
-                        <div className="icon-item" title="Макс. чел. в группе">
-=======
                         <h2>{t('events.registeredFor', { name: event.eventName })}</h2>
                         <p>{new Date(event.eventDate).toLocaleDateString('ru-RU')}</p>
                     </div>
@@ -965,7 +936,6 @@ const RegistrationsModal = ({ onClose, event, registrations = [], position, onIn
                             <span>{registrations.length}/{event.maxParticipants || '∞'}</span>
                         </div>
                         <div className="icon-item" title={t('notification.maxGroupSize')}>
->>>>>>> feature_full_translations_statuses_validation
                             <GroupIcon />
                             <span>{event.teamSize || 1}</span>
                         </div>
@@ -976,20 +946,12 @@ const RegistrationsModal = ({ onClose, event, registrations = [], position, onIn
                         Object.values(groupedSubmissions).map((submissionGroup, index) => (
                             <div key={submissionGroup[0].submission_group_id} className="submission-group">
                                 <div className="submission-group-header">
-<<<<<<< HEAD
-                                    <h5>Группа №{index + 1} ({submissionGroup.length} чел.)</h5>
-=======
                                      <h5>{t('events.groupN', { n: index + 1 })} ({submissionGroup.length} {t('events.peopleShort')})</h5>
->>>>>>> feature_full_translations_statuses_validation
                                     {onDeleteGroup && (
                                         <button
                                             className="delete-group-btn"
                                             onClick={() => onDeleteGroup(submissionGroup[0].submission_group_id)}
-<<<<<<< HEAD
-                                            title="Удалить группу"
-=======
                                             title={t('events.deleteGroup')}
->>>>>>> feature_full_translations_statuses_validation
                                         >
                                             <DeleteIcon />
                                         </button>
@@ -1122,12 +1084,8 @@ const CuratorEventCard = memo(({ event, isActive, isExpanded, onCardClick, onDel
 
 // карточка мероприятия для вида студента
 const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDetailed, onDownload }) => {
-<<<<<<< HEAD
-    const isOpen = event.eventStatus === 'Набор открыт';
-=======
     const { t } = useTranslation();
     const isOpen = isRecruitmentOpen(event);
->>>>>>> feature_full_translations_statuses_validation
     const cardClassName = [
         'event-card-student',
         isCentral && 'is-central',
@@ -1151,11 +1109,7 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                 </div>
 
                 <div className={`recruitment-status-badge status-${isOpen ? 'active' : 'completed'}`}>
-<<<<<<< HEAD
-                {isOpen ? 'Набор открыт' : 'Набор закрыт'}
-=======
                     {isOpen ? t('events.recruitment.open') : t('events.recruitment.closed')}
->>>>>>> feature_full_translations_statuses_validation
                 </div>
 
                 <div className="details-container">
@@ -1209,17 +1163,10 @@ const StudentEventCard = memo(({ event, onSignUp, isRegistered, isCentral, isDet
                              <span>
                                <AddIcon />
                                {isRegistered 
-<<<<<<< HEAD
-                                 ? 'Вы уже записаны' 
-                                 : !isOpen 
-                                   ? 'Набор закрыт' 
-                                   : 'Записаться'}
-=======
                                  ? t('notification.alreadyRegistered') 
                                  : !isOpen 
                                    ? t('events.recruitment.closed') 
                                    : t('signup.submit')}
->>>>>>> feature_full_translations_statuses_validation
                              </span>
                         </button>
                     </div>
@@ -1382,11 +1329,7 @@ export default function EventsPage({ userLogin, userRole }) {
                         countsData = await countsResponse.json();
                     }
                 } catch (e) {
-<<<<<<< HEAD
-                    console.error("Не удалось загрузить количество регистраций:", e);
-=======
                     console.error(t('notification.errorLoadRegistrationsCounts'), e);
->>>>>>> feature_full_translations_statuses_validation
                 }
 
                 // Обрабатываем данные мероприятий
@@ -1397,11 +1340,7 @@ export default function EventsPage({ userLogin, userRole }) {
                     maxParticipants: event.maxParticipants ?? 100,
                     teamSize: event.teamSize ?? 5,
                     current_participants: Number(countsData[event.id] ?? 0),
-<<<<<<< HEAD
-                    description: event.description || 'Тут будет описание, возможно, когда-нибудь',
-=======
                     description: event.description || t('events.noDescription'),
->>>>>>> feature_full_translations_statuses_validation
                 }));
 
                 setEvents(processedEvents);
@@ -1517,19 +1456,16 @@ export default function EventsPage({ userLogin, userRole }) {
          setEvents(prevEvents => prevEvents.map(ev => {
            if (ev.id !== eventId) return ev;
            const newCount = (ev.current_participants || 0) + (participantsCount || 1);
-<<<<<<< HEAD
-           const isClosed =
-             new Date(ev.eventDate) < new Date() ||
-             (ev.maxParticipants && newCount >= ev.maxParticipants);
+        //    const isClosed =
+        //      new Date(ev.eventDate) < new Date() ||
+        //      (ev.maxParticipants && newCount >= ev.maxParticipants);
+        //    return {
+        //      ...ev,
+        //      current_participants: newCount,
+        //      eventStatus: isClosed ? 'Набор закрыт' : 'Набор открыт',
            return {
              ...ev,
              current_participants: newCount,
-             eventStatus: isClosed ? 'Набор закрыт' : 'Набор открыт',
-=======
-           return {
-             ...ev,
-             current_participants: newCount,
->>>>>>> feature_full_translations_statuses_validation
            };
          }));
         handleCloseSignUpModal();
@@ -1642,11 +1578,7 @@ export default function EventsPage({ userLogin, userRole }) {
         if (!selectedEvent) return;
 
         const eventId = selectedEvent.id;
-<<<<<<< HEAD
-        if (!window.confirm('Удалить всю группу участников?')) return;
-=======
         if (!window.confirm(t('events.deleteGroupConfirm'))) return;
->>>>>>> feature_full_translations_statuses_validation
 
         try {
             const resp = await fetch(
@@ -1655,11 +1587,7 @@ export default function EventsPage({ userLogin, userRole }) {
             );
 
             const data = await resp.json();
-<<<<<<< HEAD
-            if (!resp.ok) throw new Error(data.detail || 'Не удалось удалить группу');
-=======
             if (!resp.ok) throw new Error(data.detail || t('events.deleteGroupError'));
->>>>>>> feature_full_translations_statuses_validation
 
             setRegistrations(prev => ({
             ...prev,
@@ -1668,25 +1596,17 @@ export default function EventsPage({ userLogin, userRole }) {
             ),
             }));
 
-<<<<<<< HEAD
-            addNotification(data.detail || 'Группа удалена', 'success');
-=======
             addNotification(data.detail || t('events.groupDeleted'), 'success');
->>>>>>> feature_full_translations_statuses_validation
         } catch (err) {
             addNotification(err.message, 'error');
         }
     };
 
-<<<<<<< HEAD
-    const filterStyleMap = { 'Все': 'btn-style-neutral', 'Записан': 'btn-style-registered-filter', 'Не записан': 'btn-style-unregistered-filter' };
-=======
     const filterStyleMap = {
       [t('filters.all')]: 'btn-style-neutral',
       [t('filters.registered')]: 'btn-style-registered-filter',
       [t('filters.unregistered')]: 'btn-style-unregistered-filter'
     };
->>>>>>> feature_full_translations_statuses_validation
 
     return (
         <div className="events-page-scope">
