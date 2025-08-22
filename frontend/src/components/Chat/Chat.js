@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useNotification } from '../../notification/NotificationContext';
+import { useTranslation } from '../common/useTranslation';
 import './Chat.css';
 
 // иконки
@@ -19,6 +20,7 @@ const handleMouseMove = (e) => {
 };
 
 const ChatView = ({ userLogin, request, onClose }) => {
+    const { t } = useTranslation();
     // состояние для хранения массива сообщений
     const [messages, setMessages] = useState([]);
     // состояние для текста в поле ввода нового сообщения
@@ -341,7 +343,7 @@ const ChatView = ({ userLogin, request, onClose }) => {
                     body: JSON.stringify(bodyPayload)
                 }
             );
-            if (!response.ok) throw new Error('Не удалось отправить сообщение.');
+            if (!response.ok) throw new Error(t('chat.error.load'));
             
             const sentMessage = await response.json();
             setMessages(prevMessages => [...prevMessages, { ...sentMessage, isNew: true }]);
@@ -360,8 +362,8 @@ const ChatView = ({ userLogin, request, onClose }) => {
                 onClick={e => e.stopPropagation()}
             >
                 <div className="chat-popup-header" onMouseDown={handleDragStart}>
-                    <h3>Чат по заявке: "{request.eventName || request.id}"</h3>
-                    <button onClick={handleClose} className="chat-close-button" title="Закрыть чат"><ExitIcon /></button>
+                    <h3>{t('chat.title', { event: request.eventName || request.id })}</h3>
+                    <button onClick={handleClose} className="chat-close-button" title={t('chat.button.close')}><ExitIcon /></button>
                 </div>
 
                 {currentUser?.role === 'curator' && studentParticipant && (
@@ -420,8 +422,8 @@ const ChatView = ({ userLogin, request, onClose }) => {
 
                 <div className="chat-popup-messages">
                     {isLoading && messages.length === 0 ? (
-                        <p style={{textAlign: 'center', color: '#6c757d'}}>Загрузка сообщений...</p>
-                    ) : filteredMessages.length > 0 ? (
+                        <p className="chat-placeholder">{t('chat.loading')}</p>
+                    ) : messages.length > 0 ? (
                         // рендерим список сообщений
                         filteredMessages.map(msg => (
                             <div
@@ -439,7 +441,8 @@ const ChatView = ({ userLogin, request, onClose }) => {
                             </div>
                         ))
                     ) : (
-                        <p style={{textAlign: 'center', color: '#6c757d'}}>В этом чате пока нет сообщений.</p>
+                        // сообщение, если чат пуст
+                        <p className="chat-placeholder">{t('chat.empty')}</p>
                     )}
                     <div ref={messagesEndRef} />
                 </div>

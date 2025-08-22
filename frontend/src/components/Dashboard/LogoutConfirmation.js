@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import './LogoutConfirmation.css';
+import { useTranslation } from '../common/useTranslation';
 
 // АНИМАЦИЯ
 const EASING_FACTOR = 0.15; 
@@ -82,6 +83,7 @@ const handleButtonLeave = (e) => {
 
 // Компонент модального окна для подтверждения выхода
 const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
+  const { t } = useTranslation();
   const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef(null); 
 
@@ -121,10 +123,10 @@ const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
   return ReactDOM.createPortal(
     <div ref={modalRef} className={containerClassName} style={modalStyle}>
       <div className="logout-modal-header">
-        <h2>Подтверждение</h2>
+        <h2>{t('logout.confirmationTitle')}</h2>
       </div>
       <div className="logout-modal-body">
-        <p>Вы уверены, что хотите выйти из своей учетной записи?</p>
+        <p>{t('logout.confirmationMessage')}</p>
       </div>
       <div className="logout-modal-footer">
         <button 
@@ -133,7 +135,7 @@ const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
           onMouseMove={handleMouseMoveForEffect} 
           onMouseLeave={handleButtonLeave} 
         >
-          <span>Отмена</span>
+          <span>{t('logout.cancel')}</span>
         </button>
         <button 
           className="logout-modal-button reject" 
@@ -141,7 +143,7 @@ const LogoutConfirmation = ({ isOpen, onClose, onConfirm, position }) => {
           onMouseMove={handleMouseMoveForEffect}
           onMouseLeave={handleButtonLeave} 
         >
-          <span>Выйти</span>
+          <span>{t('logout.confirm')}</span>
         </button>
       </div>
     </div>,

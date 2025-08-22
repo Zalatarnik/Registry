@@ -120,3 +120,60 @@
 .confirmation-modal-button.reject::before {
   background-color: #dc3545;
 }
+
+body[data-theme='dark']{
+  --surface:#1a1a1a;
+  --surface-soft:#2c2c2c;
+  --text:#e8e8e8;
+  --text-soft:#a0a0a0;
+  --accent:#d35400;
+}
+
+/* модал */
+body[data-theme='dark'] .confirmation-modal-content{
+  background: rgba(24,24,27,.92);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 16px 40px rgba(0,0,0,.60);
+}
+
+/* заголовок/текст */
+body[data-theme='dark'] .confirmation-modal-header h2{ 
+  color: var(--text);
+  text-shadow: 0 0 18px rgba(255,255,255,.25);
+}
+body[data-theme='dark'] .confirmation-modal-body p{ color: var(--text-soft); }
+
+/* общая кнопка */
+body[data-theme='dark'] .confirmation-modal-button{
+  color: var(--text);
+  background: var(--surface-soft);
+  border: 1px solid rgba(255,255,255,.06);
+}
+body[data-theme='dark'] .confirmation-modal-button::before{ background:#6c757d; }
+body[data-theme='dark'] .confirmation-modal-button:hover span{ color:#fff !important; }
+
+/* нейтральная */
+body[data-theme='dark'] .confirmation-modal-button.neutral{
+  background: var(--surface-soft);
+  color: var(--text);
+}
+body[data-theme='dark'] .confirmation-modal-button.neutral::before{ background:#6c757d; }
+
+/* отклонить */
+body[data-theme='dark'] .confirmation-modal-button.reject{
+  background: rgba(220,53,69,.16);
+  color: #ff8f8f;
+  border-color: rgba(220,53,69,.25);
+}
+body[data-theme='dark'] .confirmation-modal-button.reject::before{ background:#dc3545; }
+
+/* фокусы для клавиатуры */
+body[data-theme='dark'] .confirmation-modal-button:focus-visible{
+  outline: 2px solid rgba(255,255,255,.18);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.08), 0 0 24px rgba(0,0,0,.5) inset;
+}
+body[data-theme='dark'] .confirmation-modal-button.reject:focus-visible{
+  outline-color: rgba(220,53,69,.6);
+  box-shadow: 0 0 0 3px rgba(220,53,69,.25), 0 0 24px rgba(220,53,69,.18) inset;
+}

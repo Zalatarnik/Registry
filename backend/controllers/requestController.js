@@ -173,7 +173,7 @@ exports.updateRequest = async (req, res) => {
       eventDate: request.eventDate,
       description: request.description,
       link: request.link,
-      status: 'На рассмотрении',
+      status: 'Pending',
       files: fs.existsSync(uploadsDir)
         ? fs.readdirSync(uploadsDir).map(name => ({ name, url: `/uploads/request_${id}/${name}` }))
         : []

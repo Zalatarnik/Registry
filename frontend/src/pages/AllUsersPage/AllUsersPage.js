@@ -3,6 +3,7 @@ import { useNotification } from '../../notification/NotificationContext';
 import './AllUsersPage.css';
 import ClockwiseLoader from '../../components/common/Loader';
 import ConfirmationModal from '../../pages/ConfirmationModal'; 
+import { useTranslation } from '../../components/common/useTranslation';
 
 // иконки
 import { ReactComponent as SearchIcon } from '../../icons/search-icon.svg';
@@ -81,9 +82,10 @@ const handleButtonLeave = (e) => {
 
 // карточка пользователя
 const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, innerRef, onDeleteUser }) => {
+    const { t } = useTranslation();
     const cardClassName = ['user-card', isActive && 'is-active', isExpanded && 'is-expanded'].filter(Boolean).join(' ');
     const userFullName = `${user.lastName} ${user.firstName} ${user.middleName || ''}`.trim();
-    const roleDisplayMap = { student: 'Студент', curator: 'Куратор' };
+    const roleDisplayMap = { student: t('allUsers.role.student'), curator: t('allUsers.role.curator') };
     const roleText = user.role === 'student' ? `${roleDisplayMap[user.role]}, ${user.group}` : roleDisplayMap[user.role];
 
     return (
@@ -102,7 +104,7 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
                             onMouseMove={handleMouseMoveForEffect}
                             onMouseLeave={handleButtonLeave}
                         >
-                            <span><DeleteIcon /> Удалить</span>
+                            <span><DeleteIcon /> {t('allUsers.delete')}</span>
                         </button>
                         <div 
                             className={`interactive-button role-badge role-${user.role}`} 
@@ -116,10 +118,10 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
             </div>
             <div className="card-details-wrapper">
                 <div className="card-body">
-                    <div className="detail-item"><span className="detail-label">Логин:</span> {user.login}</div>
-                    <div className="detail-item"><span className="detail-label">Почта:</span> {user.email}</div>
+                    <div className="detail-item"><span className="detail-label">{t('allUsers.login')}</span> {user.login}</div>
+                    <div className="detail-item"><span className="detail-label">{t('allUsers.email')}</span> {user.email}</div>
                     {user.role === 'student' && (
-                        <div className="detail-item"><span className="detail-label">№ студ. билета:</span> {user.studentIdNumber}</div>
+                        <div className="detail-item"><span className="detail-label">{t('allUsers.studentId')}</span> {user.studentIdNumber}</div>
                     )}
                 </div>
             </div>
@@ -127,10 +129,15 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
     );
 });
 
-const roleStyleMap = { 'Все': 'btn-style-neutral', 'Студенты': 'btn-style-student', 'Кураторы': 'btn-style-curator' };
+const ROLE_FILTERS = [
+  { id: 'all',      i18n: 'allUsers.filters.all',      style: 'btn-style-neutral' },
+  { id: 'students', i18n: 'allUsers.filters.students', style: 'btn-style-student' },
+  { id: 'curators', i18n: 'allUsers.filters.curators', style: 'btn-style-curator' }
+];
 
 // главный компонент страницы
 export default function AllUsersPage() {
+    const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     // хук для отображения уведомлений
@@ -140,7 +147,7 @@ export default function AllUsersPage() {
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState('Все');
+    const [activeFilter, setActiveFilter] = useState('all');
     const inputRef = useRef(null);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -170,12 +177,10 @@ export default function AllUsersPage() {
         const fetchUsers = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/users/all`, {
-                    credentials: 'include'
-                });
-                if (!response.ok) {
-                    throw new Error('Не удалось загрузить список пользователей');
-                }
+            const response = await fetch(`${API_BASE_URL}/api/users/all`, {
+                credentials: 'include'
+            });
+                if (!response.ok) throw new Error(t('allUsers.notification.loadError'));
                 const data = await response.json();
                 setUsers(data);
                 setIsLoading(false); 
@@ -211,7 +216,7 @@ export default function AllUsersPage() {
                 credentials: 'include'
             });
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ detail: 'Не удалось удалить пользователя' }));
+                const errorData = await response.json().catch(() => ({ detail: t('allUsers.notification.deleteError') }));
                 throw new Error(errorData.detail);
             }
 
@@ -223,7 +228,7 @@ export default function AllUsersPage() {
 
             // Иначе просто обновляем список пользователей
             setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
-            addNotification('Пользователь успешно удален', 'success');
+            addNotification(t('allUsers.notification.deleteSuccess'), 'success');
         } catch (error) {
             addNotification(error.message, 'error');
         } finally {
@@ -234,9 +239,9 @@ export default function AllUsersPage() {
     const filteredUsers = useMemo(() => {
         return users
             .filter(user => {
-                if (activeFilter === 'Все') return true;
-                if (activeFilter === 'Студенты') return user.role === 'student';
-                if (activeFilter === 'Кураторы') return user.role === 'curator';
+                if (activeFilter === 'all') return true;
+                if (activeFilter === 'students') return user.role === 'student';
+                if (activeFilter === 'curators') return user.role === 'curator';
                 return true;
             })
             .filter(user => {
@@ -271,14 +276,14 @@ export default function AllUsersPage() {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
                 position={modalPosition}
-                title="Подтверждение удаления"
-                message={`Вы уверены, что хотите удалить пользователя "${userToDelete?.firstName || ''} ${userToDelete?.lastName || ''}"? Это действие необратимо.`}
-                confirmText="Удалить"
-                cancelText="Отмена"
+                title={t('allUsers.deleteModal.title')}
+                message={t('allUsers.deleteModal.message', {firstName: userToDelete?.firstName || '', lastName: userToDelete?.lastName || '',})}
+                confirmText={t('allUsers.deleteModal.confirm')}
+                cancelText={t('allUsers.deleteModal.cancel')}
             />
 
             <div className="all-users-container">
-                <h1>Все пользователи</h1>
+                <h1>{t('allUsers.title')}</h1>
                 {isLoading ? (
                     <div className="page-loader-container"><ClockwiseLoader /></div>
                 ) : (
@@ -286,15 +291,21 @@ export default function AllUsersPage() {
                         <div className="filter-container">
                             <div className="search-bar-wrapper">
                                 <div className="interactive-button btn-style-neutral" onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave} onClick={() => inputRef.current?.focus()}>
-                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder="Поиск..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
+                                    <span><SearchIcon /><input ref={inputRef} type="text" placeholder={t('allUsers.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></span>
                                 </div>
                             </div>
                             <div className="filter-buttons">
-                                {Object.keys(roleStyleMap).map(role => (
-                                    <button key={role} className={`interactive-button ${activeFilter === role ? 'is-active-filter' : ''} ${roleStyleMap[role]}`} onClick={() => setActiveFilter(role)} onMouseMove={handleMouseMoveForEffect} onMouseLeave={handleButtonLeave}>
-                                        <span>{role}</span>
-                                    </button>
-                                ))}
+                            {ROLE_FILTERS.map(opt => (
+                                <button
+                                key={opt.id}
+                                className={`interactive-button ${activeFilter === opt.id ? 'is-active-filter' : ''} ${opt.style}`}
+                                onClick={() => setActiveFilter(opt.id)}
+                                onMouseMove={handleMouseMoveForEffect}
+                                onMouseLeave={handleButtonLeave}
+                                >
+                                <span>{t(opt.i18n)}</span>
+                                </button>
+                            ))}
                             </div>
                         </div>
 
@@ -316,7 +327,7 @@ export default function AllUsersPage() {
                                     </React.Fragment>
                                 ))
                             ) : (
-                                <div className="no-results-message">Пользователи с такими параметрами не найдены.</div>
+                                <div className="no-results-message">{t('allUsers.noResults')}</div>
                             )}
                         </div>
                     </>

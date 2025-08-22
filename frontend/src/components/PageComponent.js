@@ -8,6 +8,7 @@ import EventsPage from '../pages/EventsPage/EventsPage';
 import AllUsersPage from '../pages/AllUsersPage/AllUsersPage';
 import CreateEventPage from '../pages/CreateEventPage/CreateEventPage';
 import ReviewRequestsPage from '../pages/ReviewRequestsPage/ReviewRequestsPage';
+import { useTranslation } from './common/useTranslation';
 
 // права доступа к страницам в зависимости от роли пользователя
 const pageAccess = {
@@ -22,12 +23,13 @@ const pageAccess = {
 
 
 function PageComponent({ pageId, userRole, userLogin, onOpenChat }) {
+  const { t } = useTranslation();
   // проверяем, имеет ли текущий пользователь доступ к запрашиваемой странице
   const hasAccess = pageAccess[pageId] && pageAccess[pageId].includes(userRole);
 
   // если доступа нет, отображаем сообщение об ошибке
   if (!hasAccess) {
-    return <div style={{padding: '40px'}}><h1>Доступ запрещен</h1></div>;
+    return <div style={{padding: '40px'}}><h1>{t('pageComponent.accessDenied')}</h1></div>;
   }
   return (
     <> 
@@ -57,7 +59,7 @@ function PageComponent({ pageId, userRole, userLogin, onOpenChat }) {
           
           // если id страницы не совпал ни с одним из кейсов, показываем ошибку
           default:
-            return <div style={{padding: '40px'}}><h1>Страница не найдена</h1></div>;
+            return <div style={{padding: '40px'}}><h1>{t('pageComponent.notFound')}</h1></div>;
         }
       })()}
     </>

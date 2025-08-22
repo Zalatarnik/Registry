@@ -12,7 +12,8 @@ router.post('/login', userController.loginUser);
 // Проверка существующего email
 router.post('/check-email', userController.checkEmailExists);
 // Проверка существующего номера студенческого
-router.get('/check-student-id', userController.checkStudentIdExists);
+router.post('/check-student-id', userController.checkStudentIdExists);
+
 // Получение своего профиля
 router.get('/profile/me', authMiddleware, userController.getMyProfile);
 // Обновление email и пароля

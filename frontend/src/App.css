@@ -1,28 +1,18 @@
-body {
-  background-color: #f0f2f5; 
-  margin: 0; 
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
-  overflow: hidden !important; 
-  height: auto;
-  height: 100%;
-}
 
 .App {
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: clamp(12px, 2.5vw, 24px);
 }
 
-.login-page-container {
-  transition: opacity 0.4s ease-in-out;
-}
-.login-page-container.is-hiding {
-  opacity: 0;
-}
 
-/* стили для логотипа */
+/* Экран логина  */
+.login-page-container { transition: opacity 0.4s ease-in-out; }
+.login-page-container.is-hiding { opacity: 0; }
 
+/* ЛОГО */
 .app-logo {
   background: transparent;
   box-shadow: none;
@@ -30,49 +20,42 @@ body {
   top: 5vh;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 0;
-  max-width: 20vh;
+  z-index: 1;
+  max-width: clamp(120px, 20vh, 220px);
   height: auto;
-  transition: opacity 0.4s ease-in-out, 
-              transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    filter .25s ease;
 }
-
 .app-logo.is-hidden {
   opacity: 0;
   transform: translateX(-50%) translateY(-30px) scale(0.9);
   pointer-events: none;
 }
-
 .app-logo.is-enlarged {
   transform: translateX(-50%) scale(1.3);
 }
 
-/* стили для фоновых элементов */
-
+/* Фоновые элементы */
 .background-triangle {
   position: absolute;
-  top: 40vh; 
+  top: 40vh;
   left: -20vw;
   width: 140vw;
   height: 80vh;
-  background-color: rgba(211, 84, 0, 0.08); 
+  background-color: rgba(211, 84, 0, 0.08);
   clip-path: polygon(0% 65%, 100% 45%, 100% 100%, 0% 100%);
   z-index: 0;
   pointer-events: none;
   transform-origin: bottom center;
   opacity: 0;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.6s ease;
+  transition:
+    transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.6s ease;
 }
-
-.background-triangle.is-visible {
-  opacity: 1;
-  transform: rotate(-2deg) scale(1);
-}
-
-.background-triangle.is-enlarged {
-  transform: rotate(-1.5deg) scale(1.15);
-}
+.background-triangle.is-visible { opacity: 1; transform: rotate(-2deg) scale(1); }
+.background-triangle.is-enlarged { transform: rotate(-1.5deg) scale(1.15); }
 
 .background-shape-right {
   position: absolute;
@@ -89,16 +72,13 @@ body {
   transform-origin: bottom center;
   opacity: 0;
   transform: scale(0.5) rotate(0deg);
-  transition: opacity 0.5s ease-out, 
-              transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
 }
+.background-shape-right.is-visible { opacity: 1; transform: scale(1) rotate(10deg); }
 
-.background-shape-right.is-visible {
-  opacity: 1;
-  transform: scale(1) rotate(10deg);
-}
-
-/* контейнер для индикатора загрузки */
+/* Контейнер лоадера */
 .page-loader-container {
   display: flex;
   width: 100%;
@@ -106,4 +86,62 @@ body {
   flex-grow: 1;
   align-items: center;
   justify-content: center;
+}
+
+/* Тёмная тема */
+body[data-theme='dark'] .background-triangle { background-color: rgba(200, 86, 0, .10); }
+body[data-theme='dark'] .background-shape-right { filter: brightness(.35) contrast(1.1); }
+body[data-theme='dark'] .app-logo {
+  filter: brightness(.72) contrast(1.05) saturate(.9);
+  opacity: .92;
+}
+body[data-theme='dark'] .app-logo.is-hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-30px) scale(0.9);
+  pointer-events: none;
+}
+
+/*  АДАПТИВ */
+
+/* Мобилки */
+@media (max-width: 480px) {
+  .app-logo {
+    top: 16px;
+    max-width: clamp(120px, 18vw, 160px);
+  }
+
+  .background-triangle {
+    top: 50vh;
+    left: -30vw;
+    width: 170vw;
+    height: 56vh;
+  }
+
+  .background-shape-right { display: none; }
+}
+
+/* Планшеты */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .background-triangle { top: 48vh; width: 160vw; }
+  .background-shape-right {
+    top: 68vh;
+    right: 10vw;
+    width: 70vw;
+    height: 48vh;
+  }
+}
+
+/* Десктопы/широкие */
+@media (min-width: 1024px) {
+  .app-logo { max-width: clamp(160px, 12vh, 240px); }
+  .background-shape-right {
+    top: 60vh;
+    right: 10vw;
+    width: 60vw;
+    height: 50vh;
+  }
+}
+
+@media (max-width: 640px){
+  .background-shape-right{ display: none; } 
 }

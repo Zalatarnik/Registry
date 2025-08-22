@@ -383,3 +383,166 @@
     text-align: center;
     color: #6c757d;
 }
+
+
+body[data-theme='dark'] {
+  --surface: #1a1a1a;
+  --surface-soft: #2c2c2c;
+  --text: #e8e8e8;
+  --text-soft: #a0a0a0;
+  --accent: #d35400;
+  background-color: #0d0d0d;
+  color: var(--text);
+}
+
+/* заголовок */
+body[data-theme='dark'] .all-users-container h1 { color: var(--text); }
+
+/* поиск */
+body[data-theme='dark'] .all-users-scope .search-bar-wrapper input {
+  color: var(--text);
+}
+body[data-theme='dark'] .all-users-scope .search-bar-wrapper input::placeholder {
+  color: var(--text-soft);
+}
+
+/* активный фильтр */
+body[data-theme='dark'] .all-users-scope .filter-buttons .interactive-button.is-active-filter {
+  color: #ffffff;
+  background-color: #3a3a3a;
+}
+
+/* глайдер — брендовый акцент */
+body[data-theme='dark'] .all-users-scope .list-glider {
+  background-color: var(--accent);
+}
+
+/* заголовки/подзаголовки в карточке */
+body[data-theme='dark'] .all-users-scope .header-content h3 { color: var(--text); }
+body[data-theme='dark'] .all-users-scope .header-content .card-subtitle { color: var(--text-soft); }
+
+/* детали карточки */
+body[data-theme='dark'] .all-users-scope .card-details-wrapper {
+  background-color: var(--surface-soft);
+}
+body[data-theme='dark'] .all-users-scope .detail-label { color: var(--text-soft); }
+
+/* бейджи ролей */
+body[data-theme='dark'] .all-users-scope .role-badge { color: var(--text-soft); }
+body[data-theme='dark'] .all-users-scope .role-student {
+  color: #8ab5ff;
+  background-color: rgba(0,123,255,.16);
+}
+body[data-theme='dark'] .all-users-scope .role-student::before { background-color: #007bff; }
+
+body[data-theme='dark'] .all-users-scope .role-curator {
+  color: #98e6b8;
+  background-color: rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .all-users-scope .role-curator::before { background-color: #28a745; }
+
+/* кнопки */
+body[data-theme='dark'] .all-users-scope .btn-style-neutral {
+  color: var(--text);
+  background-color: var(--surface-soft);
+}
+body[data-theme='dark'] .all-users-scope .btn-style-neutral::before { background-color: #6c757d; }
+
+body[data-theme='dark'] .all-users-scope .btn-style-student {
+  color: #8ab5ff;
+  background-color: rgba(0,123,255,.16);
+}
+body[data-theme='dark'] .all-users-scope .btn-style-student::before { background-color: #007bff; }
+
+body[data-theme='dark'] .all-users-scope .btn-style-curator {
+  color: #98e6b8;
+  background-color: rgba(40,167,69,.16);
+}
+body[data-theme='dark'] .all-users-scope .btn-style-curator::before { background-color: #28a745; }
+
+body[data-theme='dark'] .all-users-scope .btn-style-delete {
+  color: #ff8f8f;
+  background-color: rgba(231,76,60,.16);
+}
+body[data-theme='dark'] .all-users-scope .btn-style-delete::before { background-color: #e74c3c; }
+
+/* текст «нет результатов» */
+body[data-theme='dark'] .all-users-scope .no-results-message { color: var(--text-soft); }
+
+/* тёмный скролл у списка */
+body[data-theme='dark'] .all-users-scope .users-list-container{
+  scrollbar-width: thin;
+  scrollbar-color: #6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .all-users-scope .users-list-container::-webkit-scrollbar { width: 12px; }
+body[data-theme='dark'] .all-users-scope .users-list-container::-webkit-scrollbar-track {
+  background: #1f1f20;
+}
+body[data-theme='dark'] .all-users-scope .users-list-container::-webkit-scrollbar-thumb {
+  background: #6b6d70;
+  border-radius: 8px;
+  border: 2px solid #2a2a2c;
+}
+
+body[data-theme='dark'] .all-users-container h1{
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.25),
+    0 0 18px rgba(255,255,255,.35),
+    0 0 36px rgba(255,255,255,.18);
+}
+
+body[data-theme='dark'] .all-users-scope .search-bar-wrapper input{
+  background: transparent !important;
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+
+body[data-theme='dark'] .all-users-scope .search-bar-wrapper input::selection{
+  background: rgba(211,84,0,.35);
+  color: #fff;
+}
+body[data-theme='dark'] .all-users-scope .search-bar-wrapper input::-moz-selection{
+  background: rgba(211,84,0,.35);
+  color: #fff;
+}
+
+body[data-theme='dark'] .all-users-scope .users-list-container{
+  scrollbar-width: auto;
+  scrollbar-color: #6b6d70 #1f1f20;
+}
+body[data-theme='dark'] .all-users-scope .users-list-container::-webkit-scrollbar{
+  width: 14px; 
+}
+body[data-theme='dark'] .all-users-scope .users-list-container::-webkit-scrollbar-track{
+  background: #1f1f20;
+  border-left: 1px solid #2a2a2c;
+}
+body[data-theme='dark'] .all-users-scope .users-list-container::-webkit-scrollbar-thumb{
+  background: #6b6d70;
+  border-radius: 8px;
+  border: 2px solid #2a2a2c;
+}
+
+body[data-theme='dark'] .all-users-scope .user-card.is-active .interactive-button,
+body[data-theme='dark'] .all-users-scope .user-card.is-expanded .interactive-button{
+  background: rgba(255,255,255,.18) !important;
+  color:#fff !important;
+  border-color: transparent !important;
+}
+
+body[data-theme='dark'] .all-users-scope .user-card.is-active .interactive-button:hover:not(:disabled),
+body[data-theme='dark'] .all-users-scope .user-card.is-expanded .interactive-button:hover:not(:disabled){
+  background: rgba(255,255,255,.28) !important;
+}
+
+body[data-theme='dark'] .all-users-scope .user-card.is-active .role-badge,
+body[data-theme='dark'] .all-users-scope .user-card.is-expanded .role-badge{
+  background: rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+body[data-theme='dark'] .all-users-scope .user-card.is-active .role-badge:hover,
+body[data-theme='dark'] .all-users-scope .user-card.is-expanded .role-badge:hover{
+  background: rgba(255,255,255,.28) !important;
+}
+

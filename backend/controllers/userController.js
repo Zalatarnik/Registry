@@ -319,13 +319,12 @@ const checkEmailExists = async (req, res) => {
 // Проверка на существующий студак
 const checkStudentIdExists = async (req, res) => {
   try {
-    const { studentIdNumber } = req.body;
-    if (!studentIdNumber) return res.status(400).json({ taken: false });
-
-    const user = await User.findOne({ where: { studentIdNumber: studentIdNumber.trim() } });
+    const sid = (req.body.studentId ?? req.body.studentIdNumber ?? '').trim();
+    if (!sid) return res.status(400).json({ taken: false });
+    const user = await User.findOne({ where: { studentIdNumber: sid } });
     return res.json({ taken: !!user });
-  } catch (err) {
-    return res.status(500).json({ detail: 'Ошибка при проверке студенческого' });
+  } catch {
+    return res.status(500).json({ code: 'STUDENT_ID_CHECK_FAILED', detail: 'Ошибка при проверке студенческого' });
   }
 };
 
