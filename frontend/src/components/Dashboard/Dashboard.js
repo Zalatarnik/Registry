@@ -55,9 +55,9 @@ const HeaderButtons = ({ userLogin, t }) => {
   }, [userLogin]);
 
   const buttons = [
-    { id: 'notifications', i18n: 'modal.notifications', icon: NotificationIcon },
-    { id: 'support',       i18n: 'modal.support',       icon: SupportIcon },
-    { id: 'settings',      i18n: 'modal.settings',      icon: SettingsIcon }
+      { id: 'notifications', i18n: 'modal.notifications', icon: NotificationIcon, label: t('modal.notifications') },
+      { id: 'support',       i18n: 'modal.support',       icon: SupportIcon,      label: t('modal.support') },
+      { id: 'settings',      i18n: 'modal.settings',      icon: SettingsIcon,     label: t('modal.settings') }
   ];
 
   // Обработчик клика по кнопке в шапке

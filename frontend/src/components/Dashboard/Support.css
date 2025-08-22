@@ -165,7 +165,7 @@
 }
 
 .support-component-scope .support-divider {
-    height: 1px;
+    height: 0px;
     margin: 8px 0;
     background-color: transparent;
     border: none;

@@ -34,6 +34,8 @@
 .create-event-container .page-content {
   margin-left: 26px;
   padding: 10px;
+  padding-right: 30px;
+  padding-bottom: 40px;
   overflow-y: auto;
   background-color: #ffffff;
   box-shadow: none;
@@ -662,4 +664,9 @@ body[data-theme='dark'] .create-event-container .form-secondary-btn{
 }
 body[data-theme='dark'] .create-event-container .form-secondary-btn::before{
   background: #6c757d;
+}
+
+.create-event-container .page-content::-webkit-scrollbar,
+.create-event-container .file-list-inside::-webkit-scrollbar {
+  display: none;
 }
