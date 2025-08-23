@@ -129,6 +129,10 @@ const FormField = ({ label, children, isTextarea }) => {
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef(null);
+
+    // Находим полный объект выбранной опции по его value
+    const selectedOption = options.find(opt => opt.id === value);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (ref.current && !ref.current.contains(event.target)) {
@@ -140,6 +144,7 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     }, [ref]);
 
     const handleSelect = (option) => {
+        // Здесь мы передаем весь объект
         onChange(option);
         setIsOpen(false);
     };
@@ -147,12 +152,16 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     return (
         <div ref={ref} className={`custom-select-container ${isOpen ? 'is-open' : ''}`}>
             <div className="form-input custom-select-value" onClick={() => setIsOpen(!isOpen)}>
-                {value || <span style={{opacity: 0.6}}>{placeholder}</span>}
+                {selectedOption ? selectedOption.label : <span style={{opacity: 0.6}}>{placeholder}</span>}
                 <DownIcon />
             </div>
             <div className="custom-select-options">
                 {options.map(opt => (
-                    <div key={opt.id} className={`custom-select-option ${value === opt.id ? 'is-selected' : ''}`} onClick={() => handleSelect(opt)}>
+                    <div 
+                        key={opt.id} 
+                        className={`custom-select-option ${value === opt.id ? 'is-selected' : ''}`} 
+                        onClick={() => handleSelect(opt)}
+                    >
                         {opt.label}
                     </div>
                 ))}
