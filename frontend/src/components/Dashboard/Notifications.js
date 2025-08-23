@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  memo,
-} from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 
 import ClockwiseLoader from '../../components/common/Loader';
@@ -13,48 +7,45 @@ import { useTranslation } from '../common/useTranslation';
 
 import defaultEventImage from '../../images/event-default.jpg';
 
-
+// иконки
 import { ReactComponent as AddIcon } from '../../icons/add-icon.svg';
 import { ReactComponent as RemoveIcon } from '../../icons/remove-icon.svg';
 import { ReactComponent as ExitIcon } from '../../icons/remove-icon.svg';
-import { ReactComponent as UsersIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
-import { ReactComponent as GroupIcon } from '../../icons/cat.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as UsersIcon } from '../../icons/users-icon.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
+import { ReactComponent as GroupIcon } from '../../icons/group-icon.svg'; // замените котика на другую иконку  /ᐠ. ᴗ.ᐟ\ /♡
 import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
 
-// Заглушка для системы уведомлений
 const useNotification = () => ({
-  addNotification: (msg, type = 'info') =>
-    console.log(`Notification (${type}): ${msg}`),
+    addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
 });
 
-// Хелперы для «микро-анимации» кнопок
 const EASING_FACTOR = 0.15;
 const DEFAULT_RADIUS = 0;
 
 function animateRadii(btn) {
-  const state = btn._animationState;
-  if (!state) return;
+    const state = btn._animationState;
+    if (!state) return;
 
-  let needNextFrame = false;
-  ['tl', 'tr', 'br', 'bl'].forEach((c) => {
-    const diff = state.target[c] - state.current[c];
-    if (Math.abs(diff) > 0.01) {
-      needNextFrame = true;
-      state.current[c] += diff * EASING_FACTOR;
-    } else {
-      state.current[c] = state.target[c];
+    let isAnimationNeeded = false;
+    for (const corner in state.current) {
+        const diff = state.target[corner] - state.current[corner];
+        if (Math.abs(diff) > 0.01) {
+            isAnimationNeeded = true;
+            state.current[corner] += diff * EASING_FACTOR;
+        } else {
+            state.current[corner] = state.target[corner];
+        }
     }
-  });
 
-  btn.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
+    btn.style.borderRadius = `${state.current.tl}px ${state.current.tr}px ${state.current.br}px ${state.current.bl}px`;
 
-  if (needNextFrame) {
-    requestAnimationFrame(() => animateRadii(btn));
-  } else {
-    state.isAnimating = false;
-  }
+    if (isAnimationNeeded) {
+        requestAnimationFrame(() => animateRadii(btn));
+    } else {
+        state.isAnimating = false;
+    }
 }
 
 const handleMouseMoveForEffect = (e) => {
@@ -62,41 +53,37 @@ const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
     if (!el.classList.contains('interactive-button') && !el.classList.contains('form-submit-btn') && !el.classList.contains('form-secondary-btn')) return;
 
-  const rect = el.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  el.style.setProperty('--mouse-x', `${x}px`);
-  el.style.setProperty('--mouse-y', `${y}px`);
+    el.style.setProperty('--mouse-x', `${x}px`);
+    el.style.setProperty('--mouse-y', `${y}px`);
 
-  if (!el._animationState) {
-    el._animationState = {
-      isAnimating: false,
-      current: { tl: 0, tr: 0, br: 0, bl: 0 },
-      target: { tl: 0, tr: 0, br: 0, bl: 0 },
-    };
-  }
+    if (!el._animationState) {
+        el._animationState = {
+            isAnimating: false,
+            current: { tl: DEFAULT_RADIUS, tr: DEFAULT_RADIUS, br: DEFAULT_RADIUS, bl: DEFAULT_RADIUS },
+            target: { tl: DEFAULT_RADIUS, tr: DEFAULT_RADIUS, br: DEFAULT_RADIUS, bl: DEFAULT_RADIUS }
+        };
+    }
 
-  const state = el._animationState;
-  const { width, height } = rect;
-  const maxR = 25;
-  const diag = Math.hypot(width, height);
+    const state = el._animationState;
+    const { width, height } = rect;
+    const maxRadius = 25;
+    const diagonal = Math.sqrt(width ** 2 + height ** 2);
 
-  const calcR = (cx, cy) =>
-    Math.max(
-      0,
-      maxR * (1 - Math.hypot(x - cx, y - cy) / diag) ** 3,
-    );
+    const calculateRadius = (cx, cy) => Math.max(0, maxRadius * Math.pow(1 - (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) / diagonal), 3));
 
-  state.target.tl = calcR(0, 0);
-  state.target.tr = calcR(width, 0);
-  state.target.br = calcR(width, height);
-  state.target.bl = calcR(0, height);
+    state.target.tl = calculateRadius(0, 0);
+    state.target.tr = calculateRadius(width, 0);
+    state.target.br = calculateRadius(width, height);
+    state.target.bl = calculateRadius(0, height);
 
-  if (!state.isAnimating) {
-    state.isAnimating = true;
-    requestAnimationFrame(() => animateRadii(el));
-  }
+    if (!state.isAnimating) {
+        state.isAnimating = true;
+        requestAnimationFrame(() => animateRadii(el));
+    }
 };
 
 const useLowHeightOrMobile = () => {
@@ -204,12 +191,12 @@ const StudentEventCard = ({
     .filter(Boolean)
     .join(' ');
 
-  const handleHeaderClick = (e) => {
-    if (isDetailed) {
-      e.stopPropagation();
-      onCloseRequest();
-    }
-  };
+    const handleHeaderClick = (e) => {
+        if (isDetailed) {
+            e.stopPropagation();
+            onCloseRequest();
+        }
+    };
 
     const handleActionClick = (e, action) => {
         e.stopPropagation();
@@ -221,7 +208,7 @@ const StudentEventCard = ({
             <div className="student-card-inner">
                 <img src={event.imageUrl || defaultEventImage} alt="Event texture" className="cover-image" />
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
-                  {isRegistered ? t('notification.alreadyRegistered') : t('notification.notRegistered')}
+                    {isRegistered ? 'Вы записаны' : 'Нет записи'}
                 </div>
                <div className={`recruitment-status-badge status-${open ? 'active' : 'completed'}`}>
                   {open ? t('events.recruitment.open') : t('events.recruitment.closed')}
@@ -233,11 +220,11 @@ const StudentEventCard = ({
                             <div className="card-date">{new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                         </div>
                         <div className="details-icons">
-                            <div className="icon-item" title={t('notification.maxParticipants')}>
+                            <div className="icon-item" title="Макс. участников">
                                 <UsersIcon />
                                 <span>{event.max_participants || '∞'}</span>
                             </div>
-                            <div className="icon-item" title={t('notification.maxGroupSize')}>
+                            <div className="icon-item" title="Макс. чел. в группе">
                                 <GroupIcon />
                                 <span>{event.max_group_size || 1}</span>
                             </div>
@@ -256,7 +243,7 @@ const StudentEventCard = ({
                             onClick={(e) => handleActionClick(e, onDownload)}
                             onMouseMove={handleMouseMoveForEffect}
                             onMouseLeave={handleButtonLeave}
-                            title={t('events.materials.download')}
+                            title="Скачать материалы"
                         >
                             <span><DownloadIcon /></span>
                         </button>
@@ -323,29 +310,50 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const isSheet = useLowHeightOrMobile();
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
-    const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic || user.middleName].filter(Boolean).join(' ') : '';
-    const [participants, setParticipants] = useState(() => [
-        { id: 1, fullName: getUserFullName(currentUser), group: currentUser.group || '' }
-    ]);
+    
+    const getUserFullName = (user) => user 
+    ? [user.lastName, user.firstName, user.patronymic || user.middleName]
+        .filter(Boolean)
+        .join(' ') 
+    : '';
 
-    useEffect(() => {
-    if (!currentUser) return;
-    setParticipants(prev => {
-        if (prev.length && (prev[0].fullName?.trim() || prev[0].group?.trim())) return prev;
-        return [{
-        fullName: getUserFullName(currentUser),
-        group: currentUser.group || ''
-        }];
-    });
-    }, [currentUser]);
+    const [participants, setParticipants] = useState(() => [{ 
+        id: currentUser.id, 
+        fullName: getUserFullName(currentUser), 
+        group: currentUser.group || '', 
+        isLocked: true 
+    }]);
 
-    const nextId = useRef(2);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef(null);
-    const prevHeight = useRef(null);
-    const [dynamicPosition, setDynamicPosition] = useState(position);
+    const [modalPosition, setModalPosition] = useState(position);
+    const dragInfo = useRef({});
+
+    const [allStudents, setAllStudents] = useState([]);
+    const [activeSearchIndex, setActiveSearchIndex] = useState(null);
+    
+    const [hoveredStudentId, setHoveredStudentId] = useState(null);
+    const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
+    const studentElements = useRef(new Map());
+    const participantsListWrapperRef = useRef(null);
+    const modalBodyRef = useRef(null);
+    const searchContainerRef = useRef(null);
+
+    const [isSearchContainerVisible, setIsSearchContainerVisible] = useState(false);
+
+    const shouldSearchBeVisible = useMemo(() => {
+        if (activeSearchIndex === null) return false;
+        const currentFullName = participants[activeSearchIndex]?.fullName.toLowerCase();
+        if (!currentFullName) return false;
+
+        const registeredIds = new Set(participants.map(p => p.id).filter(Boolean));
+        return allStudents.some(student => {
+            const fullName = `${student.lastName} ${student.firstName} ${student.middleName || ''}`.toLowerCase();
+            return !registeredIds.has(student.id) && fullName.includes(currentFullName);
+        });
+    }, [activeSearchIndex, participants, allStudents]);
     const [modalStyle, setModalStyle] = useState({});
-    useEffect(() => setDynamicPosition(position), [position]);
+    useEffect(() => setModalPosition(position), [position]);
 
     // ESC + лока скролла
     useEffect(() => {
@@ -361,112 +369,248 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     // пересчёт позиции (если не шит)
     useEffect(() => {
       if (!event) return;
-      if (isSheet || !dynamicPosition) {
-        setModalStyle({ position: 'fixed', left: '50%', bottom: 'max( env(safe-area-inset-bottom), 8px )', transform: 'translateX(-50%)' });
-        return;
-      }
-      setModalStyle({
-        position: 'fixed',
-        top: dynamicPosition.top,
-        left: dynamicPosition.left,
-      });
-    }, [isSheet, dynamicPosition, event]);
+    if (isSheet || !modalPosition) {
+    setModalStyle({ position: 'fixed', left: '50%', bottom: 'max( env(safe-area-inset-bottom), 8px )', transform: 'translateX(-50%)' });
+    return;
+    }
+    setModalStyle({ position: 'fixed', top: modalPosition.top, left: modalPosition.left });
+    }, [isSheet, modalPosition, event]);
 
     useEffect(() => {
-        if (modalRef.current) {
-            const currentHeight = modalRef.current.offsetHeight;
-            const oldHeight = prevHeight.current;
-            if (oldHeight !== null && currentHeight !== oldHeight) {
-                const heightDifference = currentHeight - oldHeight;
-                setDynamicPosition(pos => {
-                    if (!pos || typeof pos.top !== 'string') return pos;
-                    return {
-                        ...pos,
-                        top: `${parseFloat(pos.top) - heightDifference}px`
-                    };
-                });
+        if (shouldSearchBeVisible) {
+            setIsSearchContainerVisible(true);
+        }
+    }, [shouldSearchBeVisible]);
+    
+    const handleSearchAnimationEnd = () => {
+        if (!shouldSearchBeVisible) {
+            setIsSearchContainerVisible(false);
+        }
+    };
+
+    useEffect(() => {
+        const bodyEl = modalBodyRef.current;
+        if (bodyEl) {
+            bodyEl.style.overflowY = activeSearchIndex !== null ? 'visible' : 'auto';
+        }
+    }, [activeSearchIndex]);
+
+    useEffect(() => {
+        const wrapper = participantsListWrapperRef.current;
+        if (wrapper) {
+            const oldHeight = wrapper.getBoundingClientRect().height;
+            wrapper.style.height = 'auto';
+            const newHeight = wrapper.scrollHeight;
+
+            if (oldHeight > 0) {
+                wrapper.style.height = `${oldHeight}px`;
+                void wrapper.offsetHeight;
             }
-            prevHeight.current = currentHeight;
+            
+            wrapper.style.height = `${newHeight}px`;
         }
     }, [participants.length]);
+    
+    const handleDragMove = useCallback((e) => {
+        if (!dragInfo.current.isDragging || !modalRef.current) return;
+        e.preventDefault();
+    
+        const modalNode = modalRef.current;
+        const { height, width } = modalNode.getBoundingClientRect();
+        const { innerWidth, innerHeight } = window;
+    
+        let newTop = e.clientY - dragInfo.current.offsetY;
+        let newLeft = e.clientX - dragInfo.current.offsetX;
+    
+        newTop = Math.max(0, Math.min(newTop, innerHeight - height));
+        newLeft = Math.max(0, Math.min(newLeft, innerWidth - width));
+    
+        modalNode.style.top = `${newTop}px`;
+        modalNode.style.left = `${newLeft}px`;
+    }, []);
+
+    const handleDragEnd = useCallback(() => {
+        if (!dragInfo.current.isDragging || !modalRef.current) return;
+    
+        document.body.style.cursor = '';
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+    
+        const modalNode = modalRef.current;
+        modalNode.style.transition = 'top 0.2s ease-out, left 0.2s ease-out';
+    
+        const rect = modalNode.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const snapThreshold = 60;
+        const edgeGap = 20;
+    
+        let finalTop = rect.top;
+        let finalLeft = rect.left;
+    
+        if (rect.top < snapThreshold && rect.top > -snapThreshold) {
+            finalTop = edgeGap;
+        } else if (vh - rect.bottom < snapThreshold && vh - rect.bottom > -snapThreshold) {
+            finalTop = vh - rect.height - edgeGap;
+        }
+    
+        if (rect.left < snapThreshold && rect.left > -snapThreshold) {
+            finalLeft = edgeGap;
+        } else if (vw - rect.right < snapThreshold && vw - rect.right > -snapThreshold) {
+            finalLeft = vw - rect.width - edgeGap;
+        }
+        
+        setModalPosition({
+            top: `${finalTop}px`,
+            left: `${finalLeft}px`,
+        });
+        
+        dragInfo.current.isDragging = false;
+    }, [handleDragMove]);
+
+    const handleDragStart = (e) => {
+        if (e.button !== 0 || !modalRef.current) return;
+        
+        const modalNode = modalRef.current;
+        modalNode.style.transition = 'none';
+    
+        const rect = modalNode.getBoundingClientRect();
+        dragInfo.current = {
+            isDragging: true,
+            offsetX: e.clientX - rect.left,
+            offsetY: e.clientY - rect.top,
+        };
+        
+        document.body.style.cursor = 'grabbing';
+        document.addEventListener('mousemove', handleDragMove);
+        document.addEventListener('mouseup', handleDragEnd);
+    };
+
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/all`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Не удалось загрузить список студентов');
+                const data = await response.json();
+                setAllStudents(data.filter(u => u.role === 'student'));
+            } catch (error) {
+                console.error("Ошибка при загрузке студентов:", error);
+            }
+        };
+        fetchStudents();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+          if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+            setActiveSearchIndex(null);
+          }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(onClose, 400);
     };
 
-  const addParticipant = () => {
-    const max = event.max_group_size || 5;
-    if (participants.length < max) {
-      setParticipants([...participants, { id: nextId.current++, fullName: '', group: '' }]);
-    } else {
-      addNotification(
-        t('notification.maxGroupReached', { max }),
-        'info',
-      );
-    }
-  };
+    const handleOverlayMouseDown = (e) => {
+        if (e.target === e.currentTarget) {
+            handleClose();
+        }
+    };
+
+    const addParticipant = () => {
+        const maxGroupSize = event.max_group_size || 5;
+        if (participants.length < maxGroupSize) {
+            setParticipants([...participants, { id: null, fullName: '', group: '', isLocked: false }]);
+        } else {
+            addNotification(`Максимальный размер группы: ${maxGroupSize} чел.`, 'info');
+        }
+    };
 
     const removeParticipant = (index) => {
-        if (index === 0) return;
-        const participantToRemove = participants[index];
-        if (!participantToRemove) return;
-
-        setParticipants(currentParticipants =>
-            currentParticipants.map(p =>
-                p.id === participantToRemove.id ? { ...p, isDeleting: true } : p
-            )
-        );
-
-        setTimeout(() => {
-            setParticipants(currentParticipants =>
-                currentParticipants.filter(p => p.id !== participantToRemove.id)
-            );
-        }, 300);
-    };
-
-    const handleParticipantChange = (index, field, value) => {
-        const newParticipants = [...participants];
-        if (newParticipants[index]) {
-            newParticipants[index][field] = value;
-            setParticipants(newParticipants);
+        if (!participants[index].isLocked) {
+            setParticipants(participants.filter((_, i) => i !== index));
         }
     };
+
+    const handleParticipantChange = (index, value) => {
+        const newParticipants = [...participants];
+        if (newParticipants[index].id) {
+            newParticipants[index].id = null;
+            newParticipants[index].group = '';
+        }
+        newParticipants[index].fullName = value;
+        setParticipants(newParticipants);
+        setActiveSearchIndex(value ? index : null);
+    };
+
+    const handleUserSelect = (index, user) => {
+        const newParticipants = [...participants];
+        newParticipants[index] = {
+            id: user.id,
+            fullName: `${user.lastName} ${user.firstName} ${user.middleName || ''}`.trim(),
+            group: user.group,
+            isLocked: false
+        };
+        setParticipants(newParticipants);
+        setActiveSearchIndex(null);
+    };
+
+    const filteredStudents = useMemo(() => {
+        if (activeSearchIndex === null) return [];
+        const currentFullName = participants[activeSearchIndex]?.fullName.toLowerCase();
+        if (!currentFullName) return [];
+
+        const registeredIds = new Set(participants.map(p => p.id).filter(Boolean));
+
+        return allStudents.filter(student => {
+            const fullName = `${student.lastName} ${student.firstName} ${student.middleName || ''}`.toLowerCase();
+            return !registeredIds.has(student.id) && fullName.includes(currentFullName);
+        }).slice(0, 5);
+    }, [activeSearchIndex, participants, allStudents]);
+    
+    useEffect(() => {
+        const targetElement = hoveredStudentId ? studentElements.current.get(hoveredStudentId) : null;
+        if (targetElement) {
+            setGliderStyle({
+                transform: `translateY(${targetElement.offsetTop}px)`,
+                height: `${targetElement.offsetHeight}px`,
+                opacity: 1,
+            });
+        } else {
+            setGliderStyle(prev => ({ ...prev, opacity: 0 }));
+        }
+    }, [hoveredStudentId, filteredStudents]);
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    for (const p of participants) {
-        if (!p.fullName.trim() || !p.group.trim()) {
-        addNotification(t('notification.fillAllFields'), 'error');
-        return;
+        e.preventDefault();
+        for (const p of participants) {
+            if (!p.fullName.trim() || !p.group.trim()) {
+                addNotification('Пожалуйста, заполните все поля.', 'error');
+                return;
+            }
         }
-    }
-
-    setIsSubmitting(true);
-    try {
-        const resp = await fetch(`${API_BASE_URL}/api/events/${event.id}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-            user_login: currentUser.login,
-            participants: participants.map(({ id, isDeleting, ...rest }) => rest)
-        }),
-        });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(t('signup.error'));
-
-        addNotification(t('notification.successfulRegistration', { event: event.eventName }), 'success');
-        onConfirm({ eventId: event.id, user_login: currentUser.login, participants });
-    } catch (error) {
-        addNotification(error.message, 'error');
-    } finally {
-        setIsSubmitting(false);
-    }
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/events/${event.id}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ user_login: currentUser.login, participants }),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.detail || 'Ошибка записи');
+            addNotification(`Вы успешно записались на "${event.eventName}"`, 'success');
+            onConfirm({ eventId: event.id });
+        } catch (error) {
+            addNotification(error.message, 'error');
+            setIsSubmitting(false);
+        }
     };
 
-    
     if (!event) return null;
 
   return (
@@ -585,50 +729,37 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
 };
 
 
+const NotificationCard = memo(({ invite, isActive, onCardClick, onMouseEnter, innerRef }) => {
+    const cardClassName = ['notification-card', isActive && 'is-active'].filter(Boolean).join(' ');
 
-//Карточка приглашения 
-const NotificationCard = memo(
-  ({ invite, isActive, onCardClick, onMouseEnter, innerRef }) => {
-    const { t } = useTranslation();
-
-    const cls = ['notification-card', isActive && 'is-active']
-      .filter(Boolean)
-      .join(' ');
+    const handleAction = (e, callback, ...args) => {
+        e.stopPropagation();
+        callback(...args);
+    };
 
     return (
-      <div
-        ref={innerRef}
-        className={cls}
-        onMouseEnter={onMouseEnter}
-        onClick={() => onCardClick(invite.event)}
-      >
-        <div className="card-content-wrapper">
-          <div className="notification-card-header">
-            <div className="notification-item-info">
-              <h5>{invite.event.eventName}</h5>
-              <p>
-                {t('notification.inviteFrom')}
-                <strong>{invite.inviter}</strong>
-              </p>
+        <div ref={innerRef} className={cardClassName} onMouseEnter={onMouseEnter} onClick={(e) => handleAction(e, onCardClick, invite)}>
+            <div className="card-content-wrapper">
+                <div className="notification-card-header">
+                    <div className="notification-item-info">
+                        <h5>{invite.event.eventName}</h5>
+                        <p>От: <strong>{invite.inviter}</strong></p>
+                    </div>
+                    <div className="notification-card-actions">
+                        <button
+                            className="interactive-button btn-style-accept"
+                            onMouseMove={handleMouseMoveForEffect}
+                            onMouseLeave={handleButtonLeave}
+                        >
+                            <span>Посмотреть</span>
+                        </button>
+                    </div>
+                </div>
             </div>
-
-            <div className="notification-card-actions">
-              <button
-                className="interactive-button btn-style-accept"
-                onMouseMove={handleMouseMoveForEffect}
-                onMouseLeave={handleButtonLeave}
-              >
-                <span>{t('notification.view')}</span>
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
     );
-  },
-);
+});
 
-// Главное окно уведомлений
 const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const { t } = useTranslation();
     const isSheet = useLowHeightOrMobile();
@@ -643,13 +774,41 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const [isDetailCardClosing, setIsDetailCardClosing] = useState(false);
     const [isDetailCardExpanded, setIsDetailCardExpanded] = useState(false);
     const [hoveredInviteId, setHoveredInviteId] = useState(null);
+    const [clickedInviteId, setClickedInviteId] = useState(null);
     const [gliderStyle, setGliderStyle] = useState({ opacity: 0 });
     const cardElements = useRef(new Map());
     const [modalPosition, setModalPosition] = useState(null);
     const [invitations, setInvitations] = useState([]);
     const [wrapperStyle, setWrapperStyle] = useState({});
 
-        useEffect(() => {
+    const handleCloseSignUpModal = useCallback(() => {
+        setIsSignUpModalOpen(false);
+        setModalPosition(null);
+        setEventForSignUp(null);
+    }, []);
+
+    const handleCloseDetails = useCallback(() => {
+        setIsDetailCardExpanded(false);
+        setIsDetailCardClosing(true);
+        setClickedInviteId(null);
+        handleCloseSignUpModal();
+        setTimeout(() => {
+            setDetailedEvent(null);
+        }, 400);
+    }, [handleCloseSignUpModal]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setDetailedEvent(null);
+            setIsDetailCardClosing(false);
+            setIsDetailCardExpanded(false);
+            setClickedInviteId(null);
+            setHoveredInviteId(null);
+            handleCloseSignUpModal();
+        }
+    }, [isOpen, handleCloseSignUpModal]);
+
+    useEffect(() => {
     if (!isOpen || !userLogin) return;
     const fetchInvites = async () => {
         try {
@@ -668,7 +827,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 description: ev.description || t('events.noDescription'),
             };
 
-            const inviterUser = n.Inviter;
+            const inviterUser = n.Inviter; 
             const inviterName = inviterUser
               ? `${inviterUser.lastName} ${inviterUser.firstName}${inviterUser.middleName ? ' ' + inviterUser.middleName : ''}`.trim()
               : n.inviter;
@@ -683,30 +842,24 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
             };
             }));
         } catch (err) {
-        addNotification(t('notifications.loadError'), 'error');
+        addNotification("Ошибка загрузки уведомлений", "error");
         }
     };
     fetchInvites();
     }, [isOpen, userLogin, t]);
 
-    const handleCloseDetails = useCallback(() => {
-        setIsDetailCardExpanded(false);
-        setIsDetailCardClosing(true);
+    const handleClosePanel = useCallback(() => {
+        setIsClosing(true);
+        if (detailedEvent) {
+            handleCloseDetails();
+        }
         setTimeout(() => {
+            onClose();
+            setIsClosing(false);
             setDetailedEvent(null);
+            setIsDetailCardExpanded(false);
         }, 400);
-    }, []);
-
-  const closePanel = useCallback(() => {
-    setIsClosing(true);
-    if (detailedEvent) handleCloseDetails();
-    setTimeout(() => {
-      onClose();
-      setIsClosing(false);
-      setDetailedEvent(null);
-      setIsDetailCardExpanded(false);
-    }, 400);
-  }, [detailedEvent, handleCloseDetails, onClose]);
+    }, [onClose, detailedEvent, handleCloseDetails]);
 
        const handleDeleteAll = async () => {
         try {
@@ -714,9 +867,9 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 method: 'DELETE',
                 credentials: 'include',
             });
-            if (!resp.ok) throw new Error(t('notifications.deleteAllError'))
+            if (!resp.ok) throw new Error('Не удалось удалить все уведомления');
             setInvitations([]); 
-            addNotification(t('notifications.cleared'), 'success');
+            addNotification('Все уведомления удалены', 'success');
         } catch (e) {
             addNotification(e.message, 'error');
         }
@@ -729,9 +882,10 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         setIsLoading(true);
         try {
         const profileRes = await fetch(`${API_BASE_URL}/api/profile/${userLogin}`, { credentials: 'include' });
-        if (!profileRes.ok) throw new Error(t('notification.errorLoadProfile'));
+        if (!profileRes.ok) throw new Error('Не удалось загрузить профиль');
         const p = await profileRes.json();
         setCurrentUser({
+            id: p.id,
             login: p.login,
             lastName: p.lastName,
             firstName: p.firstName,
@@ -740,7 +894,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         });
 
         const regsRes = await fetch(`${API_BASE_URL}/api/users/${userLogin}/registrations`, { credentials: 'include' });
-        if (!regsRes.ok) throw new Error(t('notification.errorLoadRegistrations'));
+        if (!regsRes.ok) throw new Error('Не удалось загрузить записи');
         const ids = await regsRes.json();
         setUserRegisteredEventIds(new Set(ids));
         } catch (e) {
@@ -753,30 +907,28 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     load();
     }, [isOpen, userLogin]);
 
-  // ── «Липучий» маркер списка 
-  const gliderTargetId = detailedEvent ? null : hoveredInviteId;
+    const gliderTargetId = clickedInviteId || hoveredInviteId;
 
-  useEffect(() => {
-    const target = gliderTargetId
-      ? cardElements.current.get(gliderTargetId)
-      : null;
+    useEffect(() => {
+        const targetElement = gliderTargetId ? cardElements.current.get(gliderTargetId) : null;
 
-    if (target) {
-      setGliderStyle({
-        transform: `translateY(${target.offsetTop}px)`,
-        height: `${target.offsetHeight}px`,
-        opacity: 1,
-      });
-    } else {
-      setGliderStyle((prev) => ({ ...prev, opacity: 0 }));
-    }
-  }, [gliderTargetId, invitations]);
+        if (targetElement) {
+            setGliderStyle({
+                transform: `translateY(${targetElement.offsetTop}px)`,
+                height: `${targetElement.offsetHeight}px`,
+                opacity: 1,
+            });
+        } else {
+            setGliderStyle(prev => ({ ...prev, opacity: 0 }));
+        }
+    }, [gliderTargetId, invitations]);
 
-    const handleViewDetails = (event) => {
-        if (detailedEvent && detailedEvent.id === event.id) {
+    const handleViewDetails = (invite) => {
+        if (detailedEvent && clickedInviteId === invite.id) {
             handleCloseDetails();
         } else {
-            setDetailedEvent(event);
+            setDetailedEvent(invite.event);
+            setClickedInviteId(invite.id);
             setIsDetailCardClosing(false);
             setIsDetailCardExpanded(false);
             setHoveredInviteId(null);
@@ -784,17 +936,17 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     };
     
     const handleDownload = (event) => {
-        const link = document.createElement("a");
-        link.href = `${API_BASE_URL}/api/events/${event.id}/download-documents`;
-        link.setAttribute("download", `${event.eventName}_documents.zip`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+       const link = document.createElement("a");
+       link.href = `${API_BASE_URL}/api/events/${event.id}/download-documents`;
+       link.setAttribute("download", `${event.eventName}_documents.zip`);
+       document.body.appendChild(link);
+       link.click();
+       document.body.removeChild(link);
     };
 
     const handleSignUp = (event, e) => {
         if (!currentUser) {
-            addNotification(t('notification.loginRequired'), 'info');
+            addNotification("Необходимо войти в систему для записи.", "info");
             return;
         };
         
@@ -814,12 +966,6 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         });
         setEventForSignUp(event);
         setIsSignUpModalOpen(true);
-    };
-
-    const handleCloseSignUpModal = () => {
-        setIsSignUpModalOpen(false);
-        setModalPosition(null);
-        setEventForSignUp(null);
     };
 
     const handleConfirmRegistration = (data) => {
@@ -859,10 +1005,10 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e) => { if (e.key === 'Escape') closePanel(); };
+    const onKey = (e) => { if (e.key === 'Escape') handleClosePanel(); };
     const onDown = (e) => {
       const panel = document.querySelector('.notifications-view-wrapper');
-      if (panel && !panel.contains(e.target)) closePanel();
+      if (panel && !panel.contains(e.target)) handleClosePanel();
     };
     document.addEventListener('keydown', onKey);
     document.addEventListener('mousedown', onDown);
@@ -870,7 +1016,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('mousedown', onDown);
     };
-  }, [isOpen, closePanel]);
+  }, [isOpen, handleClosePanel]);
 
 
   // Рендер
@@ -878,7 +1024,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
 
     return ReactDOM.createPortal(
         <div className="notifications-component-scope">
-            {isSignUpModalOpen && eventForSignUp && (
+            {isSignUpModalOpen && eventForSignUp && currentUser && (
                 <SignUpModal
                     key={currentUser?.login || 'nouser'}
                     event={eventForSignUp}
@@ -904,10 +1050,10 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 )}
                 <div className={`notifications-modal ${isClosing ? 'is-closing' : ''}`}>
                     <div className="info-modal-header">
-                        <h2>{t('notification.title')}</h2>
+                        <h2>Уведомления</h2>
                         <button
                         className="chat-close-btn"
-                        title={t('notifications.deleteAll')}
+                        title="Удалить все уведомления"
                         onClick={handleDeleteAll}
                         >
                         <ExitIcon />
@@ -919,10 +1065,10 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                                 <ClockwiseLoader />
                             </div>
                         ) : !invitations.length ? (
-                            <p className="notifications-empty">{t('notification.noInvites')}</p>
+                            <p className="notifications-empty">Новых приглашений нет.</p>
                         ) : (
                             <div className="notifications-list-container" onMouseLeave={() => setHoveredInviteId(null)}>
-                                <div className="list-glider" style={gliderStyle}></div>
+                                <div className="notifications-glider" style={gliderStyle}></div>
                                 {invitations.map((invite, index) => {
                                     const isActive = invite.id === gliderTargetId;
 

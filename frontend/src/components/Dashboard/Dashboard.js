@@ -16,8 +16,7 @@ import { ReactComponent as NotificationIcon } from '../../icons/notification-ico
 import { ReactComponent as SupportIcon } from '../../icons/support-icon.svg';
 import { ReactComponent as SettingsIcon } from '../../icons/settings-icon.svg';
 
-
-
+const API_BASE_URL = 'http://localhost:8000';
 
 const HeaderButtons = ({ userLogin, t }) => {
   const [activeModal, setActiveModal] = useState(null);
@@ -25,15 +24,46 @@ const HeaderButtons = ({ userLogin, t }) => {
   const [modalPosition, setModalPosition] = useState(null);
   const buttonRefs = useRef({});
   const buttonsContainerRef = useRef(null);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (!userLogin) return;
+    let isMounted = true;
+
+    const fetchNotificationCount = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/${userLogin}`, {
+                credentials: "include"
+            });
+            if (res.ok && isMounted) {
+                const data = await res.json();
+                setNotificationCount(data.length);
+            }
+        } catch (err) {
+            console.error("Failed to fetch notification count", err);
+        }
+    };
+
+    fetchNotificationCount();
+    const intervalId = setInterval(fetchNotificationCount, 30000);
+
+    return () => {
+        isMounted = false;
+        clearInterval(intervalId);
+    };
+  }, [userLogin]);
 
   const buttons = [
-    { id: 'notifications', i18n: 'modal.notifications', icon: NotificationIcon },
-    { id: 'support',       i18n: 'modal.support',       icon: SupportIcon },
-    { id: 'settings',      i18n: 'modal.settings',      icon: SettingsIcon }
+      { id: 'notifications', i18n: 'modal.notifications', icon: NotificationIcon, label: t('modal.notifications') },
+      { id: 'support',       i18n: 'modal.support',       icon: SupportIcon,      label: t('modal.support') },
+      { id: 'settings',      i18n: 'modal.settings',      icon: SettingsIcon,     label: t('modal.settings') }
   ];
 
   // Обработчик клика по кнопке в шапке
   const handleButtonClick = (buttonId, ref) => {
+    if (buttonId === 'notifications') {
+      setNotificationCount(0);
+    }
     const newActiveModalId = activeModal === buttonId ? null : buttonId;
     setActiveModal(newActiveModalId);
     setHoveredButton(newActiveModalId); 
@@ -63,7 +93,11 @@ const HeaderButtons = ({ userLogin, t }) => {
               onMouseEnter={() => setHoveredButton(button.id)}
               onClick={() => handleButtonClick(button.id, buttonRefs.current[button.id])}
             >
-              <IconComponent className="header-icon" /><span className="header-label">{t(button.i18n)}</span>
+              <IconComponent className="header-icon" />
+              <span className="header-label">{button.label}</span>
+              {button.id === 'notifications' && (
+                <span className={`notification-indicator ${notificationCount > 0 ? 'has-notifications' : ''}`}></span>
+              )}
             </button>
           );
         })}

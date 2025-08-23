@@ -10,7 +10,7 @@
 //  - Скачать все документы мероприятия в zip
 //  - Получение количества записавшихся на мероприятие
 //  - Удалить всю группу участников по eventId и submissionGroupId
-
+ 
 const { Event, User, EventRegistration } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
@@ -82,6 +82,7 @@ exports.createEvent = async (req, res) => {
 };
 
 // Получить все мероприятия
+// Получить все мероприятия
 exports.getAllEvents = async (req, res) => {
   try {
     const events = await Event.findAll({
@@ -96,6 +97,18 @@ exports.getAllEvents = async (req, res) => {
       ],
       group: ['Event.id'],
       order: [['eventDate', 'DESC']]
+    });
+
+    events.forEach(ev => {
+      const now = new Date();
+      const eventDate = new Date(ev.eventDate);
+      const currentCount = Number(ev.dataValues.currentCount || 0);
+
+      if (eventDate < now || (ev.maxParticipants && currentCount >= ev.maxParticipants)) {
+        ev.dataValues.eventStatus = 'Набор закрыт';
+      } else {
+        ev.dataValues.eventStatus = 'Набор открыт';
+      }
     });
 
     res.json(events);
@@ -142,30 +155,60 @@ exports.registerForEvent = async (req, res) => {
     const event = await Event.findByPk(eventId);
     if (!event) return res.status(404).json({ detail: 'Мероприятие не найдено' });
 
-    const existing = await EventRegistration.findOne({
-      where: { eventId, userLogin: user_login }
+    const alreadySelf = await EventRegistration.findOne({
+      where: { eventId, participantLogin: user_login }
     });
-
-    if (existing) {
-      return res.status(400).json({ detail: 'Вы уже зарегистрированы' });
+    if (alreadySelf) {
+      return res.status(400).json({ detail: 'Вы уже зарегистрированы на это мероприятие' });
     }
 
-    const submissionGroupId = uuidv4(); // для объединения участников команды
+    if (!Array.isArray(participants) || participants.length === 0) {
+      return res.status(400).json({ detail: 'Состав участников не указан' });
+    }
 
+    if (event.teamSize && participants.length > event.teamSize) {
+      return res.status(400).json({ detail: `Макс. размер команды: ${event.teamSize}` });
+    }
+
+    const userIds = participants.map(p => p.id).filter(Boolean);
+    if (userIds.length !== participants.length) {
+      return res.status(400).json({ detail: 'Выберите участников из списка (без произвольного ввода ФИО)' });
+    }
+
+    const users = await User.findAll({ where: { id: userIds } });
+    if (users.length !== userIds.length) {
+      return res.status(400).json({ detail: 'Некоторые участники не найдены' });
+    }
+
+    const loginById = new Map(users.map(u => [u.id, u.login]));
+    const participantLogins = participants.map(p => loginById.get(p.id));
+
+    const { Op } = Sequelize;
+    const duplicates = await EventRegistration.findAll({
+      where: { eventId, participantLogin: { [Op.in]: participantLogins } }
+    });
+    if (duplicates.length) {
+      const duplLogins = [...new Set(duplicates.map(d => d.participantLogin))];
+      return res.status(400).json({
+        detail: `Эти пользователи уже зарегистрированы: ${duplLogins.join(', ')}`
+      });
+    }
+
+    const submissionGroupId = uuidv4();
     const entries = participants.map(p => ({
       eventId,
-      userLogin: user_login,
+      leaderLogin: user_login,
+      participantLogin: loginById.get(p.id),
       fullName: p.fullName,
       group: p.group,
       submissionGroupId
     }));
 
     await EventRegistration.bulkCreate(entries);
-
-    res.status(201).json({ message: 'Регистрация прошла успешно' });
+    return res.status(201).json({ message: 'Регистрация прошла успешно' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ detail: 'Ошибка при регистрации' });
+    return res.status(500).json({ detail: 'Ошибка при регистрации' });
   }
 };
 
@@ -194,20 +237,20 @@ exports.getEventRegistrations = async (req, res) => {
 };
 
 // Получить список мероприятий на которые записан определенный пользователь
+
 exports.getUserRegistrations = async (req, res) => {
   const { login } = req.params;
-
+  
   try {
     // Получение всех регистраций пользователя + инфа о мероприятии
     const registrations = await EventRegistration.findAll({
-      where: { userLogin: login },
+      where: { participantLogin: login },
       include: [{ model: Event }],
     });
 
     // Извлечение id мероприятия
     const eventIds = registrations.map(reg => reg.eventId);
-
-    res.json(eventIds); 
+    res.json(eventIds);
   } catch (error) {
     console.error(error);
     res.status(500).json({ detail: 'Ошибка получения регистраций пользователя' });

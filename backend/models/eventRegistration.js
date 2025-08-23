@@ -5,12 +5,21 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    userLogin: {
-      type: DataTypes.STRING,
-      allowNull: false
+    leaderLogin:{
+      type: DataTypes.STRING,  
+      allowNull: false 
     },
-    fullName: DataTypes.STRING,
-    group: DataTypes.STRING,
-    submissionGroupId: DataTypes.STRING 
+    participantLogin:{ 
+      type: DataTypes.STRING,  
+      allowNull: false 
+    },
+    fullName:        DataTypes.STRING,
+    group:           DataTypes.STRING,
+    submissionGroupId: DataTypes.STRING
+  }, {
+    indexes: [
+      { unique: true, fields: ['eventId', 'participantLogin'] },
+      { fields: ['eventId', 'submissionGroupId'] }
+    ]
   });
 };

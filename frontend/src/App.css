@@ -159,9 +159,9 @@ body[data-theme='dark'] .app-logo.is-hidden {
   .app-logo { max-width: clamp(160px, 12vh, 240px); }
   .background-shape-right {
     top: 60vh;
-    right: 10vw;
-    width: 60vw;
-    height: 50vh;
+    right: 25vw;
+    width: 90vw;
+    height: 70vh;
   }
 }
 

@@ -284,20 +284,42 @@ export default function ReviewRequestsPage({ userLogin }) {
         const fetchRequests = async () => {
             setIsLoading(true);
             try {
+                // const response = await fetch(`${API_BASE_URL}/api/requests`, {
+                //     credentials: 'include' 
+                // });
+                // if (!response.ok) {
+                //     throw new Error('Не удалось загрузить заявки');
+                // }
+                // const data = await response.json();
+                // const processedData = data.map(req => ({
+                //     ...req,
+                //     description: req.description || "Описание для этой заявки еще не добавлено.",
+                //     link: req.link || "",
+                //     User: req.User || {} 
+                // }));
+
                 const response = await fetch(`http://localhost:8000/api/requests`);
                 if (!response.ok) throw new Error(t('review.error.load'));
                 const data = await response.json();
                 const processedData = data.map(req => ({...req, statusKey: toStatusKey(req.status), eventStatusKey: toEventStatusKey(req.eventStatus),}));
                 setRequests(processedData);
                 setIsLoading(false);
-
             } catch (error) {
                 console.error("Ошибка при загрузке заявок:", error);
+                addNotification(error.message, 'error');
             }
         };
 
         fetchRequests();
-    }, [addNotification, t]);
+    }, [addNotification]);
+
+    const handleOpenChat = (request) => {
+        setActiveChatRequest({
+            id: request.id,
+            eventName: request.eventName,
+            User: request.User || { login: request.owner?.login, firstName: request.owner?.firstName, lastName: request.owner?.lastName, avatar: request.owner?.avatar, role: request.owner?.role }
+        });
+    };
 
     const handleCloseFilter = () => {
         const filterModal = topPanelRef.current?.querySelector('.filter-modal-dropdown-container');
@@ -405,7 +427,6 @@ export default function ReviewRequestsPage({ userLogin }) {
     const handleApprove = (id) => handleAction(id, 'approve');
     const handleReject = (id) => handleAction(id, 'reject');
 
-    const handleOpenChat = (request) => setActiveChatRequest({ id: request.id, eventName: request.eventName });
     const handleCloseChat = () => setActiveChatRequest(null);
     
 

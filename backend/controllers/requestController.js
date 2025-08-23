@@ -77,7 +77,8 @@ exports.getRequestsByStudent = async (req, res) => {
     // Получаем все заявки этого пользователя
     const requests = await Request.findAll({
       where: { userId: user.id },
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      include: [{ model: User, as: 'User', attributes: ['id', 'login', 'firstName', 'lastName', 'avatar', 'role'] }]
     });
 
     // Добавляем информацию о прикреплённых файлах
@@ -100,8 +101,16 @@ exports.getRequestsByStudent = async (req, res) => {
         eventDate: req.eventDate,
         description: req.description,
         link: req.link,
-        status: req.status, 
-        files
+        status: req.status,
+        files,
+        User: {
+          id: req.User.id,
+          login: req.User.login,
+          firstName: req.User.firstName,
+          lastName: req.User.lastName,
+          avatar: req.User.avatar,
+          role: req.User.role
+        }
       };
     });
 
@@ -206,7 +215,8 @@ exports.getAllRequests = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ['firstName', 'lastName', 'login']
+          as: 'User', 
+          attributes: ['id', 'login', 'firstName', 'lastName', 'avatar', 'role']
         }
       ],
       order: [['createdAt', 'DESC']]
@@ -236,18 +246,40 @@ exports.getAllRequests = async (req, res) => {
         link: req.link,
         files,
         status: req.status || 'На рассмотрении',
-        created_at:req.createdAt,
-
+        created_at: req.createdAt,
+        User: req.User
+          ? {
+              id: req.User.id,
+              login: req.User.login,
+              firstName: req.User.firstName,
+              lastName: req.User.lastName,
+              avatar: req.User.avatar,
+              role: req.User.role
+            }
+          : {
+              id: null,
+              login: 'удалён',
+              firstName: 'Неизвестно',
+              lastName: '',
+              avatar: '/static/default-avatar.png',
+              role: 'student'
+            },
         owner: req.User
           ? {
               firstName: req.User.firstName,
               lastName: req.User.lastName,
-              login: req.User.login
+              login: req.User.login,
+              middleName: req.User.middleName || '',
+              avatar: req.User.avatar,
+              role: req.User.role
             }
           : {
               firstName: 'Неизвестно',
               lastName: '',
-              login: 'удалён'
+              login: 'удалён',
+              middleName: '',
+              avatar: '/static/default-avatar.png',
+              role: 'student'
             }
       };
     });

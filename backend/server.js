@@ -21,7 +21,6 @@ app.use(cors({
   credentials: true               //  чтобы передавать куки
 }));
 app.use(bodyParser.json());
-app.use(cookieParser()); 
 
 // Роуты
 app.use('/api', require('./routes/userRoutes'));

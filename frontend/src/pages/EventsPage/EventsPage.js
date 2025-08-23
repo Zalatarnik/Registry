@@ -1456,6 +1456,13 @@ export default function EventsPage({ userLogin, userRole }) {
          setEvents(prevEvents => prevEvents.map(ev => {
            if (ev.id !== eventId) return ev;
            const newCount = (ev.current_participants || 0) + (participantsCount || 1);
+        //    const isClosed =
+        //      new Date(ev.eventDate) < new Date() ||
+        //      (ev.maxParticipants && newCount >= ev.maxParticipants);
+        //    return {
+        //      ...ev,
+        //      current_participants: newCount,
+        //      eventStatus: isClosed ? 'Набор закрыт' : 'Набор открыт',
            return {
              ...ev,
              current_participants: newCount,

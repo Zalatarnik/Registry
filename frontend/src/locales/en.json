@@ -20,14 +20,6 @@
   "theme.light": "Light",
   "theme.dark": "Dark",
 
-  "chat.title": "Chat for request: \"{event}\"",
-  "chat.loading": "Loading messages...",
-  "chat.empty": "There are no messages in this chat yet.",
-  "chat.input.placeholder": "Type a message...",
-  "chat.error.load": "Failed to load chat messages.",
-  "chat.error.send": "Failed to send message.",
-  "chat.button.close": "Close chat",
-
   "notifications.none": "No new notifications",
 
   "logout.confirmationTitle": "Confirmation",
@@ -502,7 +494,25 @@
   "newRequest.validation.date.required": "Please specify the event date.",
   "newRequest.validation.date.yearTooSmall": "The year cannot be earlier than 1900.",
   "newRequest.validation.date.yearTooBig": "The year cannot be greater than 2100.",
-  "newRequest.validation.link.invalid": "Please enter a valid event resource link."
+  "newRequest.validation.link.invalid": "Please enter a valid event resource link.",
+
+  "chat.title": "Chat for request: \"{event}\"",
+  "chat.button.close": "Close chat",
+
+  "chat.loading": "Loading messages...",
+  "chat.empty": "There are no messages in this chat yet.",
+
+  "chat.youChatWith": "You are chatting with:",
+  "chat.noCurators": "No curator has started a chat with you yet. You can’t send messages.",
+
+  "chat.input.toUser": "Message for {name}...",
+  "chat.input.placeholder": "Type a message...",
+
+  "chat.error.loadUsers": "Failed to load users list.",
+  "chat.error.load": "Failed to load chat messages.",
+  "chat.error.send": "Failed to send message.",
+  "chat.error.chooseCurator": "Choose a curator to send.",
+  "chat.error.chooseStudent": "Could not determine the student to send."
 
 
 }

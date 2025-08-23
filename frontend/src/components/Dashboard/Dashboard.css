@@ -391,3 +391,30 @@ body[data-theme='dark'] .burger-line:after {
 }
 
 
+.dashboard-container.page-view .content-area {
+    width: 120vh;
+    height: 70vh;
+    opacity: 1;
+}
+
+.notification-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background-color: #d35400;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    pointer-events: none;
+    transform: scale(0);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.notification-indicator.has-notifications {
+    transform: scale(1);
+}
+
+.header-button:hover .notification-indicator {
+    transform: scale(0);
+}

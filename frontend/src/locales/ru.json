@@ -21,12 +21,22 @@
   "theme.dark": "Тёмная",
 
   "chat.title": "Чат по заявке: \"{event}\"",
+  "chat.button.close": "Закрыть чат",
+
   "chat.loading": "Загрузка сообщений...",
   "chat.empty": "В этом чате пока нет сообщений.",
+
+  "chat.youChatWith": "Вы общаетесь с:",
+  "chat.noCurators": "С вами пока не начинали чат кураторы. Вы не можете написать сообщение",
+
+  "chat.input.toUser": "Сообщение для {name}...",
   "chat.input.placeholder": "Напишите сообщение...",
+
+  "chat.error.loadUsers": "Не удалось загрузить список пользователей.",
   "chat.error.load": "Не удалось загрузить сообщения чата.",
   "chat.error.send": "Не удалось отправить сообщение.",
-  "chat.button.close": "Закрыть чат",
+  "chat.error.chooseCurator": "Выберите куратора для отправки",
+  "chat.error.chooseStudent": "Не удалось определить студента для отправки",
 
   "notifications.none": "Нет новых уведомлений",
 

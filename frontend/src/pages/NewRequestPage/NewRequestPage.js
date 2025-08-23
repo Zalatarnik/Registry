@@ -311,7 +311,7 @@ export default function NewRequestPage({ userLogin }) {
             addNotification(validationResult.message, "error");
             return;
         }
-
+        
         setIsSubmitting(true);
         const data = new FormData();
         // Добавляем все поля из formData
