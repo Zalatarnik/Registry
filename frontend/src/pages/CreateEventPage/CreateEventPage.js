@@ -130,7 +130,7 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef(null);
 
-    // Находим полный объект выбранной опции по его id (value)
+    // Находим полный объект выбранной опции по его value
     const selectedOption = options.find(opt => opt.id === value);
 
     useEffect(() => {
@@ -144,7 +144,7 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     }, [ref]);
 
     const handleSelect = (option) => {
-        // Здесь мы передаем весь объект, а в CreateEventPage извлекаем из него .id
+        // Здесь мы передаем весь объект
         onChange(option);
         setIsOpen(false);
     };
@@ -152,10 +152,6 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     return (
         <div ref={ref} className={`custom-select-container ${isOpen ? 'is-open' : ''}`}>
             <div className="form-input custom-select-value" onClick={() => setIsOpen(!isOpen)}>
-                {/* 
-                  Теперь мы отображаем label найденного объекта,
-                  а если ничего не выбрано - placeholder.
-                */}
                 {selectedOption ? selectedOption.label : <span style={{opacity: 0.6}}>{placeholder}</span>}
                 <DownIcon />
             </div>
@@ -163,7 +159,6 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
                 {options.map(opt => (
                     <div 
                         key={opt.id} 
-                        // Сравниваем по id для подсветки выбранного элемента
                         className={`custom-select-option ${value === opt.id ? 'is-selected' : ''}`} 
                         onClick={() => handleSelect(opt)}
                     >
