@@ -82,36 +82,18 @@ exports.createEvent = async (req, res) => {
 };
 
 // Получить все мероприятия
-// Получить все мероприятия
 exports.getAllEvents = async (req, res) => {
   try {
     const events = await Event.findAll({
       attributes: [
         'id', 'eventName', 'leader', 'organizer', 'location',
         'eventStatus', 'eventDate', 'description',
-        'maxParticipants', 'teamSize', 'coverImage', 'userId',
-        [Sequelize.fn('COUNT', Sequelize.col('EventRegistrations.id')), 'currentCount']
+        'maxParticipants', 'teamSize', 'coverImage', 'userId'
       ],
-      include: [
-        { model: EventRegistration, attributes: [] }
-      ],
-      group: ['Event.id'],
       order: [['eventDate', 'DESC']]
     });
-
-    events.forEach(ev => {
-      const now = new Date();
-      const eventDate = new Date(ev.eventDate);
-      const currentCount = Number(ev.dataValues.currentCount || 0);
-
-      if (eventDate < now || (ev.maxParticipants && currentCount >= ev.maxParticipants)) {
-        ev.dataValues.eventStatus = 'Набор закрыт';
-      } else {
-        ev.dataValues.eventStatus = 'Набор открыт';
-      }
-    });
-
     res.json(events);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ detail: 'Ошибка при получении мероприятий' });

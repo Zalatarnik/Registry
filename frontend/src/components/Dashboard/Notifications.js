@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import ReactDOM from 'react-dom';
+import { useTranslation } from '../../components/common/useTranslation';
 
 import ClockwiseLoader from '../../components/common/Loader';
 import './Notifications.css';
@@ -15,6 +16,19 @@ import { ReactComponent as GroupIcon } from '../../icons/group-icon.svg'; // з�
 import { ReactComponent as DownloadIcon } from '../../icons/download-icon.svg';
 
 const API_BASE_URL = 'http://localhost:8000';
+
+const useEventStatusTranslation = () => {
+    const { t } = useTranslation();
+    const statusMap = useMemo(() => ({
+        international: t('createEvent.status.international'),
+        allRussian:    t('createEvent.status.allRussian'),
+        city:          t('createEvent.status.city'),
+        regional:      t('createEvent.status.regional'),
+        university:    t('createEvent.status.university'),
+    }), [t]);
+
+    return useCallback((statusKey) => statusMap[statusKey] || statusKey, [statusMap]);
+};
 
 const useNotification = () => ({
     addNotification: (msg, type) => console.log(`Notification (${type}): ${msg}`)
@@ -46,6 +60,12 @@ function animateRadii(btn) {
         state.isAnimating = false;
     }
 }
+
+const isRecruitmentOpen = (ev) => {
+  const dateOk = new Date(ev.eventDate) > new Date();
+  const capOk = !ev.max_participants || ((ev.current_participants || 0) < ev.max_participants);
+  return dateOk && capOk;
+};
 
 const handleMouseMoveForEffect = (e) => {
     const el = e.currentTarget;
@@ -103,7 +123,9 @@ const handleButtonLeave = (e) => {
 };
 
 const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRequest, onDownload }) => {
-    const isOpen = event.eventStatus === 'Набор открыт';
+    const { t } = useTranslation();
+    const translateStatus = useEventStatusTranslation();
+    const isOpen = isRecruitmentOpen(event);
     const cardClassName = [
         'event-card-student',
         isDetailed && 'is-detailed-view'
@@ -128,8 +150,8 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
                     {isRegistered ? 'Вы записаны' : 'Нет записи'}
                 </div>
-                <div className={`recruitment-status-badge status-${event.eventStatus === 'Активен' ? 'active' : 'completed'}`}>
-                    {event.eventStatus}
+                <div className={`recruitment-status-badge status-${isOpen ? 'active' : 'completed'}`}>
+                    {isOpen ? 'Набор открыт' : 'Набор закрыт'}
                 </div>
                 <div className="details-container">
                     <div className="details-header" onClick={handleHeaderClick}>
@@ -153,7 +175,7 @@ const StudentEventCard = ({ event, onSignUp, isRegistered, isDetailed, onCloseRe
                         <div className="detail-item"><span className="detail-label">Руководитель:</span> {event.leader}</div>
                         <div className="detail-item"><span className="detail-label">Организатор:</span> {event.organizer}</div>
                         <div className="detail-item"><span className="detail-label">Место:</span> {event.location}</div>
-                        <div className="detail-item"><span className="detail-label">Статус:</span> {event.eventStatus}</div>
+                        <div className="detail-item"><span className="detail-label">Статус:</span> {translateStatus(event.eventStatus)}</div>
                         <div className="detail-item"><span className="detail-label">Дата:</span> {new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="details-actions">
