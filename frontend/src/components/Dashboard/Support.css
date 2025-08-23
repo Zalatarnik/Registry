@@ -6,6 +6,7 @@
     z-index: 4000;
 }
 
+
 @keyframes sup-slide-in-from-right {
     from {
         transform: translateX(30px);
@@ -218,4 +219,18 @@ body[data-theme='dark'] .support-component-scope{
   .support-divider{
     background:rgba(255,255,255,.08);
   }
+}
+
+@media(max-width: 640px) {
+    .support-component-scope .support-view-wrapper {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: 50px;
+        width: calc(100% - 20px);
+    }
+
+    .support-component-scope .support-modal {
+        width: 100%;
+    }
 }

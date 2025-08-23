@@ -17,6 +17,8 @@ import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
 import { ReactComponent as DownIcon } from '../../icons/down-icon.svg';
 import { ReactComponent as CloseIcon } from '../../icons/exit-icon.svg';
 
+const API_BASE_URL = 'http://localhost:8000';
+
 // АНИМАЦИЯ КНОПОК
 const EASING_FACTOR = 0.15;
 const DEFAULT_RADIUS = 0;
@@ -452,7 +454,7 @@ export default function MyRequestsPage({ userLogin }) {
         const fetchRequests = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`http://localhost:8000/api/requests/student/${userLogin}`);
+                const response = await fetch(`${API_BASE_URL}/api/requests/student/${userLogin}`);
                 if (!response.ok) throw new Error(t('review.error.load'));
                 const data = await response.json();
                 const processedData = data.map(req => ({
@@ -516,7 +518,7 @@ export default function MyRequestsPage({ userLogin }) {
             const fileUrl = `http://localhost:8000${files[0].url}`;
             window.open(fileUrl, '_blank');
         } else {
-            const zipUrl = `http://localhost:8000/api/requests/${request.id}/files-zip`;
+            const zipUrl = `${API_BASE_URL}/api/requests/${request.id}/files-zip`;
             const link = document.createElement('a');
             link.href = zipUrl;
             link.setAttribute('download', `request_${request.id}_files.zip`);
@@ -545,7 +547,7 @@ export default function MyRequestsPage({ userLogin }) {
     const handleConfirmCancel = async () => {
         if (!requestToDelete) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/requests/${requestToDelete.id}`, { method: 'DELETE' });
+            const response = await fetch(`${API_BASE_URL}/api/requests/${requestToDelete.id}`, { method: 'DELETE' });
             if (!response.ok) throw new Error(t('request.delete.error'));
             setRequests(current => current.filter(r => r.id !== requestToDelete.id));
             addNotification(t('request.delete.success'), 'success');

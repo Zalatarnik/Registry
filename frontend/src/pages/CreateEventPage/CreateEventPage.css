@@ -17,8 +17,12 @@
 /* общие стили контейнера */
 .create-event-container {
     padding: 20px;
-    height: 65vh;
     animation: fadeIn 0.5s ease;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex
+;
+    flex-direction: column;
 }
 
 /* заголовок страницы */
@@ -37,8 +41,23 @@
   overflow-y: auto;
   background-color: #ffffff;
   box-shadow: none;
-  width: 109vh;
-  max-height: 55vh;
+}
+
+@media(max-width: 640px) {
+
+  .create-event-container {
+    padding: 10px;
+    overflow-y: scroll;
+    max-height: calc(100vh - 44px);
+  }
+  .create-event-container h1, .create-event-container .page-content {
+    margin-left: 0;
+    padding: 0;
+  }
+
+  .create-event-container h1 {
+    margin-bottom: 10px;
+  }
 }
 
 /* сетка формы */
@@ -47,6 +66,12 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 24px 48px;
     align-items: start;
+}
+
+@media(max-width: 1024px) {
+  .create-event-container .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* поля формы */
@@ -58,6 +83,12 @@
 /* Поля, занимающие всю ширину */
 .create-event-container .form-field:has(textarea[name="description"]) {
     grid-column: span 2;
+}
+
+@media(max-width: 1024px) {
+  .create-event-container .form-field:has(textarea[name="description"]) {
+    grid-column: unset;
+}
 }
 
 .create-event-container .form-field label,

@@ -1465,16 +1465,24 @@ export default function EventsPage({ userLogin, userRole }) {
     };
 
     const promptDeleteEvent = (event, e) => {
+        const windowWidth = window.innerWidth;
         const rect = e.currentTarget.getBoundingClientRect();
-        const modalWidth = 380;
+        const modalWidth = 380; 
         const gap = 15;
-        const top = rect.top;
-        let left = rect.left - modalWidth - gap;
-
-        if (left < gap) {
-            left = rect.right + gap;
+        let top = rect.top;
+        let left = null;
+        if(windowWidth > 640) {
+            
+            left = rect.left - modalWidth - gap;
+    
+            if (left < gap) {
+                left = rect.right + gap;
+            }
+        } else {
+            left = 10;
         }
 
+    
         setDeleteModalPosition({ top, left });
         setEventToDelete(event);
         setIsDeleteModalOpen(true);

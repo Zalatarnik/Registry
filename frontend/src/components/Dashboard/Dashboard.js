@@ -2,7 +2,6 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import PageComponent from '../PageComponent';
 import ChatView from '../Chat/Chat';
 import './Dashboard.css';
-import ThemeToggle from '../common/ThemeToggle';
 import LogoutConfirmation from './LogoutConfirmation';
 
 import Notifications from './Notifications';
@@ -86,11 +85,43 @@ const allMenuItems = [
   { id: 'all-users',        i18n: 'menu.allUsers',       roles: ['curator'] },
   { id: 'logout',           i18n: 'menu.logout',         icon: ExitIcon, roles: ['student','curator'] },
 ];
-const TILE_WIDTH = 200; const TILE_HEIGHT = 80;
+
+// Адаптивный размер плиток (подстраиваем под ширину/высоту экрана и тач)
+const useAdaptiveTileSize = () => {
+  const [size, setSize] = useState({ w: 200, h: 80 });
+
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+      let TW = 200, TH = 80;
+
+      // чуть компактнее на планшетах/узких десктопах
+      if (w < 1200) { TW = 190; TH = 72; }
+      if (w < 992)  { TW = 180; TH = 68; }
+
+      // тач-устройства и/или очень низкие экраны (ландшафт телефона)
+      if (isCoarse || h < 520) { TW = 168; TH = 60; }
+      if (w < 760) { TW = 160; TH = 56; } // узкие окна/малые планшеты
+
+      setSize({ w: TW, h: TH });
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+  return size;
+};
 
 // Основной компонент панели управления
 function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) {
   const { t } = useTranslation();
+  const tileSize = useAdaptiveTileSize();
   const [hoveredTile, setHoveredTile] = useState(null);
   const [activeChat, setActiveChat] = useState({ isOpen: false, request: null });
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -100,12 +131,23 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
   const menuItems = useMemo(() => allMenuItems.filter(item => item.roles.includes(userRole)), [userRole]);
 
   const menuContainerStyle = useMemo(() => {
-      // Если открыта какая-либо страница, меню отображается в одну колонку
-      if (activePage) return { width: `${TILE_WIDTH}px`, height: `${menuItems.length * TILE_HEIGHT}px` };
-      // Иначе, меню отображается в две колонки
-      const rowCount = Math.ceil(menuItems.length / 2);
-      return { width: `${TILE_WIDTH * 2}px`, height: `${rowCount * TILE_HEIGHT}px` };
-  }, [activePage, menuItems.length]);
+    const TW = tileSize.w, TH = tileSize.h;
+    if (activePage) {
+      return {
+        width: `${TW}px`,
+        height: `${menuItems.length * TH}px`,
+        // прокидываем переменные в CSS
+        ['--tile-w']: `${TW}px`,
+        ['--tile-h']: `${TH}px`,
+      };
+    }
+    const rowCount = Math.ceil(menuItems.length / 2);
+    return {
+      height: `${rowCount * TH}px`,
+      ['--tile-w']: `${TW}px`,
+      ['--tile-h']: `${TH}px`,
+    };
+  }, [activePage, menuItems.length, tileSize]);
 
   // Обработчик клика по плитке меню
   const handleTileClick = (tileId) => {
@@ -134,6 +176,11 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
   return (
     <div className="dashboard-viewport">
       <HeaderButtons userLogin={userLogin} t={t} />
+      {activePage ?
+        <div class="mobile-burger-menu-button" onClick={() => {let prevActivePage = activePage; (() => {onPageChange(activePage ? null : prevActivePage)})();}}>
+          <span class="burger-line"></span>
+          </div>
+      : ''}
 
       <div className={`dashboard-slider ${activeChat.isOpen ? 'is-chat-active' : ''}`}>
         <div className="main-view-panel">
@@ -146,13 +193,16 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
                   transform: (() => {
                     const idx = menuItems.findIndex(i => i.id === gliderTargetId);
                     if (idx === -1) return 'scale(0)';
-                    if (!activePage) {
-                      const row = Math.floor(idx / 2);
-                      const col = idx % 2;
-                      return `translate(${col * TILE_WIDTH}px, ${row * TILE_HEIGHT}px)`;
-                    }
-                    return `translateY(${idx * TILE_HEIGHT}px)`;
+                      const TW = tileSize.w, TH = tileSize.h;
+                      if (!activePage) {
+                        const row = Math.floor(idx / 2);
+                        const col = idx % 2;
+                        return `translate(${col * TW}px, ${row * TH}px)`;
+                      }
+                      return `translateY(${idx * TH}px)`;
                   })(),
+                  ['--tile-w']: `${tileSize.w}px`,
+                  ['--tile-h']: `${tileSize.h}px`,                  
                 }}
               />
 
@@ -160,9 +210,10 @@ function Dashboard({ onLogout, activePage, onPageChange, userRole, userLogin }) 
                 const isSelected    = item.id === activePage;
                 const isHighlighted = item.id === (hoveredTile || activePage);
                 const IconComponent = item.icon;
+                const TW = tileSize.w, TH = tileSize.h;
                 const transformStyle = !activePage
-                  ? `translate(${(index % 2) * TILE_WIDTH}px, ${Math.floor(index / 2) * TILE_HEIGHT}px)`
-                  : `translate(0px, ${index * TILE_HEIGHT}px)`;
+                  ? `translate(${(index % 2) * TW}px, ${Math.floor(index / 2) * TH}px)`
+                  : `translate(0px, ${index * TH}px)`;
 
                 return (
                   <button

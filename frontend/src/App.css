@@ -3,8 +3,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  min-height: 100dvh;
   min-height: 100svh;
-  padding: clamp(12px, 2.5vw, 24px);
+
+  padding: max(var(--gutter), var(--safe-top)) var(--gutter) max(var(--gutter), var(--safe-bottom));
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .App {
+    align-items: flex-start;
+  }
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 
@@ -27,6 +41,15 @@
     opacity 0.4s ease-in-out,
     transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     filter .25s ease;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+@media (max-width: 480px) {
+  .app-logo {
+    top: 12px;
+    max-width: clamp(112px, 18vw, 160px);
+  }
 }
 .app-logo.is-hidden {
   opacity: 0;
@@ -145,3 +168,25 @@ body[data-theme='dark'] .app-logo.is-hidden {
 @media (max-width: 640px){
   .background-shape-right{ display: none; } 
 }
+
+@media (max-width: 640px),
+       (orientation: landscape) and (max-height: 520px) {
+  .background-shape-right { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .background-triangle {
+    top: 50vh;
+    left: -30vw;
+    width: 170vw;
+    height: 56vh;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px){
+  .App{ align-items:flex-start; padding: 8px; }
+  .background-triangle, .background-shape-right{ display:none !important; }
+}
+
+html, body { height: 100%; overflow: hidden; }
+.App { overflow: clip; } /* чтобы фоновые треугольники не добавляли высоту */

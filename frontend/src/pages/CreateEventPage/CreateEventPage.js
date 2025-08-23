@@ -129,6 +129,7 @@ const FormField = ({ label, children, isTextarea }) => {
 const CustomSelect = ({ options, value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef(null);
+    const selected = (options || []).find(o => o.id === value);
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (ref.current && !ref.current.contains(event.target)) {
@@ -147,7 +148,7 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
     return (
         <div ref={ref} className={`custom-select-container ${isOpen ? 'is-open' : ''}`}>
             <div className="form-input custom-select-value" onClick={() => setIsOpen(!isOpen)}>
-                {value || <span style={{opacity: 0.6}}>{placeholder}</span>}
+                {selected ? selected.label : <span style={{opacity: 0.6}}>{placeholder}</span>}
                 <DownIcon />
             </div>
             <div className="custom-select-options">

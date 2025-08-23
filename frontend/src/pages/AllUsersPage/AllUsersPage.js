@@ -104,14 +104,14 @@ const UserCard = memo(({ user, isActive, isExpanded, onCardClick, onMouseEnter, 
                             onMouseMove={handleMouseMoveForEffect}
                             onMouseLeave={handleButtonLeave}
                         >
-                            <span><DeleteIcon /> {t('allUsers.delete')}</span>
+                            <span><DeleteIcon /> <p>{t('allUsers.delete')}</p></span>
                         </button>
                         <div 
                             className={`interactive-button role-badge role-${user.role}`} 
                             onMouseMove={handleMouseMoveForEffect} 
                             onMouseLeave={handleButtonLeave}
                         >
-                           <span>{roleDisplayMap[user.role]}</span>
+                           <span><p>{roleDisplayMap[user.role]}</p></span>
                         </div>
                     </div>
                 </div>
@@ -192,16 +192,26 @@ export default function AllUsersPage() {
     }, []);
     
     const promptDeleteUser = (user, e) => {
+        const windowWidth = window.innerWidth;
+        
         const rect = e.currentTarget.getBoundingClientRect();
+
         const modalWidth = 380; 
         const gap = 15;
-        const top = rect.top;
-        let left = rect.left - modalWidth - gap;
-
-        if (left < gap) {
-            left = rect.right + gap;
+        let top = rect.top;
+        let left = null;
+        if(windowWidth > 640) {
+            
+            left = rect.left - modalWidth - gap;
+    
+            if (left < gap) {
+                left = rect.right + gap;
+            }
+        } else {
+            left = 10;
         }
 
+        
         setModalPosition({ top, left });
         setUserToDelete(user);
         setIsDeleteModalOpen(true);

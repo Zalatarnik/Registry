@@ -58,6 +58,7 @@ function animateRadii(btn) {
 }
 
 const handleMouseMoveForEffect = (e) => {
+    if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
     const el = e.currentTarget;
     if (!el.classList.contains('interactive-button') && !el.classList.contains('form-submit-btn') && !el.classList.contains('form-secondary-btn')) return;
 
@@ -98,6 +99,28 @@ const handleMouseMoveForEffect = (e) => {
   }
 };
 
+const useLowHeightOrMobile = () => {
+  const [isSheet, setIsSheet] = useState(false);
+  const recompute = useCallback(() => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    const lowH = vh < 560; // ландшафт телефонов/низкие окна
+    setIsSheet(coarse || vw <= 640 || lowH);
+  }, []);
+  useEffect(() => {
+    recompute();
+    window.addEventListener('resize', recompute);
+    window.addEventListener('orientationchange', recompute);
+    return () => {
+      window.removeEventListener('resize', recompute);
+      window.removeEventListener('orientationchange', recompute);
+    };
+  }, [recompute]);
+  return isSheet;
+};
+
+
 const handleButtonLeave = (e) => {
     const btn = e.currentTarget;
      if (!btn.classList.contains('interactive-button') && !btn.classList.contains('form-submit-btn') && !btn.classList.contains('form-secondary-btn')) return;
@@ -116,6 +139,51 @@ const handleButtonLeave = (e) => {
     }
 };
 
+
+const toEventStatusKey = (s = '') => {
+  const raw = String(s).trim();
+  const map = {
+    // ru
+    'Международный': 'international',
+    'Всероссийский': 'allRussian',
+    'Городской': 'city',
+    'Региональный': 'regional',
+    'Внутривузовский': 'university',
+    // en
+    'International': 'international',
+    'All-Russian': 'allRussian',
+    'City': 'city',
+    'Regional': 'regional',
+    'University': 'university',
+    // already keys
+    'international': 'international',
+    'allRussian': 'allRussian',
+    'city': 'city',
+    'regional': 'regional',
+    'university': 'university',
+  };
+  return map[raw] ?? '';
+};
+
+const EVENT_STATUS_I18N_KEYS = {
+  international: 'createEvent.status.international',
+  allRussian:    'createEvent.status.allRussian',
+  city:          'createEvent.status.city',
+  regional:      'createEvent.status.regional',
+  university:    'createEvent.status.university',
+};
+
+const getEventStatusLabel = (value, t) => {
+  const key = EVENT_STATUS_I18N_KEYS[toEventStatusKey(value)];
+  return key ? t(key) : (value || '—');
+};
+
+const isRecruitmentOpen = (ev) => {
+  const dateOk = new Date(ev.eventDate) > new Date();
+  const capOk = !ev.maxParticipants || (Number(ev.current_participants||0) < Number(ev.maxParticipants));
+  return dateOk && capOk;
+};
+
 // Карточка мероприятия
 const StudentEventCard = ({
     
@@ -127,16 +195,7 @@ const StudentEventCard = ({
   isOpen,
 }) => {
     const { t } = useTranslation();
-    const STATUS_MAP = {
-    Активен: { key: 'active', i18n: 'notification.recruitmentStatus.active' },
-    Завершён: {
-        key: 'completed',
-        i18n: 'notification.recruitmentStatus.completed',
-    },
-    };
-
-    const { key: statusKey, i18n: statusLabel } =
-    STATUS_MAP[event.recruitment_status] || STATUS_MAP.Завершён;
+    const open = isRecruitmentOpen(event);
 
   const cardCls = [
     'event-card-student',
@@ -164,8 +223,8 @@ const StudentEventCard = ({
                 <div className={`registration-status-badge ${isRegistered ? 'registered' : 'unregistered'}`}>
                   {isRegistered ? t('notification.alreadyRegistered') : t('notification.notRegistered')}
                 </div>
-               <div className={`recruitment-status-badge status-${event.eventStatus === 'Активен' ? 'active' : 'completed'}`}>
-                  {event.eventStatus}
+               <div className={`recruitment-status-badge status-${open ? 'active' : 'completed'}`}>
+                  {open ? t('events.recruitment.open') : t('events.recruitment.closed')}
                 </div>
                 <div className="details-container">
                     <div className="details-header" onClick={handleHeaderClick}>
@@ -188,7 +247,7 @@ const StudentEventCard = ({
                       <div className="detail-item"><span className="detail-label">{t('notification.leader')}</span> {event.leader}</div>
                       <div className="detail-item"><span className="detail-label">{t('notification.organizer')}</span> {event.organizer}</div>
                       <div className="detail-item"><span className="detail-label">{t('notification.location')}</span> {event.location}</div>
-                      <div className="detail-item"><span className="detail-label">{t('notification.status')}</span> {event.eventStatus}</div>
+                      <div className="detail-item"><span className="detail-label">{t('notification.status')}</span>{' '} {getEventStatusLabel(event.levelKey || event.eventStatus, t)}</div>
                       <div className="detail-item"><span className="detail-label">{t('notification.date')}</span> {new Date(event.eventDate).toLocaleDateString('ru-RU')}</div>
                     </div>
                     <div className="details-actions">
@@ -205,13 +264,14 @@ const StudentEventCard = ({
                             className="interactive-button btn-style-register"
                             onClick={(e) => handleActionClick(e, onSignUp)}
                             onMouseMove={handleMouseMoveForEffect}
-                            disabled={isRegistered || !isOpen}
+                            onMouseLeave={handleButtonLeave}
+                            disabled={isRegistered || !open}
                             >
                              <span>
                                <AddIcon />
                                {isRegistered
                                  ? t('notification.alreadySignedUp')
-                                 : !isOpen
+                                 : !open
                                    ? t('events.recruitment.closed')
                                    : t('notification.signUp')}
                              </span>
@@ -242,7 +302,7 @@ const DetailedEventContainer = ({
     <StudentEventCard
       event={event}
       onSignUp={onSignUp}
-            onDownload={onDownload}
+      onDownload={onDownload}
       isRegistered={isRegistered}
       isDetailed={isExpanded}
       onCloseRequest={onCloseRequest}
@@ -260,6 +320,7 @@ const FormField = ({ label, children }) => (
 // всплывающее окно для записи на мероприятие
 const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const { t } = useTranslation();
+    const isSheet = useLowHeightOrMobile();
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
     const getUserFullName = (user) => user ? [user.lastName, user.firstName, user.patronymic || user.middleName].filter(Boolean).join(' ') : '';
@@ -283,6 +344,33 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     const modalRef = useRef(null);
     const prevHeight = useRef(null);
     const [dynamicPosition, setDynamicPosition] = useState(position);
+    const [modalStyle, setModalStyle] = useState({});
+    useEffect(() => setDynamicPosition(position), [position]);
+
+    // ESC + лока скролла
+    useEffect(() => {
+      const onKey = (e) => e.key === 'Escape' && handleClose();
+      document.addEventListener('keydown', onKey);
+      document.body.classList.add('scroll-lock');
+      return () => {
+        document.removeEventListener('keydown', onKey);
+        document.body.classList.remove('scroll-lock');
+      };
+    }, []);
+
+    // пересчёт позиции (если не шит)
+    useEffect(() => {
+      if (!event) return;
+      if (isSheet || !dynamicPosition) {
+        setModalStyle({ position: 'fixed', left: '50%', bottom: 'max( env(safe-area-inset-bottom), 8px )', transform: 'translateX(-50%)' });
+        return;
+      }
+      setModalStyle({
+        position: 'fixed',
+        top: dynamicPosition.top,
+        left: dynamicPosition.left,
+      });
+    }, [isSheet, dynamicPosition, event]);
 
     useEffect(() => {
         if (modalRef.current) {
@@ -382,17 +470,17 @@ const SignUpModal = ({ event, onClose, onConfirm, currentUser, position }) => {
     if (!event) return null;
 
   return (
-    <div
-      className={`modal-overlay ${isClosing ? 'is-closing' : ''}`}
-      onMouseDown={handleClose}
-    >
+    <div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onMouseDown={handleClose}>
       <div
-        className={`signup-modal-content ${isClosing ? 'is-closing' : ''}`}
+        ref={modalRef}
+        className={`signup-modal-content ${isSheet ? 'is-sheet' : ''} ${isClosing ? 'is-closing' : ''}`}
+        style={modalStyle}
         onMouseDown={(e) => e.stopPropagation()}
+        role="dialog" aria-modal="true" aria-labelledby="signup-title"
       >
         <div className="chat-header">
           <div className="chat-title-wrapper">
-            <h2>{t('notification.signUpTitle')}</h2>
+            <h2 id="signup-title">{t('notification.signUpTitle')}</h2>
             <p>{event.eventName}</p>
           </div>
           <button
@@ -543,6 +631,7 @@ const NotificationCard = memo(
 // Главное окно уведомлений
 const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const { t } = useTranslation();
+    const isSheet = useLowHeightOrMobile();
     const [isClosing, setIsClosing] = useState(false);
     const { addNotification } = useNotification();
     const [isLoading, setIsLoading] = useState(false);
@@ -558,6 +647,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
     const cardElements = useRef(new Map());
     const [modalPosition, setModalPosition] = useState(null);
     const [invitations, setInvitations] = useState([]);
+    const [wrapperStyle, setWrapperStyle] = useState({});
 
         useEffect(() => {
     if (!isOpen || !userLogin) return;
@@ -574,20 +664,20 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 imageUrl: ev.coverImage ? `${API_BASE_URL}${ev.coverImage}` : defaultEventImage,
                 max_participants: ev.maxParticipants,
                 max_group_size: ev.teamSize,
-                eventStatus: ev.eventStatus,
+                levelKey: toEventStatusKey(ev.eventStatus),
                 description: ev.description || t('events.noDescription'),
             };
 
             const inviterUser = n.Inviter;
             const inviterName = inviterUser
-                ? `${inviterUser.lastName} ${inviterUser.firstName}${inviterUser.middleName ? ' ' + inviterUser.middleName : ''}`.trim()
-                : n.inviter;
+              ? `${inviterUser.lastName} ${inviterUser.firstName}${inviterUser.middleName ? ' ' + inviterUser.middleName : ''}`.trim()
+              : n.inviter;
             const inviterGroup = inviterUser?.group || '';
 
             return {
                 id: n.id,
                 inviter: inviterName,
-                inviterGroup,
+                inviterGroup: inviterUser?.group || '',
                 event: normalizedEvent,
                 message: n.message,
             };
@@ -597,7 +687,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         }
     };
     fetchInvites();
-    }, [isOpen, userLogin]);
+    }, [isOpen, userLogin, t]);
 
     const handleCloseDetails = useCallback(() => {
         setIsDetailCardExpanded(false);
@@ -737,13 +827,54 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
         handleCloseSignUpModal();
     };
 
+  useEffect(() => {
+    if (!isOpen) return;
+      const clampInView = () => {
+        const vw = window.innerWidth;
+        const gap = 8;
+        if (isSheet || !position) {
+          setWrapperStyle({
+            position: 'fixed',
+          });
+          return;
+        }
+        const right = Math.max(gap, vw - (position.right || vw)); // якорь к правому краю кнопок
+        const top   = Math.max(gap, (position.bottom || 0) + gap);
+        setWrapperStyle({
+          position: 'fixed',
+          right: `${right}px`,
+          top:   `${top}px`,
+          left:  'auto',
+          transform: 'none',
+        });
+      };
+    clampInView();
+    window.addEventListener('resize', clampInView);
+    window.addEventListener('orientationchange', clampInView);
+    return () => {
+      window.removeEventListener('resize', clampInView);
+      window.removeEventListener('orientationchange', clampInView);
+    };
+  }, [isOpen, isSheet, position]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') closePanel(); };
+    const onDown = (e) => {
+      const panel = document.querySelector('.notifications-view-wrapper');
+      if (panel && !panel.contains(e.target)) closePanel();
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [isOpen, closePanel]);
+
+
   // Рендер
   if (!isOpen) return null;
-
-  const wrapperStyle = {
-    top: `${(position?.bottom || 0) + 8}px`,
-    right: `${window.innerWidth - (position?.right || 0)}px`,
-  };
 
     return ReactDOM.createPortal(
         <div className="notifications-component-scope">
@@ -758,7 +889,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                 />
             )}
 
-            <div className="notifications-view-wrapper" style={wrapperStyle}>
+            <div className={`notifications-view-wrapper ${isSheet ? 'is-sheet' : ''}`} style={wrapperStyle}>
                 {detailedEvent && (
                     <DetailedEventContainer
                         event={detailedEvent}
@@ -793,7 +924,7 @@ const Notifications = ({ isOpen, onClose, position, userLogin }) => {
                             <div className="notifications-list-container" onMouseLeave={() => setHoveredInviteId(null)}>
                                 <div className="list-glider" style={gliderStyle}></div>
                                 {invitations.map((invite, index) => {
-                                    const isActive = invite.event.id === gliderTargetId;
+                                    const isActive = invite.id === gliderTargetId;
 
                                     return (
                                         <React.Fragment key={invite.id}>

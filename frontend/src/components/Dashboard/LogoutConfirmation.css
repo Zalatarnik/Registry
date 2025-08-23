@@ -1,4 +1,26 @@
-/* анимации появления/ухода модалки выхода */
+/* ====== База: безопасные зоны и гаттер ====== */
+:root{
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --sheet-gap:   8px;
+}
+
+/* ====== Бэкдроп ====== */
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: saturate(1.2) blur(2px);
+  -webkit-backdrop-filter: saturate(1.2) blur(2px);
+  z-index: 1999;
+  opacity: 1;
+  transition: opacity .2s ease;
+}
+.modal-backdrop.is-closing{ opacity: 0; }
+
+/* ====== Анимации ====== */
 @keyframes logout-modal-slide-in {
   from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.98); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0)      scale(1); }
@@ -8,11 +30,26 @@
   to   { opacity: 0; transform: translateX(-50%) translateY(-10px)  scale(0.98); }
 }
 
-/* контейнер модалки выхода (светлая тема по умолчанию) */
+/* Шит (нижняя панель) для низких/узких экранов */
+@keyframes sheet-up-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes sheet-up-out {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to   { opacity: 0; transform: translate(-50%, 12px); }
+}
+
+/* ====== Модалка выхода (светлая тема) ====== */
 .logout-modal-container{
   position: fixed;
-  width: 380px;
   z-index: 2000;
+
+  /* адаптивная ширина */
+  width: min(380px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
+  max-height: min(60dvh, 70svh);
+  overflow: auto;
+
   padding: 20px;
   box-sizing: border-box;
 
@@ -25,12 +62,26 @@
   border-radius: 16px;
 
   transform-origin: top center;
-  transform: translateX(-50%);
+  transform: translateX(-50%); /* центр относительно left */
   animation: logout-modal-slide-in .25s ease-out forwards;
 }
-.logout-modal-container.is-closing{ animation: logout-modal-slide-out .25s ease-in forwards; }
+.logout-modal-container.is-closing{ animation: logout-modal-slide-out .2s ease-in forwards; }
 
-/* заголовок и текст */
+/* Режим нижнего шита (включается классом .is-sheet из JS) */
+.logout-modal-container.is-sheet{
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: calc(var(--safe-bottom) + var(--sheet-gap));
+  width: min(560px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+  max-height: min(70dvh, 78svh);
+  border-radius: 14px;
+  transform: translateX(-50%);
+  animation: sheet-up-in .25s ease-out forwards;
+}
+.logout-modal-container.is-sheet.is-closing{ animation: sheet-up-out .2s ease-in forwards; }
+
+/* Заголовок/текст */
 .logout-modal-header h2{
   margin: 0 0 12px 0;
   font-size: 18px; font-weight: 600; color: #212529;
@@ -40,21 +91,24 @@
   font-size: 15px; line-height: 1.6; color: #495057;
 }
 
-/* подвал и кнопки */
-.logout-modal-footer{ display: flex; justify-content: flex-end; gap: 12px; }
-
+/* Подвал и кнопки */
+.logout-modal-footer{ display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
 .logout-modal-button{
   position: relative;
-  display: flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 110px;
   height: 40px; padding: 0 16px;
   font-size: 14px; font-weight: 600; cursor: pointer;
-
-  border: 1px solid transparent; border-radius: 0;
+  border: 1px solid transparent; border-radius: 10px;
   background: transparent; overflow: hidden;
-  transition: background-color .3s, color .3s, border-color .3s;
+  transition: background-color .3s, color .3s, border-color .3s, box-shadow .2s;
+}
+.logout-modal-button:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13,110,253,.35);
 }
 
-/* круглая вспышка под курсором (переменные --mouse-x/--mouse-y выставляет JS) */
+/* Эффект вспышки (отключим на тач) */
 .logout-modal-button::before{
   content: "";
   position: absolute; z-index: 0;
@@ -67,18 +121,13 @@
 .logout-modal-button span{ position: relative; z-index: 1; transition: color .3s; }
 .logout-modal-button:hover span{ color: #fff !important; }
 
-/* варианты кнопок (светлая тема) */
-.logout-modal-button.neutral{
-  background: #f0f2f5; color: #495057;
-}
+/* Варианты */
+.logout-modal-button.neutral{ background: #f0f2f5; color: #495057; }
 .logout-modal-button.neutral::before{ background: #6c757d; }
-
-.logout-modal-button.reject{
-  background: #fdeaea; color: #9b1c1c;
-}
+.logout-modal-button.reject{ background: #fdeaea; color: #9b1c1c; }
 .logout-modal-button.reject::before{ background: #dc3545; }
 
-/* анимации появления/ухода боковой инфо-модалки */
+/* ====== Инфо-модалка (если используешь общий стиль) ====== */
 @keyframes info-modal-slide-in {
   from { opacity: 0; transform: translateX(-100%) translateY(-10px) scale(0.98); }
   to   { opacity: 1; transform: translateX(-100%) translateY(0)      scale(1); }
@@ -87,33 +136,27 @@
   from { opacity: 1; transform: translateX(-100%) translateY(0)      scale(1); }
   to   { opacity: 0; transform: translateX(-100%) translateY(-10px)  scale(0.98); }
 }
-
-/* контейнер инфо-модалки (светлая тема) */
 .info-modal-container{
   position: fixed;
-  width: 320px;
   z-index: 2000;
-  padding: 16px;
-  box-sizing: border-box;
-
+  width: min(320px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
+  max-height: min(60dvh, 70svh);
+  overflow: auto;
+  padding: 16px; box-sizing: border-box;
   background: rgba(248, 249, 250, 0.8);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-
   border: 1px solid rgba(255,255,255,0.6);
   box-shadow: 0 16px 40px rgba(0,0,0,0.15);
   border-radius: 14px;
-
   transform-origin: top right;
   animation: info-modal-slide-in .25s ease-out forwards;
 }
-.info-modal-container.is-closing{ animation: info-modal-slide-out .25s ease-in forwards; }
-
-/* наследуемые элементы внутри инфо-модалки */
+.info-modal-container.is-closing{ animation: info-modal-slide-out .2s ease-in forwards; }
 .info-modal-container .logout-modal-header h2{ font-size: 17px; margin-bottom: 10px; }
 .info-modal-container .logout-modal-body  p{ font-size: 14px; line-height: 1.5; margin-bottom: 0; }
 
-/* тёмная тема */
+/* ====== Тёмная тема ====== */
 body[data-theme='dark'] .logout-modal-container{
   background: rgba(26,26,26,.92);
   border-color: rgba(255,255,255,.12);
@@ -121,24 +164,45 @@ body[data-theme='dark'] .logout-modal-container{
 }
 body[data-theme='dark'] .logout-modal-header h2{ color: var(--text); }
 body[data-theme='dark'] .logout-modal-body  p{ color: var(--text-soft); }
-
 body[data-theme='dark'] .info-modal-container{
   background: rgba(26,26,26,.90);
   border-color: rgba(255,255,255,.12);
   color: var(--text);
 }
-
-/* тёмная тема: кнопки */
 body[data-theme='dark'] .logout-modal-button.neutral{
   background: var(--surface-soft);
   color: var(--text);
-  border-color: transparent;
 }
 body[data-theme='dark'] .logout-modal-button.neutral::before{ background: #6c757d; }
-
-body[data-theme='dark'] .logout-modal-button.reject{
-  background: #7b1c1c;
-  color: #fff;
-}
+body[data-theme='dark'] .logout-modal-button.reject{ background: #7b1c1c; color: #fff; }
 body[data-theme='dark'] .logout-modal-button.reject::before{ background: #b02a37; }
 
+/* ====== Адаптация под тач/низкие экраны ====== */
+@media (hover: none) and (pointer: coarse){
+  .logout-modal-button::before{ display: none; }
+  .logout-modal-button:hover span{ color: inherit !important; }
+}
+
+/* Очень низкие экраны — принудительно делаем шит */
+@media (orientation: landscape) and (max-height: 520px){
+  .logout-modal-container{
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: calc(var(--safe-bottom) + var(--sheet-gap));
+    width: min(560px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+    max-height: min(70dvh, 78svh);
+    transform: translateX(-50%);
+    animation: sheet-up-in .25s ease-out forwards;
+  }
+}
+
+/* Доступность: меньше анимаций, если пользователь просит */
+@media (prefers-reduced-motion: reduce){
+  .modal-backdrop,
+  .logout-modal-container,
+  .info-modal-container{
+    transition: none !important;
+    animation: none !important;
+  }
+}

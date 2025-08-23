@@ -45,6 +45,7 @@
     padding: 0 10px;
     align-items: center;
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .search-bar-wrapper {
@@ -546,3 +547,16 @@ body[data-theme='dark'] .all-users-scope .user-card.is-expanded .role-badge:hove
   background: rgba(255,255,255,.28) !important;
 }
 
+@media (max-width: 640px) {
+  .card-content-wrapper {
+    padding: 0 10px;
+  }
+
+  .all-users-container .card-content-wrapper .card-header-right .interactive-button span > *:not(svg) {
+    display: none;
+  }
+
+  .all-users-container .card-content-wrapper .card-header-right .role-badge {
+    display: none;
+  }
+}

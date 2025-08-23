@@ -1319,3 +1319,51 @@ body[data-theme='dark'] .my-requests-scope .m-stack-download::after{
   background:#202020;
   box-shadow:0 4px 15px rgba(0,0,0,.28);
 }
+
+
+@media(max-width: 640px) {
+  .my-requests-scope .filter-buttons {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .my-requests-scope .requests-container .page-content {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    
+  }
+
+  .my-requests-scope .card-content-wrapper {
+    padding: 15px;
+  }
+
+  .my-requests-scope .card-header {
+    flex-wrap: wrap;
+    padding: 0;
+  }
+
+  .my-requests-scope .request-card-body-grid {
+    padding: 15px;
+    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+
+  .my-requests-scope .m-stack-download {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .card-body-column.column-files {
+    order:3;
+  }
+
+  .my-requests-scope .column-details {
+    padding-left: 10px;;
+  }
+
+  .my-requests-scope .request-card.is-expanded .card-details-wrapper {
+    max-height: unset;
+    height: 100%;
+  }
+}

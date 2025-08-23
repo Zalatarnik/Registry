@@ -37,7 +37,6 @@
   overflow-y: auto;
   background-color: #ffffff;
   box-shadow: none;
-  width: 109vh;
   max-height: 55vh;
 }
 
@@ -588,4 +587,20 @@ body[data-theme='dark'] .new-request-container .file-upload-area::after,
 body[data-theme='dark'] .my-requests-scope .file-upload-area::after{
   background: radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y),
                                rgba(211,84,0,.22), transparent 80%);
+}
+
+@media(max-width: 640px) {
+  .new-request-container {
+    padding: 10px;
+  }
+
+  .new-request-container h1 {
+    font-size: 20px;
+    text-align: center;
+    margin-left: 0;
+  }
+
+  .new-request-container .page-content {
+    margin-left: 0;
+  }
 }

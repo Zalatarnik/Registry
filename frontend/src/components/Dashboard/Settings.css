@@ -209,3 +209,17 @@ body[data-theme='dark'] .settings-component-scope  {
     box-shadow: 0 2px 6px rgba(211,84,0,.35);
   }
 }
+
+@media(max-width: 640px) {
+    .settings-component-scope .settings-view-wrapper {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: 50px;
+        width: calc(100% - 20px);
+    }
+
+    .settings-component-scope .settings-modal {
+        width: 100%;
+    }
+}

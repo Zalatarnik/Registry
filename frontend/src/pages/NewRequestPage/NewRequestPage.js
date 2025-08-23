@@ -9,6 +9,8 @@ import { validateNewRequest } from '../../validation/ValidationContext';
 import { ReactComponent as UploadIcon } from '../../icons/upload-icon.svg';
 import { ReactComponent as DownIcon } from '../../icons/down-icon.svg';
 
+const API_BASE_URL = 'http://localhost:8000';
+
 
 // АНИМАЦИЯ КНОПОК
 
@@ -327,7 +329,7 @@ export default function NewRequestPage({ userLogin }) {
         });
 
         try {
-            const response = await fetch('http://localhost:8000/api/requests', {
+            const response = await fetch(`${API_BASE_URL}/api/requests`, {
                 method: 'POST',
                 body: data,
             });

@@ -1,13 +1,68 @@
 html, body {
   height: 100%;
-  overflow-y: hidden;
   overflow-x: clip;
+  overflow-y: auto; /* позволяем нормальный скролл по умолчанию */
 }
+
+* {
+  box-sizing: border-box;
+}
+
+/* Если когда-то нужно залочить скролл (модалки) — просто вешай класс на body */
+body.scroll-lock {
+  overflow: hidden;
+}
+
+/* Безопасные зоны (ночи/вырезы) + общий отступ */
+:root {
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --gutter: clamp(12px, 2.5vw, 24px);
+}
+
+/* Стабильный скролл на основной области */
+.content-area,
+.page-content {
+  max-height: 100svh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Телефоны в ландшафте и «низкие» экраны: прибираем фон, уплотняем отступы */
+@media (orientation: landscape) and (max-height: 480px) {
+  .App {
+    align-items: flex-start;
+    padding: 8px;
+  }
+  .app-logo {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 120px;
+  }
+  .background-triangle,
+  .background-shape-right {
+    display: none !important;
+  }
+  .content-area, .page-content {
+    max-height: 100dvh; /* учитываем клавиатуру/системные панели */
+  }
+}
+
+/* Очень узкие экраны (старые/малые телефоны) */
+@media (max-width: 360px) {
+  :root { --gutter: 12px; }
+}
+
 
 .content-area,
 .page-content {
   max-height: 100svh;           /* стабильнее, чем 100vh на мобилках */
-  overflow: auto;               /* один единственный скролл тут */
+  overflow-y: auto;               /* один единственный скролл тут */
   overscroll-behavior: contain; /* без «протекания» скролла на body */
   scrollbar-gutter: stable;     /* без дёрганий при появлении полосы */
 }

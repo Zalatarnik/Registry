@@ -1,10 +1,17 @@
 
-.notifications-component-scope .notifications-view-wrapper {
-    position: absolute;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start;
-    gap: 16px;
+.notifications-component-scope .notifications-view-wrapper{
+  position: fixed;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 16px;
+  z-index: 4000;
+  margin-right: max(8px, env(safe-area-inset-right));
+  margin-left:  max(8px, env(safe-area-inset-left));
+  left: auto;
+}
+.notifications-component-scope .notifications-view-wrapper.is-sheet{
+  top: max(8px, env(safe-area-inset-top));
 }
 
 @keyframes notifications-scope-slide-in-from-right {
@@ -94,18 +101,17 @@
 }
 
 
-.notifications-component-scope .notifications-modal {
-    display: flex;
-    flex-direction: column;
-    width: 380px;
-    max-height: 500px;
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    animation: notifications-scope-slide-in-from-right 0.4s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+.notifications-component-scope .notifications-modal{
+  display: flex; flex-direction: column;
+  width: min(380px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  max-height: min(70svh, 560px);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: notifications-scope-slide-in-from-right 0.4s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
 }
 
 .notifications-component-scope .notifications-modal.is-closing {
@@ -268,10 +274,10 @@
     cursor: pointer;
 }
 
-.notifications-component-scope .event-card-student {
-    --card-width: 280px;
-    --card-height: 280px;
-    --header-height: 80px;
+.notifications-component-scope .event-card-student{
+    --card-width: min(44vw, 320px);
+    --card-height: clamp(240px, 42vh, 340px);
+    --header-height: 72px;
     width: var(--card-width);
     height: var(--card-height);
     flex-shrink: 0;
@@ -280,9 +286,9 @@
                 height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.notifications-component-scope .event-card-student.is-detailed-view {
-    width: 480px;
-    height: 560px;
+.notifications-component-scope .event-card-student.is-detailed-view{
+    width: min(520px, 80vw);
+    height: clamp(420px, 70svh, 620px);
 }
 
 .notifications-component-scope .student-card-inner {
@@ -295,14 +301,14 @@
     border-radius: 16px;
 }
 
-.notifications-component-scope .cover-image {
+.notifications-component-scope .cover-image{
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
+    object-fit: cover;
+    object-position: center;
     z-index: 1;
 }
 
@@ -509,11 +515,11 @@
     animation: notifications-scope-modal-fade-out 0.4s ease-in forwards;
 }
 
-.notifications-component-scope .edit-modal-content.signup-modal {
+.notifications-component-scope .signup-modal-content{
     position: absolute;
     display: flex;
-    width: 600px;
-    max-height: 90vh;
+    width: min(600px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+    max-height: min(88svh, 720px);
     z-index: 2001;
     background-color: rgba(248, 249, 250, 0.85);
     backdrop-filter: blur(8px);
@@ -527,8 +533,20 @@
     animation: notifications-scope-modal-slide-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.notifications-component-scope .edit-modal-content.signup-modal.is-closing {
+.notifications-component-scope .signup-modal-content.is-closing{
     animation: notifications-scope-modal-slide-out 0.4s ease-in forwards;
+}
+
+/* режим нижнего шита */
+.notifications-component-scope .signup-modal-content.is-sheet{
+  left: 50% !important;
+  right: auto !important;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  top: auto !important;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  max-height: min(78svh, 640px);
+  border-radius: 14px;
 }
 
 .notifications-component-scope .chat-header {
@@ -1153,3 +1171,56 @@ body[data-theme='dark'] .notifications-component-scope
 .detailed-event-container .details-container p {
   color: var(--text) !important;
 }
+
+@media (max-width: 640px), (orientation: landscape) and (max-height: 520px){
+  .notifications-view-wrapper.is-sheet{
+    width: calc(100% - 20px);
+    left: 10px;
+    right: 10px;
+    padding:0;
+    margin:0;
+    max-height: min(78svh, 640px);
+  }
+}
+
+@media(max-width: 640px) {
+  .notifications-component-scope .notifications-view-wrapper.is-sheet {
+    top: 61px;
+    width: calc(100% - 20px);
+    left: 10px;
+    right: 10px;
+    padding:0;
+    margin:0;
+    flex-direction: column;
+  }
+
+  .notifications-component-scope .notifications-modal {
+    width: 100%;
+  }
+
+  .detailed-event-container {
+    order: 1;
+    width: 100%;
+  }
+
+  .notifications-component-scope .event-card-student {
+    width: 100%;
+  }
+
+  .notifications-component-scope .event-card-student.is-detailed-view {
+    width: 100%;
+  }
+}
+
+@media (hover: none) and (pointer: coarse){
+  .notifications-component-scope .interactive-button::before,
+  .notifications-component-scope .form-submit-btn::before,
+  .notifications-component-scope .form-secondary-btn::before{ display:none; }
+  .notifications-component-scope .interactive-button:hover span,
+  .notifications-component-scope .form-submit-btn:hover span,
+  .notifications-component-scope .form-secondary-btn:hover span{ color: inherit !important; }
+  .notifications-component-scope .interactive-button,
+  .notifications-component-scope .form-submit-btn,
+  .notifications-component-scope .form-secondary-btn{ min-height: 44px; }
+}
+
